@@ -77,6 +77,11 @@ jobs:
     - name: Setup MSBuild.exe
       uses: microsoft/setup-msbuild@v1.0.2
 
+    # i dont usually powershell. sorry in advance.
+    # TODO: don't be sorry
+    - name: exec
+      run: (Get-Content -ReadCount 0 Editor\Program.cs ) -replace '3.8.2', '0xdeadbeef' | Set-Content Editor\Program.cs -WhatIf
+
     # Execute all unit tests in the solution
     - name: Execute unit tests
       run: dotnet test
