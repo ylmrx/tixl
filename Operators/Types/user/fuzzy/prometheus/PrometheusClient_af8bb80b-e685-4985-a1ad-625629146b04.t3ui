@@ -1,5 +1,5 @@
 {
-  "Id": "af8bb80b-e685-4985-a1ad-625629146b04"/*demo_prom*/,
+  "Id": "af8bb80b-e685-4985-a1ad-625629146b04"/*PrometheusClient*/,
   "Description": "",
   "InputUis": [
     {
@@ -55,15 +55,6 @@
       "Description": "timestamp (unix) of end of the vector (when in range mode)\ntimestamp of instant value (in instant mode)\n0 means latest\n"
     },
     {
-      "InputId": "b93c56ae-7b9d-4d30-8727-0550f9b2575f"/*timeout*/,
-      "Position": {
-        "X": -193.31342,
-        "Y": 187.04297
-      },
-      "GroupTitle": "Misc",
-      "Description": "request timeout, in seconds"
-    },
-    {
       "InputId": "880dd1f9-5053-45b4-9d44-e2e9baca60f1"/*step*/,
       "Position": {
         "X": -193.31342,
@@ -71,22 +62,30 @@
       },
       "Description": "Query resolution step width in duration format\n(float timestamps are not supported)\n",
       "Usage": "Default"
+    },
+    {
+      "InputId": "dbb8ec7a-a9cd-4a2d-b351-cedb9e966507"/*timeout*/,
+      "Position": {
+        "X": -193.31342,
+        "Y": 277.04297
+      },
+      "Usage": "Default"
     }
   ],
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "d6007dab-7016-433b-8ad7-6612710c3aef"/*timestamps*/,
-      "Position": {
-        "X": 144.04462,
-        "Y": 205.33264
-      }
-    },
-    {
       "OutputId": "5dd894cf-68c0-49bf-b67d-18924b0f443d"/*values*/,
       "Position": {
         "X": 144.04462,
         "Y": 305.33264
+      }
+    },
+    {
+      "OutputId": "d6007dab-7016-433b-8ad7-6612710c3aef"/*timestamps*/,
+      "Position": {
+        "X": 144.04462,
+        "Y": 405.33264
       }
     }
   ]

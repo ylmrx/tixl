@@ -11,50 +11,57 @@ using System.Collections.Generic;
 
 namespace T3.Operators.Types.Id_af8bb80b_e685_4985_a1ad_625629146b04
 {
-    public class demo_prom : Instance<demo_prom>
+    public class PrometheusClient : Instance<PrometheusClient>
     { 
         [Output(Guid = "d6007dab-7016-433b-8ad7-6612710c3aef")]
-        public readonly Slot<System.Collections.Generic.List<float>> timestamps = new Slot<System.Collections.Generic.List<float>>();
+        public readonly Slot<List<float>> timestamps = new Slot<List<float>>();
 
         [Output(Guid = "5dd894cf-68c0-49bf-b67d-18924b0f443d")]
-        public readonly Slot<System.Collections.Generic.List<float>> values = new Slot<System.Collections.Generic.List<float>>();
+        public readonly Slot<List<float>> values = new Slot<List<float>>();
 
         public enum PrometheusRequestType {
             Instant,
             Range
         }
 
-        public demo_prom() {
+        public PrometheusClient() {
             timestamps.UpdateAction = Update;
             values.UpdateAction = Update;
         }
 
         private void Update(EvaluationContext context) {
-            var p = prometheus.GetValue(context);
-            var q = query.GetValue(context);
-            var e = end.GetValue(context);
-            var s = start.GetValue(context);
-            var st = step.GetValue(context);
-            var t = type.GetValue(context);
+            var prometheusValue = prometheus.GetValue(context);
+            var queryValue = query.GetValue(context);
+            var endValue = end.GetValue(context);
+            var startValue = start.GetValue(context);
+            var stepValue = step.GetValue(context);
+            var timeoutValue = timeout.GetValue(context);
+            var typeValue = type.GetValue(context);
+
             var isPDirty = prometheus.DirtyFlag.IsDirty;
             var isQDirty = query.DirtyFlag.IsDirty;
             var isEDirty = end.DirtyFlag.IsDirty;
             var isSDirty = start.DirtyFlag.IsDirty;
+            var isStDirty = step.DirtyFlag.IsDirty;
+
             var wasTriggered = MathUtils.WasTriggered(triggerFetch.GetValue(context), ref _triggered);
-            if (wasTriggered || isPDirty || isQDirty || isEDirty || isSDirty) {
-                if (t == (int)PrometheusRequestType.Instant)
+
+            var to = timeoutValue.Equals("") ? "" : "&timeout=" + timeoutValue;
+
+            if (wasTriggered || isPDirty || isQDirty || isEDirty || isSDirty || isStDirty) {
+                if (typeValue == (int)PrometheusRequestType.Instant)
                 {
-                    FetchUrl(p + "api/v1/query?query=" + q);
+                    FetchUrl(prometheusValue + "api/v1/query?query=" + queryValue + to);
                 }
-                if (t == (int)PrometheusRequestType.Range)
+                if (typeValue == (int)PrometheusRequestType.Range)
                 {
-                    if(e == 0 || s == 0 || st.Equals("")) {
+                    if(endValue == 0 || startValue == 0 || stepValue.Equals("")) {
                         Log.Warning("we need both 'start' and 'end' and 'step' set when in range mode");
                     }
                     else {
-                        FetchUrl(p + "api/v1/query_range?query=" + q +
-                            "&start=" + s.ToString() + "&end=" + e.ToString() +
-                            "&step=" + st);
+                        FetchUrl(prometheusValue + "api/v1/query_range?query=" + queryValue +
+                            "&start=" + startValue.ToString() + "&end=" + endValue.ToString() +
+                            "&step=" + stepValue + to);
                     }
                 }
             }
@@ -115,11 +122,11 @@ namespace T3.Operators.Types.Id_af8bb80b_e685_4985_a1ad_625629146b04
         [Input(Guid = "48751360-8a93-4c19-a1bb-e5ef6ea32b6e")]
         public readonly InputSlot<int> end = new InputSlot<int>();
 
-        [Input(Guid = "b93c56ae-7b9d-4d30-8727-0550f9b2575f")]
-        public readonly InputSlot<int> timeout = new InputSlot<int>();
-
         [Input(Guid = "880dd1f9-5053-45b4-9d44-e2e9baca60f1")]
         public readonly InputSlot<string> step = new InputSlot<string>();
+
+        [Input(Guid = "dbb8ec7a-a9cd-4a2d-b351-cedb9e966507")]
+        public readonly InputSlot<string> timeout = new InputSlot<string>();
 
     }
 }

@@ -1,7 +1,7 @@
 {
-  "Name": "demo_prom",
+  "Name": "PrometheusClient",
   "Id": "af8bb80b-e685-4985-a1ad-625629146b04",
-  "Namespace": "user.fuzzy.demo",
+  "Namespace": "user.fuzzy.prometheus",
   "Inputs": [
     {
       "Id": "155fa972-e80a-4c8e-9958-9041a7c0616d"/*query*/,
@@ -28,11 +28,11 @@
       "DefaultValue": 0
     },
     {
-      "Id": "b93c56ae-7b9d-4d30-8727-0550f9b2575f"/*timeout*/,
-      "DefaultValue": 0
+      "Id": "880dd1f9-5053-45b4-9d44-e2e9baca60f1"/*step*/,
+      "DefaultValue": ""
     },
     {
-      "Id": "880dd1f9-5053-45b4-9d44-e2e9baca60f1"/*step*/,
+      "Id": "dbb8ec7a-a9cd-4a2d-b351-cedb9e966507"/*timeout*/,
       "DefaultValue": ""
     }
   ],
