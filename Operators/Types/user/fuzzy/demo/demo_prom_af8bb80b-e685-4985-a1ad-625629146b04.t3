@@ -1,0 +1,41 @@
+{
+  "Name": "demo_prom",
+  "Id": "af8bb80b-e685-4985-a1ad-625629146b04",
+  "Namespace": "user.fuzzy.demo",
+  "Inputs": [
+    {
+      "Id": "155fa972-e80a-4c8e-9958-9041a7c0616d"/*query*/,
+      "DefaultValue": ""
+    },
+    {
+      "Id": "b8ca1dde-f912-4269-bd0b-35182c4d6ab1"/*prometheus*/,
+      "DefaultValue": ""
+    },
+    {
+      "Id": "7a4472eb-769f-4806-9d98-75f1ebe8b19a"/*triggerFetch*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "8ad8064b-4e80-428c-9e41-92c60277ec78"/*type*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "a149c51f-24fc-47f3-ad47-af6510c08e42"/*start*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "48751360-8a93-4c19-a1bb-e5ef6ea32b6e"/*end*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "b93c56ae-7b9d-4d30-8727-0550f9b2575f"/*timeout*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "880dd1f9-5053-45b4-9d44-e2e9baca60f1"/*step*/,
+      "DefaultValue": ""
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}
