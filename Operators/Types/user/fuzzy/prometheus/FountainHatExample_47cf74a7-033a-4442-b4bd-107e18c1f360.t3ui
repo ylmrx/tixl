@@ -1,0 +1,189 @@
+{
+  "Id": "47cf74a7-033a-4442-b4bd-107e18c1f360"/*FountainHatExample*/,
+  "Description": "",
+  "InputUis": [],
+  "SymbolChildUis": [
+    {
+      "ChildId": "31e4e78b-e671-411d-8226-904f1ba8602a"/*HatStoreExample*/,
+      "Style": "Expanded",
+      "Size": {
+        "X": 110.0,
+        "Y": 49.0
+      },
+      "Position": {
+        "X": 266.1328,
+        "Y": 506.50977
+      }
+    },
+    {
+      "ChildId": "d0ed86db-7a4f-44ff-a024-dcb35d4eb6d9"/*FloatListToString*/,
+      "Position": {
+        "X": 512.3164,
+        "Y": 489.97363
+      }
+    },
+    {
+      "ChildId": "c77eb3ec-9929-404f-9b7b-d71ad42e56dc"/*FloatToInt*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 562.50977
+      }
+    },
+    {
+      "ChildId": "ab87b125-66dd-46f0-9fc3-a42500b708b4"/*FloatToInt*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 506.50977
+      }
+    },
+    {
+      "ChildId": "6a29a0b4-bad9-421f-a2c2-98220c68c049"/*FloatListLength*/,
+      "Position": {
+        "X": 483.2151,
+        "Y": 377.3628
+      }
+    },
+    {
+      "ChildId": "06a164f5-9ea5-42f1-b454-6d30aaccf14c"/*PickFloatFromList*/,
+      "Position": {
+        "X": 84.019775,
+        "Y": 157.50928
+      }
+    },
+    {
+      "ChildId": "1ef93a1f-93a3-4976-ac8b-5d5d9935eb30"/*PickFloatFromList*/,
+      "Position": {
+        "X": 87.91992,
+        "Y": 241.3628
+      }
+    },
+    {
+      "ChildId": "5d0a2877-c4e3-4ddc-aea2-1a364df3785c"/*PickFloatFromList*/,
+      "Position": {
+        "X": 94.16553,
+        "Y": 309.2671
+      }
+    },
+    {
+      "ChildId": "a62f8776-ed3d-4e9f-ba71-be303f425f33"/*FloatToInt*/,
+      "Position": {
+        "X": 219.51343,
+        "Y": 160.20508
+      }
+    },
+    {
+      "ChildId": "5bf46c6d-5af9-4404-9f9f-02554f945f32"/*FloatToInt*/,
+      "Position": {
+        "X": 220.29712,
+        "Y": 199.78174
+      }
+    },
+    {
+      "ChildId": "746c4e4a-295a-4464-970c-ab28fa30aff2"/*FloatToInt*/,
+      "Position": {
+        "X": 339.2329,
+        "Y": 242.97607
+      }
+    },
+    {
+      "ChildId": "a92dcc91-d922-4b58-a8c8-137b39facc08"/*IntDiv*/,
+      "Style": "Expanded",
+      "Size": {
+        "X": 110.0,
+        "Y": 49.0
+      },
+      "Position": {
+        "X": 468.66406,
+        "Y": 186.5376
+      }
+    },
+    {
+      "ChildId": "2019c1ae-0f3a-447c-aa97-ae1671f84b2e"/*IntValue*/,
+      "Position": {
+        "X": 462.41943,
+        "Y": 92.76221
+      }
+    },
+    {
+      "ChildId": "b7ca6dba-07a5-4bec-9df6-c7ba64dbafbc"/*IntDiv*/,
+      "Position": {
+        "X": 470.72607,
+        "Y": 252.43457
+      }
+    },
+    {
+      "ChildId": "db77979c-5e73-4cda-a823-c6ac0020ea7c"/*MultiplyInt*/,
+      "Position": {
+        "X": 385.06836,
+        "Y": 0.0
+      }
+    },
+    {
+      "ChildId": "4f702b6f-d07f-414e-8e5e-46f5857d4c63"/*DrawPoints*/,
+      "Comment": "Simple white points. Notice that the Point's W attribute is used for scaling the points.",
+      "Position": {
+        "X": 1133.6354,
+        "Y": 91.15234
+      }
+    },
+    {
+      "ChildId": "d6b09697-e8e1-49b1-822d-a8645b65998b"/*RadialPoints*/,
+      "Position": {
+        "X": 661.1195,
+        "Y": 88.48779
+      }
+    },
+    {
+      "ChildId": "1b9328a3-e09f-4fc6-a28a-964e56dad302"/*Time*/,
+      "Position": {
+        "X": 661.1195,
+        "Y": 144.4878
+      }
+    },
+    {
+      "ChildId": "8abd6764-3b8c-4bfe-b19e-ec8cdabefba5"/*_RandomizePoints_Legacy1*/,
+      "Position": {
+        "X": 811.12,
+        "Y": 88.48779
+      }
+    },
+    {
+      "ChildId": "3181c03d-1749-4854-b796-ee8280e677be"/*DirectionalForce*/,
+      "Position": {
+        "X": 811.12,
+        "Y": 157.4878
+      }
+    },
+    {
+      "ChildId": "d700dbad-0c0b-417d-88ad-c6555f304c60"/*ParticleSystem*/,
+      "Position": {
+        "X": 961.12,
+        "Y": 88.48779
+      }
+    },
+    {
+      "ChildId": "b0900d42-267a-4b43-94a6-e74fa9eff133"/*RenderTarget*/,
+      "Position": {
+        "X": 1206.9935,
+        "Y": 303.82178
+      }
+    },
+    {
+      "ChildId": "78194684-865b-4273-baf1-096280c7af7d"/*Glow*/,
+      "Comment": "Everything looks better with glow.",
+      "Position": {
+        "X": 1356.9934,
+        "Y": 303.82178
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "8bc41920-a8b6-4d12-a24a-76066b389dda"/*Output*/,
+      "Position": {
+        "X": 1481.7682,
+        "Y": 330.04233
+      }
+    }
+  ]
+}

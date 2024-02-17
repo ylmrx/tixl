@@ -1,0 +1,148 @@
+{
+  "Id": "1bcfd505-5078-4ec5-878b-dcdeec15b173"/*HatStoreExample*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "1e31c010-ac25-4354-8763-0844d6cf43f1"/*Size*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 86.10025,
+        "Y": 49.40393
+      },
+      "Min": 2,
+      "Max": 1000,
+      "Scale": 1.0
+    },
+    {
+      "InputId": "bd26eb79-9ac3-4df7-8a57-8d7f0f14818d"/*Backlog*/,
+      "Position": {
+        "X": -53.385902,
+        "Y": 385.66577
+      }
+    }
+  ],
+  "SymbolChildUis": [
+    {
+      "ChildId": "3480cee7-50aa-4875-8ac7-110826cbab6b"/*PrometheusClient*/,
+      "Style": "Expanded",
+      "Size": {
+        "X": 110.0,
+        "Y": 127.0
+      },
+      "Position": {
+        "X": 709.49854,
+        "Y": 87.16162
+      }
+    },
+    {
+      "ChildId": "b62c8d7d-28e1-4d24-a925-507c40fcbe52"/*AnimValue*/,
+      "Position": {
+        "X": 362.8252,
+        "Y": 616.0342
+      }
+    },
+    {
+      "ChildId": "13221dc2-ae7e-4f7e-8b9f-50f1123b2bf4"/*HasValueDecreased*/,
+      "Position": {
+        "X": 497.83594,
+        "Y": 611.687
+      }
+    },
+    {
+      "ChildId": "26c3d74e-eed1-479e-a380-81e351c55dd9"/*AddInts*/,
+      "Position": {
+        "X": 340.54004,
+        "Y": 750.2373
+      }
+    },
+    {
+      "ChildId": "1f48373a-2b8a-4862-9dd0-f3bac3a77693"/*DateTimeInSecs*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 285.90576
+      }
+    },
+    {
+      "ChildId": "36d260eb-f729-4baa-a1f2-85f9e249c284"/*IntValue*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 242.90576
+      }
+    },
+    {
+      "ChildId": "ccb41621-60a0-452e-ab1d-40e4b75b9af6"/*MultiplyInt*/,
+      "Position": {
+        "X": 171.88306,
+        "Y": 487.688
+      }
+    },
+    {
+      "ChildId": "e722996a-8490-41e7-bbd4-f820bf22c962"/*IntDiv*/,
+      "Position": {
+        "X": 367.63354,
+        "Y": 185.06058
+      }
+    },
+    {
+      "ChildId": "5b5fb557-59b5-4e93-87b1-dbff2bfdd305"/*IntToString*/,
+      "Position": {
+        "X": 408.5044,
+        "Y": 391.33936
+      }
+    },
+    {
+      "ChildId": "e81cfa3c-73f0-49cc-9fd6-fbd95f088da2"/*AddInts*/,
+      "Position": {
+        "X": 213.12044,
+        "Y": 222.28503
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "6f0809d3-0daa-4fd3-8e9a-1c4d6dda9f8a"/*values*/,
+      "Position": {
+        "X": 903.08826,
+        "Y": 220.09363
+      }
+    }
+  ],
+  "Annotations": [
+    {
+      "Id": "7e392ebf-5fd1-494c-a8c1-98b5f220e98c",
+      "Title": "steps",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -39.391846,
+        "Y": 1.5766602
+      },
+      "Size": {
+        "X": 352.03958,
+        "Y": 155.16638
+      }
+    },
+    {
+      "Id": "9da9b0db-d8c6-4d39-ac25-02be64e0b76a",
+      "Title": "backlog in secs\n",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -26.391113,
+        "Y": 175.4585
+      },
+      "Size": {
+        "X": 154.88167,
+        "Y": 151.97418
+      }
+    }
+  ]
+}
