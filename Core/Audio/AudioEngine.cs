@@ -37,7 +37,9 @@ public static class AudioEngine
             _bassInitialized = true;
         }
 
-        AudioAnalysis.CompleteFrame(playback);
+        // For audio-soundtrack we update once every frame. For Wasapi-inputs, we process directly in the new data callback
+        if(playback.Settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
+            AudioAnalysis.ProcessUpdate(playback.Settings.AudioGainFactor, playback.Settings.AudioDecayFactor);
 
         // Create new streams
         foreach (var (handle, time) in _updatedClipTimes)
@@ -82,7 +84,7 @@ public static class AudioEngine
                 }
                 else
                 {
-                    UpdateFftBuffer(clipStream.StreamHandle, playback);
+                    UpdateFftBufferFromSoundtrack(clipStream.StreamHandle, playback);
                     clipStream.UpdateTime(playback);
                 }
             }
@@ -116,18 +118,21 @@ public static class AudioEngine
         }
     }
 
-    internal static void UpdateFftBuffer(int soundStreamHandle, Playback playback)
+    internal static void UpdateFftBufferFromSoundtrack(int soundStreamHandle, Playback playback)
     {
-        // FIXME: This variable name is misleading or incorrect
-        var get256FftValues = (int)DataFlags.FFT2048;
-
+        var dataFlags = (int)DataFlags.FFT2048; // This will return 1024 values
+        
         // Do not advance playback if we are not in live mode
         if (playback.IsRenderingToFile)
-            get256FftValues |= (int)268435456; // TODO: find BASS_DATA_NOREMOVE in ManagedBass
-
-        if (playback.Settings != null && playback.Settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
         {
-            _ = Bass.ChannelGetData(soundStreamHandle, AudioAnalysis.FftGainBuffer, get256FftValues);
+            // ReSharper disable once InconsistentNaming
+            const int DataFlag_BASS_DATA_NOREMOVE = 268435456; // Internal id from ManagedBass
+            dataFlags |= DataFlag_BASS_DATA_NOREMOVE;
+        }
+
+        if (playback.Settings is { AudioSource: PlaybackSettings.AudioSources.ProjectSoundTrack })
+        {
+            _ = Bass.ChannelGetData(soundStreamHandle, AudioAnalysis.FftGainBuffer, dataFlags);
         }
     }
 

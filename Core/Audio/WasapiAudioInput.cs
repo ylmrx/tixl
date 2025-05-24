@@ -86,9 +86,8 @@ public static class WasapiAudioInput
     /// If device is null we will attempt default input index
     /// </summary>
     private static void StartInputCapture(WasapiInputDevice device)
-        //public static void StartInputCapture(string deviceName)
     {
-        int inputDeviceIndex = BassWasapi.DefaultInputDevice;
+        var inputDeviceIndex = BassWasapi.DefaultInputDevice;
 
         if (device == null)
         {
@@ -107,9 +106,6 @@ public static class WasapiAudioInput
             inputDeviceIndex = device.WasapiDeviceIndex;
         }
 
-        //Bass.Configure(Configuration.UpdateThreads, false);
-        // Bass.Configure(Configuration.DeviceBufferLength, 1024);
-
         BassWasapi.Stop();
         BassWasapi.Free();
         if (!BassWasapi.Init(inputDeviceIndex,
@@ -119,7 +115,7 @@ public static class WasapiAudioInput
                              Flags: WasapiInitFlags.Buffer,
                              Buffer: (float)device.DeviceInfo.DefaultUpdatePeriod,
                              Period: (float)device.DeviceInfo.DefaultUpdatePeriod,
-                             Procedure: _wasapiProcedure,
+                             Procedure: ProcessDataCallback,
                              User: IntPtr.Zero))
         {
             Log.Error("Can't initialize WASAPI:" + Bass.LastError);
@@ -166,13 +162,8 @@ public static class WasapiAudioInput
         }
     }
 
-    private static int Process(IntPtr buffer, int length, IntPtr user)
+    private static int ProcessDataCallback(IntPtr buffer, int length, IntPtr user)
     {
-        //Log.Debug($"Wasapi.Process() called with buffer length: {length}");
-        var level = BassWasapi.GetLevel();
-        //if (length < 3000)
-            //return length;
-
         _lastUpdateTime = Playback.RunTimeInSecs;
 
         int resultCode;
@@ -187,7 +178,7 @@ public static class WasapiAudioInput
             //Log.Debug("Wasapi.Process() Result code after another update:" +resultCode);
             if (resultCode >= 0)
             {
-                for (var i = 0; i < AudioAnalysis.FftHalfSize; i++)
+                for (var i = 0; i < AudioAnalysis.FftBufferSize; i++)
                 {
                     AudioAnalysis.FftGainBuffer[i] = MathF.Max(_fftIntermediate[i], AudioAnalysis.FftGainBuffer[i]);
                 }
@@ -198,9 +189,15 @@ public static class WasapiAudioInput
         if (_failedToGetLastFffData)
         {
             Log.Debug($"Can't get Wasapi FFT-Data: {Bass.LastError}");
+            return length;
         }
+        
+        AudioAnalysis.ProcessUpdate(Playback.Current?.Settings?.AudioGainFactor?? 1,
+                                    Playback.Current?.Settings?.AudioDecayFactor?? 0.9f);
 
+        var level = BassWasapi.GetLevel();
         _lastAudioLevel = (float)(level * 0.00001);
+        
         _fftUpdatesSinceLastFrame++;
         //Log.Debug($"Process with {length} #{_fftUpdatesSinceLastFrame}  L:{audioLevel:0.0}  DevBufLen:{BassWasapi.Info.BufferLength}");
         return length;
@@ -209,18 +206,21 @@ public static class WasapiAudioInput
     private static int _fftUpdatesSinceLastFrame;
     private static bool _failedToGetLastFffData;
 
-    public class WasapiInputDevice
+    public sealed class WasapiInputDevice
     {
-        public int WasapiDeviceIndex;
+        internal int WasapiDeviceIndex;
         public WasapiDeviceInfo DeviceInfo;
     }
 
     private static List<WasapiInputDevice> _inputDevices;
-    private static readonly float[] _fftIntermediate = new float[AudioAnalysis.FftHalfSize];
-    private static readonly WasapiProcedure _wasapiProcedure = Process;
+    private static readonly float[] _fftIntermediate = new float[AudioAnalysis.FftBufferSize];
     private static double _lastUpdateTime;
 
     public static string ActiveInputDeviceName { get; private set; }
     private static float _lastAudioLevel;
+    
+    /// <summary>
+    /// This is only used of the gain meter in the playback settings dialog.
+    /// </summary>
     public static float DecayingAudioLevel => (float)(_lastAudioLevel / Math.Max(1, (Playback.RunTimeInSecs - _lastUpdateTime) * 100));
 }

@@ -73,7 +73,7 @@ public static class T3Ui
         if (!Playback.Current.IsRenderingToFile && ProjectView.Focused != null)
         {
             PlaybackUtils.UpdatePlaybackAndSyncing();
-            AudioEngine.CompleteFrame(Playback.Current, Playback.LastFrameDuration);    // Update
+            AudioEngine.CompleteFrame(Playback.Current, Playback.LastFrameDuration);  
         }
         TextureBgraReadAccess.Update();
         

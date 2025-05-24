@@ -6,7 +6,7 @@ using T3.Core.Animation;
 
 namespace T3.Core.Audio;
 
-public static class AudioRendering 
+public static class AudioRendering
 {
     public static void PrepareRecording(Playback playback, double fps)
     {
@@ -19,17 +19,17 @@ public static class AudioRendering
         Bass.Configure(Configuration.UpdateThreads, false);
         Bass.Configure(Configuration.UpdatePeriod, 0);
         Bass.Configure(Configuration.GlobalStreamVolume, 0);
-        
+
         foreach (var (_, clipStream) in AudioEngine.ClipStreams)
         {
             _settingsBeforeExport.BufferLengthInSeconds = Bass.ChannelGetAttribute(clipStream.StreamHandle, ChannelAttribute.Buffer);
 
             Bass.ChannelSetAttribute(clipStream.StreamHandle, ChannelAttribute.Volume, 1.0);
             Bass.ChannelSetAttribute(clipStream.StreamHandle, ChannelAttribute.Buffer, 1.0 / fps);
-            
+
             // TODO: Find this in Managed Bass library. It doesn't seem to be present.
             const int tailAttribute = 16;
-            Bass.ChannelSetAttribute(clipStream.StreamHandle, (ChannelAttribute) tailAttribute, 2.0 / fps);
+            Bass.ChannelSetAttribute(clipStream.StreamHandle, (ChannelAttribute)tailAttribute, 2.0 / fps);
             Bass.ChannelStop(clipStream.StreamHandle);
             clipStream.UpdateTimeWhileRecording(playback, fps, true);
             Bass.ChannelPlay(clipStream.StreamHandle);
@@ -39,10 +39,10 @@ public static class AudioRendering
         _fifoBuffersForClips.Clear();
     }
 
-        public static void ExportAudioFrame(Playback playback, double frameDurationInSeconds, AudioClipStream clipStream)
+    internal static void ExportAudioFrame(Playback playback, double frameDurationInSeconds, AudioClipStream clipStream)
     {
         // Create buffer if necessary
-        if (!_fifoBuffersForClips.TryGetValue(clipStream.ResourceHandle, out var buffer)) 
+        if (!_fifoBuffersForClips.TryGetValue(clipStream.ResourceHandle, out var buffer))
         {
             buffer = _fifoBuffersForClips[clipStream.ResourceHandle] = new byte[0];
         }
@@ -92,7 +92,7 @@ public static class AudioRendering
                     buffer = buffer.Concat(newBuffer).ToArray();
 
                     // Update the FFT now without reading more data
-                    AudioEngine.UpdateFftBuffer(clipStream.StreamHandle, playback);
+                    AudioEngine.UpdateFftBufferFromSoundtrack(clipStream.StreamHandle, playback);
                 }
 
                 // Add silence at the end of our buffer if necessary
@@ -112,7 +112,7 @@ public static class AudioRendering
         // save to dictionary
         _fifoBuffersForClips[clipStream.ResourceHandle] = buffer;
     }
-    
+
     public static void EndRecording(Playback playback, double fps)
     {
         // TODO: Find this in Managed Bass library. It doesn't seem to be present.
@@ -133,7 +133,7 @@ public static class AudioRendering
         Bass.Configure(Configuration.UpdateThreads, _settingsBeforeExport.BassUpdateThreads);
         Bass.Start();
     }
-    
+
     public static byte[] GetLastMixDownBuffer(double frameDurationInSeconds)
     {
         if (AudioEngine.ClipStreams.Count == 0)
@@ -151,7 +151,7 @@ public static class AudioRendering
         {
             if (!_fifoBuffersForClips.TryGetValue(clipStream.ResourceHandle, out var buffer))
                 continue;
-                    
+
             var bytes = (int)Bass.ChannelSeconds2Bytes(clipStream.StreamHandle, frameDurationInSeconds);
             var result = buffer.SkipLast(buffer.Length - bytes).ToArray();
             _fifoBuffersForClips[clipStream.ResourceHandle] = buffer.Skip(bytes).ToArray();
@@ -164,12 +164,12 @@ public static class AudioRendering
     private static readonly Dictionary<AudioClipResourceHandle, byte[]> _fifoBuffersForClips = new();
 
     private static BassSettingsBeforeExport _settingsBeforeExport;
+
     private struct BassSettingsBeforeExport
     {
-        public int BassUpdatePeriodInMs ; // initial Bass library update period in MS
-        public int BassGlobalStreamVolume ; // initial Bass library sample volume (range 0 to 10000)
+        public int BassUpdatePeriodInMs; // initial Bass library update period in MS
+        public int BassGlobalStreamVolume; // initial Bass library sample volume (range 0 to 10000)
         public int BassUpdateThreads; // initial Bass library update threads
         public double BufferLengthInSeconds; // FIXME: Why is that a single attribute for all clip streams?
     }
-
 }
