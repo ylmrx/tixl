@@ -22,7 +22,10 @@
       "Position": {
         "X": -200.0,
         "Y": 135.0
-      }
+      },
+      "Min": 0.01,
+      "Max": 1.0,
+      "Clamp": true
     },
     {
       "InputId": "44409811-1a0f-4be6-83ea-b2f040ebf08b"/*InputBand*/,
@@ -76,7 +79,10 @@
       "Position": {
         "X": -200.0,
         "Y": 90.0
-      }
+      },
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
     }
   ],
   "SymbolChildUis": [],

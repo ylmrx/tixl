@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
 using ManagedBass;
-using T3.Core.Animation;
 using T3.Core.Utils;
 
 namespace T3.Core.Audio;
@@ -13,7 +13,6 @@ public static class AudioAnalysis
 {
     internal static void ProcessUpdate(float gainFactor = 1f, float decayFactor = 0.9f)
     {
-        //var gainFactor = playback.Settings?.AudioGainFactor ?? 1;
         var lastTargetIndex = -1;
 
         lock (FrequencyBands)
@@ -40,24 +39,39 @@ public static class AudioAnalysis
             }
         }
 
+        UpdateSlidingWindowAverages();
+        
         lock (FrequencyBandPeaks)
         {
             // Update Peaks
             for (var bandIndex = 0; bandIndex < FrequencyBandCount; bandIndex++)
             {
-                var lastPeak = FrequencyBandPeaks[bandIndex];
-
-                //var decayFactor = playback.Settings?.AudioDecayFactor ?? 1;
-                var decayed = lastPeak * decayFactor;
-                var currentValue = FrequencyBands[bandIndex];
-                var newPeak = MathF.Max(decayed, currentValue);
-                FrequencyBandPeaks[bandIndex] = newPeak;
-
-                const float attackAmplification = 4;
-                var newAttack = (newPeak - lastPeak).Clamp(0, 1000) * attackAmplification;
-                var lastAttackDecayed = FrequencyBandAttacks[bandIndex] * decayFactor;
-                FrequencyBandAttacks[bandIndex] = MathF.Max(newAttack, lastAttackDecayed);
+                // Compute Attacks for AudioReaction.
+                // This method lacks predictably 
+                {
+                    var lastPeak = FrequencyBandPeaks[bandIndex];
+                    var decayed = lastPeak * decayFactor;
+                    var currentValue = FrequencyBands[bandIndex];
+                    var newPeak = MathF.Max(decayed, currentValue);
+                    
+                    const float attackAmplification = 4;
+                    var newAttack = (newPeak - lastPeak).Clamp(0, 10000) * attackAmplification;
+                    var lastAttackDecayed = FrequencyBandAttacks[bandIndex] * decayFactor;
+                    FrequencyBandAttacks[bandIndex] =  MathF.Max(newAttack, lastAttackDecayed);
+                }
+                
                 FrequencyBandAttackPeaks[bandIndex] = MathF.Max(FrequencyBandAttackPeaks[bandIndex] * 0.995f, FrequencyBandAttacks[bandIndex]);
+                
+                // Compute onsets for BeatSynchronization
+                {
+                    var lastValue = _frequencyBandsPrevious[bandIndex];
+                    var smoothed = _frequencyBandAverages[bandIndex];
+                    var newValueAboveAverage = FrequencyBands[bandIndex] - smoothed;
+                    _frequencyBandsPrevious[bandIndex] = newValueAboveAverage;
+
+                    var delta = (newValueAboveAverage - lastValue).Clamp(0, 1000) * 2;
+                    FrequencyBandOnSets[bandIndex] = delta;
+                }
             }
         }
     }
@@ -105,15 +119,69 @@ public static class AudioAnalysis
         return r;
     }
 
+    #region compute sliding window average for bins
+    
+    private static Queue<float>[] InitHistoryBuffers()
+    {
+        var r = new Queue<float>[FrequencyBandCount];
+        for (var i = 0; i < FrequencyBandCount; i++)
+        {
+            r[i] = new Queue<float>(FrequencyBandHistoryLength);
+        }
+
+        return r;
+    }
+
+    private const float AudioUpdatesPerSecond = (float)(60000.0 / 48000);
+    private const int FrequencyBandHistoryLength = (int)(120 * AudioUpdatesPerSecond);
+    
+    private static void UpdateSlidingWindowAverages()
+    {
+        for (var i = 0; i < FrequencyBandCount; i++)
+        {
+            var currentStrength = FrequencyBands[i];
+            _frequencyBandHistories[i].Enqueue(currentStrength);
+            _bandStrengthSums[i] += currentStrength;
+
+            if (_frequencyBandHistories[i].Count > FrequencyBandHistoryLength)
+            {
+                _bandStrengthSums[i] -= _frequencyBandHistories[i].Dequeue();
+            }
+
+            var averageStrength = 0f;
+            if (_frequencyBandHistories[i].Count > 0)
+            {
+                averageStrength = _bandStrengthSums[i] / _frequencyBandHistories[i].Count;
+            }
+
+            _frequencyBandAverages[i] = averageStrength;
+        }
+    }
+    
+    private static readonly Queue<float>[] _frequencyBandHistories = InitHistoryBuffers();
+    private static readonly float[] _bandStrengthSums = new float[FrequencyBandHistoryLength];
+    private static readonly float[] _frequencyBandAverages = new float[FrequencyBandHistoryLength];
+    #endregion
+
+    
     private static readonly int[] _bandIndexForFftBinIndices = InitializeBandsLookupsTable();
     private const int NoBandIndex = -1;
 
-    private const int FrequencyBandCount = 32;
+    internal const int FrequencyBandCount = 32;
     public static readonly float[] FrequencyBands = new float[FrequencyBandCount];
     public static readonly float[] FrequencyBandPeaks = new float[FrequencyBandCount];
 
     public static readonly float[] FrequencyBandAttacks = new float[FrequencyBandCount];
+
+    private static readonly float[] _frequencyBandsPrevious = new float[FrequencyBandCount];
     public static readonly float[] FrequencyBandAttackPeaks = new float[FrequencyBandCount];
+    
+    /// <summary>
+    /// Used by  BeatSynchronization
+    /// </summary>
+    public static readonly float[] FrequencyBandOnSets = new float[FrequencyBandCount];
+
+
 
     /// <summary>
     /// Result of the fft analysis in gain

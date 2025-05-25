@@ -401,6 +401,12 @@ internal sealed class SettingsWindow : Window
                                                       "Logs additional compilation details with the given severity",
                                                       UserSettings.Defaults.LogCsCompilationDetails);
 
+                    FormInputs.AddVerticalSpace();
+                    changed |= FormInputs.AddCheckBox("Profile Beat Syncing",
+                                                      ref ProjectSettings.Config.EnableBeatSyncProfiling,
+                                                      "Logs beat sync timing to IO Window",
+                                                      ProjectSettings.Defaults.EnableBeatSyncProfiling);
+                    
                     FormInputs.SetIndentToParameters();
 
                     if (UserSettings.Config.LogCsCompilationDetails)

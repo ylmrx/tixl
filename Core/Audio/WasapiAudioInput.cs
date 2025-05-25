@@ -106,6 +106,8 @@ public static class WasapiAudioInput
             inputDeviceIndex = device.WasapiDeviceIndex;
         }
 
+        SampleRate = device.DeviceInfo.MixFrequency;
+
         BassWasapi.Stop();
         BassWasapi.Free();
         if (!BassWasapi.Init(inputDeviceIndex,
@@ -164,26 +166,28 @@ public static class WasapiAudioInput
 
     private static int ProcessDataCallback(IntPtr buffer, int length, IntPtr user)
     {
-        _lastUpdateTime = Playback.RunTimeInSecs;
+        var time = Playback.RunTimeInSecs;  // Keep because timer is still running 
+        TimeSinceLastUpdate = time - LastUpdateTime;
+        LastUpdateTime = time;
 
         int resultCode;
-        if (_fftUpdatesSinceLastFrame == 0)
-        {
+        //if (_fftUpdatesSinceLastFrame == 0)
+        //{
             resultCode = BassWasapi.GetData(AudioAnalysis.FftGainBuffer, (int)(AudioAnalysis.BassFlagForFftBufferSize | DataFlags.FFTRemoveDC));
             //Log.Debug("Wasapi.Process() Result code after first update:" +resultCode);
-        }
-        else
-        {
-            resultCode = BassWasapi.GetData(_fftIntermediate, (int)(AudioAnalysis.BassFlagForFftBufferSize | DataFlags.FFTRemoveDC));
-            //Log.Debug("Wasapi.Process() Result code after another update:" +resultCode);
-            if (resultCode >= 0)
-            {
-                for (var i = 0; i < AudioAnalysis.FftBufferSize; i++)
-                {
-                    AudioAnalysis.FftGainBuffer[i] = MathF.Max(_fftIntermediate[i], AudioAnalysis.FftGainBuffer[i]);
-                }
-            }
-        }
+        //}
+        // else
+        // {
+        //     resultCode = BassWasapi.GetData(_fftIntermediate, (int)(AudioAnalysis.BassFlagForFftBufferSize | DataFlags.FFTRemoveDC));
+        //     //Log.Debug("Wasapi.Process() Result code after another update:" +resultCode);
+        //     if (resultCode >= 0)
+        //     {
+        //         for (var i = 0; i < AudioAnalysis.FftBufferSize; i++)
+        //         {
+        //             AudioAnalysis.FftGainBuffer[i] = MathF.Max(_fftIntermediate[i], AudioAnalysis.FftGainBuffer[i]);
+        //         }
+        //     }
+        // }
 
         _failedToGetLastFffData = resultCode < 0;
         if (_failedToGetLastFffData)
@@ -194,6 +198,8 @@ public static class WasapiAudioInput
         
         AudioAnalysis.ProcessUpdate(Playback.Current?.Settings?.AudioGainFactor?? 1,
                                     Playback.Current?.Settings?.AudioDecayFactor?? 0.9f);
+        
+        BeatSynchronizer.UpdateBeatTimer();
 
         var level = BassWasapi.GetLevel();
         _lastAudioLevel = (float)(level * 0.00001);
@@ -214,7 +220,9 @@ public static class WasapiAudioInput
 
     private static List<WasapiInputDevice> _inputDevices;
     private static readonly float[] _fftIntermediate = new float[AudioAnalysis.FftBufferSize];
-    private static double _lastUpdateTime;
+    public static double TimeSinceLastUpdate;
+    public static double LastUpdateTime;
+    internal static long SampleRate = 48000;
 
     public static string ActiveInputDeviceName { get; private set; }
     private static float _lastAudioLevel;
@@ -222,5 +230,5 @@ public static class WasapiAudioInput
     /// <summary>
     /// This is only used of the gain meter in the playback settings dialog.
     /// </summary>
-    public static float DecayingAudioLevel => (float)(_lastAudioLevel / Math.Max(1, (Playback.RunTimeInSecs - _lastUpdateTime) * 100));
+    public static float DecayingAudioLevel => (float)(_lastAudioLevel / Math.Max(1, (Playback.RunTimeInSecs - LastUpdateTime) * 100));
 }
