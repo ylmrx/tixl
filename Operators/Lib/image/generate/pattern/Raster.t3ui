@@ -28,6 +28,7 @@
         "X": -198.16037,
         "Y": 302.12262
       },
+      "GroupTitle": "Elements",
       "Description": "Size of the dots in the pattern.",
       "Min": -1.0,
       "Max": 1.0
@@ -60,6 +61,7 @@
         "Y": 617.12244
       },
       "Description": "Feathers (blurs) the raster pattern. Useful for smoothing out pixelated edges.\nAffected by the background color, even when it's transparent!",
+      "AddPadding": "True",
       "Min": -2.0,
       "Max": 2.0,
       "Scale": 0.02
@@ -118,7 +120,7 @@
         "X": -198.16037,
         "Y": 32.122437
       },
-      "GroupTitle": "Pattern",
+      "GroupTitle": "Color",
       "Description": "Main color of the raster pattern, used by dots and lines."
     },
     {
@@ -127,6 +129,7 @@
         "X": -198.16037,
         "Y": 167.12245
       },
+      "GroupTitle": "Transform Raster",
       "Description": "Offsets the position of the raster texture.\nAn offset of 1 is equivalent to the distance between dots."
     },
     {
@@ -136,6 +139,7 @@
         "Y": 437.12256
       },
       "Description": "Strength of the input texture's red color channel on the dot size.\nRequires a texture to be connected to the Image input.",
+      "AddPadding": "True",
       "Min": 0.0,
       "Max": 2.0
     },
@@ -145,7 +149,6 @@
         "X": -198.16037,
         "Y": -12.877563
       },
-      "GroupTitle": "Image Input",
       "Description": "Adds an image to the background.\nThis image can also be used to control other parameters dynamically."
     },
     {
@@ -154,7 +157,8 @@
         "X": -124.72741,
         "Y": 726.83594
       },
-      "Description": "Output resolution. Set to 0 for dynamic scaling."
+      "Description": "Output resolution. Set to 0 for dynamic scaling.",
+      "AddPadding": "True"
     }
   ],
   "SymbolChildUis": [

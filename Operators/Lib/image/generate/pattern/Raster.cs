@@ -9,9 +9,6 @@ internal sealed class Raster : Instance<Raster>
         [Input(Guid = "cce27287-9774-436c-9e90-1becb42d8f95")]
         public readonly InputSlot<T3.Core.DataTypes.Texture2D> Image = new InputSlot<T3.Core.DataTypes.Texture2D>();
 
-        [Input(Guid = "fd22eaf6-ed3c-4e63-985c-3a3756ecaef2")]
-        public readonly InputSlot<T3.Core.DataTypes.Vector.Int2> Resolution = new InputSlot<T3.Core.DataTypes.Vector.Int2>();
-
         [Input(Guid = "b32e1383-07c4-4dc4-859d-e7fb19261bce")]
         public readonly InputSlot<System.Numerics.Vector2> Offset = new InputSlot<System.Numerics.Vector2>();
 
@@ -29,6 +26,12 @@ internal sealed class Raster : Instance<Raster>
 
         [Input(Guid = "0d0944a4-b5f6-4df5-8ef6-cbfe70fbae94")]
         public readonly InputSlot<System.Numerics.Vector4> Background = new InputSlot<System.Numerics.Vector4>();
+
+        [Input(Guid = "6b0bdd9a-248d-410f-9b0e-de20df937775")]
+        public readonly InputSlot<float> MixOriginal = new InputSlot<float>();
+
+        [Input(Guid = "fd22eaf6-ed3c-4e63-985c-3a3756ecaef2")]
+        public readonly InputSlot<T3.Core.DataTypes.Vector.Int2> Resolution = new InputSlot<T3.Core.DataTypes.Vector.Int2>();
 
         [Input(Guid = "27ce4875-b4da-4a44-a959-37c81c1600b8")]
         public readonly InputSlot<float> DotSize = new InputSlot<float>();
@@ -50,7 +53,4 @@ internal sealed class Raster : Instance<Raster>
 
         [Input(Guid = "92f52517-8ebc-4c89-af0a-b0bc5abc0439")]
         public readonly InputSlot<float> BlueToLineRatio = new InputSlot<float>();
-
-        [Input(Guid = "6b0bdd9a-248d-410f-9b0e-de20df937775")]
-        public readonly InputSlot<float> MixOriginal = new InputSlot<float>();
 }
