@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using T3.Core.DataTypes.Vector;
+using T3.Core.Operator.Interfaces;
 using T3.Core.Utils;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.MagGraph.Interaction;
@@ -95,6 +96,8 @@ internal sealed partial class MagGraphCanvas
         foreach (var item in _context.Layout.Items.Values)
         {
             DrawNode(item, drawList, _context);
+
+            InvalidateSelectedGizmoProviders(item);
         }
 
         Fonts.FontSmall.Scale = 1; // WTF. Some of the drawNode seems to spill out fontSize
@@ -232,6 +235,21 @@ internal sealed partial class MagGraphCanvas
         SmoothItemPositions();
 
         _context.StateMachine.UpdateAfterDraw(_context);
+    }
+
+    /// <summary>
+    /// Transform gizmos of cached operators like [Point] might not be visible in the output window.
+    /// This method force-invalidates them, if selected. 
+    /// </summary>
+    private void InvalidateSelectedGizmoProviders(MagGraphItem item)
+    {
+        if (item.Variant == MagGraphItem.Variants.Operator
+            && item.Instance is ITransformable transformable
+            && _context.Selector.IsSelected(item)
+            && item.Instance.Inputs.Count > 0)
+        {
+            item.Instance.Inputs[0].DirtyFlag.ForceInvalidate();
+        }
     }
 
     /// <summary>
