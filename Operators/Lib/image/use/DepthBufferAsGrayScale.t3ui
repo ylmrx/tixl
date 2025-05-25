@@ -8,7 +8,8 @@
       "Position": {
         "X": -230.82169,
         "Y": 689.33484
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "20f33d70-7599-4e71-993c-43464410182a"/*Texture2d*/,
@@ -23,7 +24,8 @@
       "Position": {
         "X": -232.82065,
         "Y": 572.72107
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "41f15d72-577a-4e13-bfec-e60443930fd1"/*OutputRange*/,
@@ -37,7 +39,8 @@
       "Position": {
         "X": -234.91547,
         "Y": 461.6969
-      }
+      },
+      "GroupTitle": "Settings"
     }
   ],
   "SymbolChildUis": [
