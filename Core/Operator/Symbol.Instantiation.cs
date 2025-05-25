@@ -88,11 +88,11 @@ public sealed partial class Symbol
                     var replaceTarget = connection.TargetParentOrChildId == originalId;
                     if (!replaceSource && !replaceTarget)
                         continue;
-                    var source = replaceSource ? connection.SourceParentOrChildId : newId;
-                    var target = replaceTarget ? connection.TargetParentOrChildId : newId;
+                    var source = replaceSource ? newId : connection.SourceParentOrChildId;
+                    var target = replaceTarget ? newId : connection.TargetParentOrChildId;
                     var sourceSlot = connection.SourceSlotId;
                     var targetSlot = connection.TargetSlotId;
-                    var newConnection = new Connection(source, target, sourceSlot, targetSlot);
+                    var newConnection = new Connection(source, sourceSlot, target, targetSlot);
                     connections[index] = newConnection;
                 }
 
