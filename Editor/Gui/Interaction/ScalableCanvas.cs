@@ -92,7 +92,7 @@ internal abstract class ScalableCanvas : IScalableCanvas
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Vector2 TransformPositionFloat(Vector2 posOnCanvas)
     {
-        return (posOnCanvas - Scroll) * Scale * T3Ui.UiScaleFactor + WindowPos;
+        return (posOnCanvas - Scroll) * Scale + WindowPos;
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -126,7 +126,7 @@ internal abstract class ScalableCanvas : IScalableCanvas
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public virtual Vector2 InverseTransformPositionFloat(Vector2 screenPos)
     {
-        return (screenPos - WindowPos) / (Scale * T3Ui.UiScaleFactor) + Scroll;
+        return (screenPos - WindowPos) / (Scale) + Scroll;
     }
 
     /// <summary>
@@ -168,7 +168,7 @@ internal abstract class ScalableCanvas : IScalableCanvas
     /// [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public Vector2 InverseTransformDirection(Vector2 vectorInScreen)
     {
-        return vectorInScreen / (Scale * T3Ui.UiScaleFactor);
+        return vectorInScreen / (Scale);
     }
 
     public ImRect TransformRect(ImRect canvasRect)
@@ -328,8 +328,8 @@ internal abstract class ScalableCanvas : IScalableCanvas
     public CanvasScope GetScopeForCanvasArea(ImRect areaOnCanvas, bool flipY = false)
     {
         UpdateWindowRect();
-        var heightOnCanvas = areaOnCanvas.GetHeight() * T3Ui.UiScaleFactor;
-        var widthOnCanvas = areaOnCanvas.GetWidth() * T3Ui.UiScaleFactor;
+        var heightOnCanvas = areaOnCanvas.GetHeight();
+        var widthOnCanvas = areaOnCanvas.GetWidth();
         var aspectOnCanvas = widthOnCanvas / heightOnCanvas;
 
         Vector2 scrollTarget;

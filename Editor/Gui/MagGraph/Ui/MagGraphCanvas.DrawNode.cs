@@ -232,7 +232,7 @@ internal sealed partial class MagGraphCanvas
             var paddingForPreview = hasPreview ? MagGraphItem.LineHeight + 10 : 0;
             var downScale = MathF.Min(1f, (MagGraphItem.Width - paddingForPreview) * 0.9f / labelSize.X);
 
-            var fontSize = Fonts.FontNormal.FontSize * downScale * CanvasScale.Clamp(0.1f, 2f);
+            var fontSize = Fonts.FontNormal.FontSize * (1/T3Ui.UiScaleFactor) * downScale * CanvasScale.Clamp(0.1f, 2f);
             var visibleLineHeight = Math.Min((pMaxVisible.Y - pMinVisible.Y), MagGraphItem.LineHeight * CanvasScale);
             var yCenter = pMin.Y + visibleLineHeight / 2 - fontSize / 2;
             var labelPos = new Vector2(pMin.X + 8 * CanvasScale, yCenter);
@@ -241,7 +241,7 @@ internal sealed partial class MagGraphCanvas
             drawList.AddText(Fonts.FontNormal,
                              fontSize,
                              labelPos,
-                             labelColor,
+                             labelColor.Fade(CanvasScale.RemapAndClamp(0.3f,0.7f, 0,1) ),
                              name);
         }
 
@@ -400,7 +400,7 @@ internal sealed partial class MagGraphCanvas
                         DrawMissingInputIndicator(drawList, pMin + new Vector2(0, GridSizeOnScreen.Y * inputIndex), inputLine);
                     }
 
-                    var inputLabelFontSize = Fonts.FontSmall.FontSize * Fonts.FontSmall.Scale * smallFontScaleFactor;
+                    var inputLabelFontSize = Fonts.FontSmall.FontSize / T3Ui.UiScaleFactor * Fonts.FontSmall.Scale * smallFontScaleFactor;
                     var yCenter = pMin.Y + GridSizeOnScreen.Y * (inputIndex + 0.5f) - inputLabelFontSize / 2 - 2;
                     var labelPos = new Vector2(pMin.X + 8 * CanvasScale, yCenter);
                     var label = inputLine.InputUi.InputDefinition.Name ?? "?";
@@ -423,7 +423,7 @@ internal sealed partial class MagGraphCanvas
                     drawList.AddText(Fonts.FontSmall,
                                      inputLabelFontSize,
                                      labelPos,
-                                     labelColor.Fade(0.7f),
+                                     labelColor.Fade(0.7f * CanvasScale.RemapAndClamp(0.3f,0.7f, 0,1) ),
                                      label
                                     );
 
@@ -897,7 +897,7 @@ internal sealed partial class MagGraphCanvas
                 var statusLevel = statusProvider.GetStatusLevel();
                 if (statusLevel != IStatusProvider.StatusLevel.Success && statusLevel != IStatusProvider.StatusLevel.Undefined)
                 {
-                    ImGui.SetCursorScreenPos(pMinVisible + new Vector2(8, -7) * T3Ui.UiScaleFactor);
+                    ImGui.SetCursorScreenPos(pMinVisible + new Vector2(8, -7));
                     ImGui.InvisibleButton("#warning", new Vector2(15, 15));
                     var color = statusLevel switch
                                     {
