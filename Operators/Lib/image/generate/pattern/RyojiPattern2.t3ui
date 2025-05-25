@@ -8,7 +8,8 @@
       "Position": {
         "X": -190.19121,
         "Y": 473.28052
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "247a2d50-9f08-48d6-b9ac-97c0bb4934cf"/*ForgroundRatio*/,
@@ -32,6 +33,7 @@
         "X": -154.62659,
         "Y": 719.4175
       },
+      "AddPadding": "True",
       "Min": 0.0,
       "Max": 1.0
     },
@@ -48,6 +50,7 @@
         "X": -201.84563,
         "Y": 188.09204
       },
+      "GroupTitle": "Segmentation",
       "Min": 1.0,
       "Scale": 1.0
     },
@@ -78,7 +81,8 @@
       "Position": {
         "X": -201.84563,
         "Y": 143.09204
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "99703d55-754e-4bce-aa90-1fe385d2af8e"/*HighlightSeed*/,
@@ -121,7 +125,8 @@
       "Position": {
         "X": -201.84563,
         "Y": 53.092045
-      }
+      },
+      "GroupTitle": "Colors"
     },
     {
       "InputId": "ddc2eb27-9854-4eca-98a4-b46f3a5326a0"/*Seed*/,
@@ -129,6 +134,7 @@
         "X": -183.68117,
         "Y": 805.1131
       },
+      "AddPadding": "True",
       "Scale": 1.0
     },
     {
