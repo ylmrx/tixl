@@ -12,7 +12,6 @@ cbuffer ParamConstants : register(b0)
     float BrightnessOffset;
     float ScrollOffset;
     float HighlightThreshold;
-    float buffer;
     float ResolutionWidth;
     float ResolutionHeight;
 }
