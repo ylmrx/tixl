@@ -19,10 +19,10 @@ namespace T3.Core.Compilation;
 public static class RuntimeAssemblies
 {
     public const string EnvironmentVariableName = "T3_ASSEMBLY_PATH";
-    private static readonly Assembly CoreAssembly = typeof(RuntimeAssemblies).Assembly;
-    public static readonly string CorePath = CoreAssembly.Location;
+    private static readonly Assembly _coreAssembly = typeof(RuntimeAssemblies).Assembly;
+    public static readonly string CorePath = _coreAssembly.Location;
     public static readonly string CoreDirectory = Path.GetDirectoryName(CorePath)!;
-    public static readonly Version Version = CoreAssembly.GetName().Version!;
+    public static readonly Version Version = _coreAssembly.GetName().Version!;
 
     public const string NetVersion = "9.0";
     
@@ -109,8 +109,3 @@ public sealed record OperatorPackageReference(string Identity, Version Version, 
 
 public sealed record ReleaseInfo(string AssemblyFileName, Guid HomeGuid, string RootNamespace, Version EditorVersion, Version Version, bool IsEditorOnly, OperatorPackageReference[] OperatorPackages);
 
-internal struct AssemblyNameAndPath
-{
-    public AssemblyName AssemblyName;
-    public string Path;
-}

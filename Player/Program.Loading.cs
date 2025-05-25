@@ -26,8 +26,7 @@ internal static partial class Program
                                   .Select(packageDir =>
                                               {
                                                   Log.Debug($"Searching for dlls in {packageDir}...");
-                                                  _ = AssemblyInformation.TryCreateFromReleasedPackage(packageDir, out var assemblyInformation, out _);
-                                                  return assemblyInformation;
+                                                  return new AssemblyInformation(packageDir);
                                               })
                                   .Where(x => x != null)
                                   .ToArray();

@@ -26,9 +26,15 @@ public static class CustomChildUiRegistry
         return EntriesRw.TryGetValue(type, out o);
     }
 
-    public static bool Remove(Type symbolInstanceType)
+    public static bool Remove(Type symbolInstanceType, ICollection<Type> types)
     {
-        return EntriesRw.TryRemove(symbolInstanceType, out var _);
+        if (EntriesRw.TryRemove(symbolInstanceType, out _))
+        {
+            types.Remove(symbolInstanceType);
+            return true;
+        }
+
+        return false;
     }
 }
 

@@ -20,13 +20,16 @@ public sealed partial class Symbol
 
         var slotChanges = new SlotChangeInfo(oldInputDefinitions, oldOutputDefinitions, InputDefinitions, OutputDefinitions);
 
-        var count = _childrenCreatedFromMe.Count;
-        if (count == 0)
-            return;
-
-        foreach (var child in _childrenCreatedFromMe)
+        lock (_creationLock)
         {
-            child.UpdateIOAndConnections(slotChanges);
+            var count = _childrenCreatedFromMe.Count;
+            if (count == 0)
+                return;
+
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.UpdateIOAndConnections(slotChanges);
+            }
         }
 
         return;
@@ -157,14 +160,16 @@ public sealed partial class Symbol
 
     private void RemoveConnections(IEnumerable<ConnectionEntry> connectionsToRemoveWithinSymbol)
     {
-        foreach (var entry in connectionsToRemoveWithinSymbol.OrderByDescending(x => x.ConnectionIndex))
+        lock (_creationLock)
         {
-            Connections.RemoveAt(entry.ConnectionIndex);
-            foreach (var child in _childrenCreatedFromMe)
+            foreach (var entry in connectionsToRemoveWithinSymbol.OrderByDescending(x => x.ConnectionIndex))
             {
-                child.RemoveConnectionFromInstances(entry);
+                Connections.RemoveAt(entry.ConnectionIndex);
+                foreach (var child in _childrenCreatedFromMe.Values)
+                {
+                    child.RemoveConnectionFromInstances(entry);
+                }
             }
-           
         }
     }
 
@@ -279,5 +284,19 @@ public sealed partial class Symbol
         
         // todo: ugly - the other one replaced this value with itself when it was created
         ApplyInstanceType(InstanceType);
+    }
+
+    public void RemoveAllReferencesToType()
+    {
+        lock (_creationLock)
+        {
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.PrepareForReload();
+            }
+        }
+
+        ApplyInstanceType(null);
+        
     }
 }

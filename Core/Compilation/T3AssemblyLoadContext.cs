@@ -26,20 +26,22 @@ namespace T3.Core.Compilation;
 ///
 /// Unfortunately this process is very complex, and is not thoroughly tested with large dependency chains.
 /// </summary>
-internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
+public sealed class T3AssemblyLoadContext : AssemblyLoadContext
 {
-    public event EventHandler? UnloadTriggered;
+    public event EventHandler? UnloadBegan;
+    internal event EventHandler? UnloadBeganInternal;
     private readonly Lock _dependencyLock = new();
 
     internal AssemblyTreeNode? Root { get; private set; }
 
-    private readonly List<T3AssemblyLoadContext> _dependencyContexts = [];
+    private readonly List<AssemblyLoadContext> _dependencyContexts = [];
     private static readonly List<AssemblyTreeNode> _coreNodes = [];
 
     private static readonly AssemblyNameAndPath[] _availableNugetAssemblies;
     private static readonly Lock _nugetLock = new();
     private static readonly AssemblyLoadContext _nugetContext = new("NuGet", true);
     private static readonly List<AssemblyTreeNode> _loadedNuGetAssemblies = [];
+    private bool _unloaded;
 
     static T3AssemblyLoadContext()
     {
@@ -118,7 +120,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                     continue;
 
                 directories.Add(directory);
-                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false);
+                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false, true);
                 _coreNodes.Add(node);
             }
         }
@@ -145,7 +147,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                                 break;
                         }
 
-                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false);
+                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false);
 
                         node.AddReferenceTo(depNode);
                     }
@@ -159,10 +161,10 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
     private static readonly List<T3AssemblyLoadContext> _loadContexts = [];
     private static readonly Lock _loadContextLock = new();
 
-    internal T3AssemblyLoadContext(AssemblyName rootName, string directory) :
-        base(rootName.GetNameSafe(), true)
+    internal T3AssemblyLoadContext(string assemblyName, string directory) :
+        base(assemblyName, true)
     {
-        Log.Debug($"{Name}: Creating new assembly load context for {rootName.Name}");
+        Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
         Resolving += (_, name) =>
                      {
                          var result = OnResolving(name);
@@ -202,7 +204,8 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         try
         {
             var asm = LoadFromAssemblyPath(path);
-            Root = new AssemblyTreeNode(asm, this, true);
+            Root = new AssemblyTreeNode(asm, this, true, true);
+            Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
         }
         catch (Exception e)
         {
@@ -214,6 +217,15 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
     private Assembly? OnResolving(AssemblyName asmName)
     {
         var name = asmName.GetNameSafe();
+        
+        #if DEBUG
+        if(_unloaded)
+        {
+            Log.Error($"{Name!}: Attempted to resolve assembly {name} after unload");
+            return null;
+        }
+        
+        #endif
 
         // try other assembly contexts
         lock (_loadContextLock)
@@ -293,7 +305,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                 {
                     package.Claimed = true;
                     var assembly = _nugetContext.LoadFromAssemblyPath(package.Path);
-                    var node = new AssemblyTreeNode(assembly, _nugetContext, true);
+                    var node = new AssemblyTreeNode(assembly, _nugetContext, true, true);
                     AddDependency(node);
                     _loadedNuGetAssemblies.Add(node);
                     Log.Debug($"{Name!}: Loaded assembly {asmName.FullName} from nuget package");
@@ -312,6 +324,14 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
+        #if DEBUG
+        if(_unloaded)
+        {
+            Log.Error($"{Name!}: Attempted to load assembly {assemblyName} after unload");
+            return null;
+        }
+        #endif
+        
         var name = assemblyName.GetNameSafe();
 
         foreach (var coreRef in CoreNodes)
@@ -360,43 +380,57 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
     {
         _ = Root!.AddReferenceTo(node);
 
-        if (node.LoadContext == this || node.LoadContext is not T3AssemblyLoadContext tixlCtx)
+        var ctx = node.LoadContext;
+        if (ctx == this)
             return;
 
         lock (_dependencyLock)
         {
-            if (!_dependencyContexts.Contains(node.LoadContext))
+            if (!_dependencyContexts.Contains(ctx))
             {
                 // subscribe to the unload event of the dependency context
-                tixlCtx.UnloadTriggered += OnDependencyUnloaded;
-                _dependencyContexts.Add(tixlCtx);
-                Log.Debug($"{Name!}: Added dependency {node.Name} to {tixlCtx.Name}");
+                if (ctx is T3AssemblyLoadContext tixlCtx)
+                {
+                    tixlCtx.UnloadBeganInternal += OnDependencyUnloaded;
+                }
+                else
+                {
+                    ctx.Unloading += OnNonTixlDependencyUnloaded;
+                }
+
+                _dependencyContexts.Add(ctx);
+                Log.Debug($"{Name!}: Added dependency {node.Name} from {ctx.Name}");
             }
         }
+    }
+
+    private void OnNonTixlDependencyUnloaded(AssemblyLoadContext ctx)
+    {
+        ctx.Unloading -= OnNonTixlDependencyUnloaded;
+        RemoveDependency(ctx);
     }
 
     private void OnDependencyUnloaded(object? sender, EventArgs e)
     {
         var ctx = (T3AssemblyLoadContext)sender!;
+        ctx.UnloadBeganInternal -= OnDependencyUnloaded;
+        RemoveDependency(ctx);
+    }
 
+    private void RemoveDependency(AssemblyLoadContext ctx)
+    {
         lock (_dependencyLock)
         {
-            ctx.UnloadTriggered -= OnDependencyUnloaded;
             _dependencyContexts.Remove(ctx);
             BeginUnload(); // begin unloading ourselves too
         }
     }
 
-    public void BeginUnload()
+    internal void BeginUnload()
     {
-        try
-        {
-            UnloadTriggered?.Invoke(this, EventArgs.Empty);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"{Name!}: Exception thrown on assembly unload: {e}");
-        }
+        if(_unloaded)
+            throw new InvalidOperationException($"Assembly context {Name} already unloaded");
+        _unloaded = true;
 
         lock (_dependencyLock)
         {
@@ -404,18 +438,42 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
             for (int i = _dependencyContexts.Count - 1; i >= 0; i--)
             {
                 var ctx = _dependencyContexts[i];
-                ctx.UnloadTriggered -= OnDependencyUnloaded;
-                ctx.Unload();
+                if (ctx is T3AssemblyLoadContext tixlCtx)
+                {
+                    tixlCtx.UnloadBeganInternal -= OnDependencyUnloaded;
+                }
+                else
+                {
+                    ctx.Unloading -= OnNonTixlDependencyUnloaded;
+                }
+
                 _dependencyContexts.RemoveAt(i);
             }
         }
 
-        Root?.Unload();
-        Root = null; // dereference our assembly as we will need to reload it 
-
         lock (_loadContextLock)
         {
             _loadContexts.Remove(this);
+        }
+        
+        Root = null; // dereference our assembly as we will need to reload it 
+
+        try
+        {
+            UnloadBeganInternal?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{Name!}: Exception thrown on assembly unload (internal): {e}");
+        }
+        
+        try
+        {
+            UnloadBegan?.Invoke(this, EventArgs.Empty);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{Name!}: Exception thrown on assembly unload: {e}");
         }
 
         Unload();

@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.Loader;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using T3.Core.Compilation;
@@ -27,7 +28,7 @@ internal partial class EditableSymbolProject
     {
         get
         {
-            if(CsProjectFile.TryGetReleaseInfo(out var releaseInfo))
+            if(AssemblyInformation.TryGetReleaseInfo(out var releaseInfo))
                 return releaseInfo;
 
             throw new Exception($"No release info found for project {CsProjectFile.Name}");
@@ -58,9 +59,8 @@ internal partial class EditableSymbolProject
             return false;
         }
 
-        if (TryRecompile())
+        if (TryRecompile(true))
         {
-            ProjectSetup.UpdateSymbolPackage(this);
             newSymbolUi = null;
             var gotSymbol = SymbolDict.TryGetValue(newSymbolId, out newSymbol) 
                             && SymbolUiDict.TryGetValue(newSymbolId, out newSymbolUi);
@@ -119,9 +119,8 @@ internal partial class EditableSymbolProject
             
         CsProjectFile.UpdateVersionForIOChange(1);
 
-        if (TryRecompile())
+        if (TryRecompile(true))
         {
-            ProjectSetup.UpdateSymbolPackage(this);
             reason = null;
             return true;
         }
@@ -141,9 +140,6 @@ internal partial class EditableSymbolProject
     /// </summary>
     private static bool UpdateSymbolWithNewSource(Symbol symbol, string newSource, [NotNullWhen(false)] out string? reason)
     {
-        if (IsCompiling(out reason))
-            return false;
-
         if (symbol.SymbolPackage.IsReadOnly)
         {
             reason = $"Could not update symbol '{symbol.Name}' because it is not modifiable.";
@@ -156,23 +152,30 @@ internal partial class EditableSymbolProject
 
     public static bool RenameNameSpaces(NamespaceTreeNode node, EditableSymbolProject sourcePackage, EditableSymbolProject targetPackage, string newNamespace, out string reason)
     {
-        if (IsCompiling(out reason))
-        {
-            return false;
-        }
-
         var sourceNamespace = node.GetAsString();
 
         sourcePackage.RenameNamespace(sourceNamespace, newNamespace, targetPackage);
         reason = string.Empty;
         return true;
     }
+    
+    private void RenameNamespace(string sourceNamespace, string newNamespace, EditableSymbolProject newDestinationProject)
+    {
+        // copy since we are modifying the collection while iterating
+        var mySymbols = SymbolDict.Values.ToArray();
+        foreach (var symbol in mySymbols)
+        {
+            if (!symbol.Namespace.StartsWith(sourceNamespace))
+                continue;
+
+            var substitutedNamespace = Regex.Replace(symbol.Namespace, sourceNamespace, newNamespace);
+
+            ChangeNamespaceOf(symbol, substitutedNamespace, newDestinationProject, sourceNamespace);
+        }
+    }
 
     public static bool ChangeSymbolNamespace(Symbol symbol, string newNamespace, out string reason)
     {
-        if (IsCompiling(out reason))
-            return false;
-
         if (symbol.SymbolPackage is not EditableSymbolProject)
         {
             reason = $"Source project {symbol.SymbolPackage} is not editable";
@@ -187,6 +190,7 @@ internal partial class EditableSymbolProject
             
         var command = new ChangeSymbolNamespaceCommand(symbol, targetProject, newNamespace, ChangeNamespace);
         UndoRedoStack.AddAndExecute(command);
+        reason = string.Empty;
         return true;
 
         static string ChangeNamespace(Guid symbolId, string nameSpace, EditableSymbolProject sourceProject, EditableSymbolProject targetProject)
@@ -207,66 +211,32 @@ internal partial class EditableSymbolProject
         }
     }
 
-    public static void RecompileChangedProjects(bool async)
+    private bool TryRecompile(bool updatePackage)
     {
-        if (_recompiling)
-            return;
-
-        while (_recompiledProjects.TryDequeue(out var project))
-        {
-            ProjectSetup.UpdateSymbolPackage(project);
-        }
-
-        var needsRecompilation = false;
-        foreach (var package in AllProjects)
-        {
-            needsRecompilation |= package._needsCompilation;
-        }
-
-        if (!needsRecompilation)
-            return;
-
-        _recompiling = true;
-
-        var projects = AllProjects.Where(x => x._needsCompilation).ToArray();
-        if (async)
-            Task.Run(() => Recompile(projects));
-        else
-            Recompile(projects);
-
-        return;
-
-        // ReSharper disable once ParameterTypeCanBeEnumerable.Local
-        void Recompile(EditableSymbolProject[] dirtyProjects)
-        {
-            foreach (var project in dirtyProjects)
-            {
-                if (project.TryRecompile())
-                    _recompiledProjects.Enqueue(project);
-            }
-
-            _recompiling = false;
-            CompilationComplete?.Invoke();
-        }
-    }
-
-    private bool TryRecompile()
-    {
-        _needsCompilation = false;
         SaveModifiedSymbols();
-        _needsCompilation = false;
-
         MarkAsSaving();
-        var updated = CsProjectFile.TryRecompile(out _, false);
+        AssemblyInformation.Unload();
+        while (UnloadInProgress)
+        {
+            // wait for unload to finish
+            System.Threading.Thread.Sleep(10);
+        }
+        
+        bool success = false;
+        if (CsProjectFile.TryRecompile(false))
+        {
+            AssemblyInformation.ChangeAssemblyDirectory(CsProjectFile.GetBuildTargetDirectory());
+            success = true;
+        }
+        
         UnmarkAsSaving();
 
-        if (updated)
+        if (updatePackage)
         {
-            UnregisterDescriptiveUis();
-            AssemblyInformation.Unload();
+            ProjectSetup.UpdateSymbolPackage(this);
         }
 
-        return updated;
+        return success;
     }
 
     internal static bool TryGetEditableProjectOfNamespace(string targetNamespace, 
@@ -293,66 +263,39 @@ internal partial class EditableSymbolProject
         return false;
     }
 
-    private static bool IsCompiling(out string reason)
-    {
-        if (_recompiling)
-        {
-            reason = "Compilation or saving is in progress - no modifications can be applied until it is complete.";
-            Log.Error(reason);
-            return true;
-        }
-
-        reason = string.Empty;
-        return false;
-    }
-
-    private void RenameNamespace(string sourceNamespace, string newNamespace, EditableSymbolProject newDestinationProject)
-    {
-        // copy since we are modifying the collection while iterating
-        var mySymbols = SymbolDict.Values.ToArray();
-        foreach (var symbol in mySymbols)
-        {
-            if (!symbol.Namespace.StartsWith(sourceNamespace))
-                continue;
-
-            var substitutedNamespace = Regex.Replace(symbol.Namespace, sourceNamespace, newNamespace);
-
-            ChangeNamespaceOf(symbol, substitutedNamespace, newDestinationProject, sourceNamespace);
-        }
-    }
-
-    private void ChangeNamespaceOf(Symbol symbol, string newNamespace, EditableSymbolProject newDestinationProject, string? sourceNamespace = null)
+    private bool ChangeNamespaceOf(Symbol symbol, string newNamespace, EditableSymbolProject newDestinationProject, string? sourceNamespace = null)
     {
         var id = symbol.Id;
         if (HasHome && ReleaseInfo.HomeGuid == id)
         {
             Log.Error($"Cannot change namespace of home symbol {symbol}");
-            return;
+            return false;
         }
             
         sourceNamespace ??= symbol.Namespace;
             
-        string newSourceCode;
+        string newSourceCode, originalCode;
         if (FilePathHandlers.TryGetValue(id, out var filePathHandler) && filePathHandler.SourceCodePath != null)
         {
             if (!TryConvertToValidCodeNamespace(sourceNamespace, out var sourceCodeNamespace))
             {
                 Log.Error($"Source namespace {sourceNamespace} is not a valid namespace. This is a bug.");
-                return;
+                return false;
             }
 
             if (!TryConvertToValidCodeNamespace(newNamespace, out var newCodeNamespace))
             {
                 Log.Error($"{newNamespace} is not a valid namespace.");
-                return;
+                return false;
             }
 
-            var sourceCode = File.ReadAllText(filePathHandler.SourceCodePath);
-            newSourceCode = Regex.Replace(sourceCode, sourceCodeNamespace, newCodeNamespace);
+            originalCode = File.ReadAllText(filePathHandler.SourceCodePath);
+            newSourceCode = Regex.Replace(originalCode, sourceCodeNamespace, newCodeNamespace);
         }
         else
         {
-            throw new Exception($"Could not find source code for {symbol.Name} in {CsProjectFile.Name} ({id})");
+            Log.Error($"Could not find source code for {symbol.Name} in {CsProjectFile.Name} ({id})");
+            return false;
         }
 
             
@@ -364,12 +307,25 @@ internal partial class EditableSymbolProject
         if (newDestinationProject != this)
         {
             GiveSymbolToPackage(id, newDestinationProject);
-            newDestinationProject.SaveModifiedSymbols();
-            newDestinationProject.MarkAsNeedingRecompilation();
         }
 
-        SaveModifiedSymbols();
-        MarkAsNeedingRecompilation();
+        bool success = true;
+        if(!newDestinationProject.TryRecompile(false) || !(newDestinationProject != this && !TryRecompile(false)))
+        {
+            // revert 
+            if(newDestinationProject != this)
+            {
+                newDestinationProject.GiveSymbolToPackage(id, this);
+                newDestinationProject.SaveModifiedSymbols();
+            }
+            
+            _pendingSource[id] = originalCode;
+            SaveModifiedSymbols();
+            success = false;
+        }
+        
+        ProjectSetup.UpdateSymbolPackages(this, newDestinationProject);
+        return success;
     }
 
     public bool TryGetPendingSourceCode(Guid symbolId, out string? sourceCode)
@@ -401,20 +357,9 @@ internal partial class EditableSymbolProject
         return true;
     }
 
-    private void MarkAsNeedingRecompilation()
-    {
-        _needsCompilation = true;
-        CsProjectFile.MarkCodeChanged();
-    }
-
     private readonly record struct PackageNamespaceInfo(EditableSymbolProject Project, string? RootNamespace);
 
     private readonly CodeFileWatcher _csFileWatcher;
-    private bool _needsCompilation;
-    public bool NeedsCompilation => _needsCompilation;
-    private static volatile bool _recompiling;
-    private static readonly ConcurrentQueue<EditableSymbolProject> _recompiledProjects = new();
-    private readonly ConcurrentDictionary<Guid, string> _pendingSource = new();
 
     public static bool RecompileSymbol(Symbol symbol, string newSource, bool flagDependentOpsAsModified, out string? reason)
     {

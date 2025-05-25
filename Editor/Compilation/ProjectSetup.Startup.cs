@@ -60,16 +60,9 @@ internal static partial class ProjectSetup
         LoadProjects(csProjFiles, forceRecompile, failedProjects: out _);
 
         // Register UI types
-        var allPackages = ActivePackages.Values
-                                        .ToArray();
-        
         UiRegistration.RegisterUiTypes();
-        
-        foreach (var package in allPackages)
-        {
-            ((EditorSymbolPackage)package.Package).InitializeCustomUis();
-        }
 
+        var allPackages = ActivePackages.ToArray();
         // Update all symbol packages
         UpdateSymbolPackages(allPackages);
         
@@ -105,67 +98,51 @@ internal static partial class ProjectSetup
            .ToList()
            .ForEach(directoryInfo =>
                     {
-                        if (!AssemblyInformation.TryCreateFromReleasedPackage(directoryInfo.FullName, out var assembly, out var releaseInfo))
-                        {
-                            Log.Error($"Failed to load assembly from directory \"{directoryInfo.FullName}\"");
-                            return;
-                        }
-
-                        AddToLoadedPackages(new PackageWithReleaseInfo(new EditorSymbolPackage(assembly), releaseInfo));
+                        AddToLoadedPackages((new EditorSymbolPackage(new AssemblyInformation(directoryInfo.FullName), null)));
                     });
     }
+    
+    private readonly record struct ProjectLoadInfo(FileInfo fileInfo, CsProjectFile? csProjFile, bool success);
 
     [SuppressMessage("ReSharper", "OutParameterValueIsAlwaysDiscarded.Local")]
-    private static void LoadProjects(FileInfo[] csProjFiles, bool forceRecompile, out List<ProjectWithReleaseInfo> failedProjects)
+    private static void LoadProjects(FileInfo[] csProjFiles, bool forceRecompile, out List<ProjectLoadInfo> failedProjects)
     {
         // Load each project file and its associated assembly
-        var releases = csProjFiles
+        var projectResults = csProjFiles
                       .AsParallel()
                       .Select(fileInfo =>
                               {
                                   if (!CsProjectFile.TryLoad(fileInfo.FullName, out var loadInfo))
                                   {
                                       Log.Error($"Failed to load project at \"{fileInfo.FullName}\":\n{loadInfo.Error}");
-                                      return new ProjectWithReleaseInfo(fileInfo, null, null);
+                                      return new ProjectLoadInfo(fileInfo, null, false);
                                   }
                                   
                                   var csProjFile = loadInfo.CsProjectFile!;
 
-                                  bool success;
-                                  ReleaseInfo? info = null;
+                                  var needsCompile = forceRecompile || !Directory.Exists(csProjFile.GetBuildTargetDirectory());
 
-                                  if (forceRecompile)
+                                  if (needsCompile && !csProjFile.TryRecompile(true))
                                   {
-                                      success = csProjFile.TryRecompile(out info, true);
-                                  }
-                                  else
-                                  {
-                                      success = csProjFile.TryGetReleaseInfo(out info) ||
-                                                csProjFile.TryRecompile(out info, true);
+                                      Log.Error($"Failed to recompile project '{csProjFile.Name}'");
+                                      return new ProjectLoadInfo(fileInfo, csProjFile, false);
                                   }
 
-                                  // this may call for some reworking of how that works (MSBuild actions in C#?), or generation at project creation time
-                                  if (!success)
-                                  {
-                                      Log.Error($"Failed to load release info for {csProjFile.Name}");
-                                      return new ProjectWithReleaseInfo(fileInfo, csProjFile, null);
-                                  }
-
-                                  return new ProjectWithReleaseInfo(fileInfo, csProjFile, info);
+                                  return new ProjectLoadInfo(fileInfo, csProjFile, true);
                               })
                       .ToArray();
 
         failedProjects = [];
-        foreach (var release in releases)
+        foreach (var projectInfo in projectResults)
         {
-            if (release.ReleaseInfo != null)
+            if (projectInfo.csProjFile != null && projectInfo.success)
             {
-                var package = new PackageWithReleaseInfo(new EditableSymbolProject(release.CsProject!), release.ReleaseInfo);
-                AddToLoadedPackages(package);
+                var project = new EditableSymbolProject(projectInfo.csProjFile);
+                AddToLoadedPackages(project);
             }
             else
             {
-                failedProjects.Add(release);
+                failedProjects.Add(projectInfo);
             }
         }
     }

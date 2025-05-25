@@ -2,8 +2,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using T3.Core.Compilation;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Resource;
@@ -23,66 +21,55 @@ internal static partial class ProjectSetup
         var name = nameSpace.Split('.').Last();
         var newCsProj = CsProjectFile.CreateNewProject(name, nameSpace, shareResources, UserSettings.Config.DefaultNewProjectDirectory);
 
-        if (!newCsProj.TryRecompile(out var releaseInfo, true))
+        if (!newCsProj.TryRecompile(true))
         {
             Log.Error("Failed to compile new project");
             newProject = null;
             return false;
         }
 
+        newProject = new EditableSymbolProject(newCsProj);
+        
+        if(!newProject.AssemblyInformation.TryGetReleaseInfo(out var releaseInfo))
+        {
+            Log.Error($"Failed to get release info for project {name}");
+            newProject.Dispose();
+            newProject = null;
+            return false;
+        }
+        
         if (releaseInfo.HomeGuid == Guid.Empty)
         {
             Log.Error($"No project home found for project {name}");
             newProject = null;
             return false;
         }
+        
+        ActivePackages.Add(newProject);
 
-        newProject = new EditableSymbolProject(newCsProj);
-        var package = new PackageWithReleaseInfo(newProject, releaseInfo);
-        ActivePackages.Add(newProject.GetKey(), package);
-
-        UpdateSymbolPackages(package);
-        InitializePackageResources(package);
+        UpdateSymbolPackage(newProject);
+        InitializePackageResources(newProject);
         return true;
     }
 
-    internal static void RemoveSymbolPackage(SymbolPackage package, bool needsDispose)
+    internal static void RemoveSymbolPackage(EditorSymbolPackage package, bool needsDispose)
     {
-        var key = package.GetKey();
-        if (!ActivePackages.Remove(key, out _))
-            throw new InvalidOperationException($"Failed to remove package {key}: does not exist");
+        if (!ActivePackages.Remove(package))
+            throw new InvalidOperationException($"Failed to remove package {package}: does not exist");
 
         if (needsDispose)
             package.Dispose();
     }
 
-    private static void AddToLoadedPackages(PackageWithReleaseInfo package)
+    private static void AddToLoadedPackages(EditorSymbolPackage package)
     {
-        var key = package.Package.GetKey();
-        if (!ActivePackages.TryAdd(key, package))
-            throw new InvalidOperationException($"Failed to add package {key}: already exists");
+        if (!ActivePackages.Add(package))
+            throw new InvalidOperationException($"Failed to add package {package.DisplayName} already exists");
     }
 
-    private static void InitializePackageResources(PackageWithReleaseInfo package)
+    private static void InitializePackageResources(EditorSymbolPackage package)
     {
-        var symbolPackage = (EditorSymbolPackage)package.Package;
-        symbolPackage.InitializeShaderLinting(ResourceManager.SharedShaderPackages);
-    }
-
-    private static bool AllDependenciesAreSatisfied(ProjectWithReleaseInfo projectWithReleaseInfo)
-    {
-        var releaseInfo = projectWithReleaseInfo.ReleaseInfo!;
-        Debug.Assert(releaseInfo != null);
-
-        foreach (var packageReference in releaseInfo.OperatorPackages)
-        {
-            if (!ActivePackages.ContainsKey(packageReference.Identity))
-            {
-                return false;
-            }
-        }
-
-        return true;
+        package.InitializeShaderLinting(ResourceManager.SharedShaderPackages);
     }
 
     public static void DisposePackages()
@@ -94,10 +81,10 @@ internal static partial class ProjectSetup
 
     internal static void UpdateSymbolPackage(EditorSymbolPackage package)
     {
-        UpdateSymbolPackages(ActivePackages[package.GetKey()]);
+        UpdateSymbolPackages(package);
     }
 
-    private static void UpdateSymbolPackages(params PackageWithReleaseInfo[] packages)
+    public static void UpdateSymbolPackages(params EditorSymbolPackage[] packages)
     {
         var stopWatch = Stopwatch.StartNew();
         
@@ -111,7 +98,7 @@ internal static partial class ProjectSetup
                 return;
             case 1:
             {
-                var package = (EditorSymbolPackage)packages[0].Package;
+                var package = packages[0];
                 const bool parallel = false;
                 package.LoadSymbols(parallel, out var newlyRead, out var allNewSymbols);
                 SymbolPackage.ApplySymbolChildren(newlyRead);
@@ -134,10 +121,9 @@ internal static partial class ProjectSetup
            .AsParallel()
            .ForAll(package => //pull out for non-editable ones too
                    {
-                       var symbolPackage = (EditorSymbolPackage)package.Package;
-                       symbolPackage.LoadSymbols(false, out var newlyRead, out var allNewSymbols);
-                       loadedSymbols.TryAdd(symbolPackage, newlyRead);
-                       loadedOrCreatedSymbols.TryAdd(symbolPackage, allNewSymbols);
+                       package.LoadSymbols(false, out var newlyRead, out var allNewSymbols);
+                       loadedSymbols.TryAdd(package, newlyRead);
+                       loadedOrCreatedSymbols.TryAdd(package, allNewSymbols);
                    });
 
         loadedSymbols
@@ -149,10 +135,9 @@ internal static partial class ProjectSetup
            .AsParallel()
            .ForAll(package =>
                    {
-                       var symbolPackage = (EditorSymbolPackage)package.Package;
-                       var newlyRead = loadedOrCreatedSymbols[symbolPackage];
-                       symbolPackage.LoadUiFiles(false, newlyRead, out var newlyReadUis, out var preExisting);
-                       loadedSymbolUis.TryAdd(symbolPackage, new SymbolUiLoadInfo(newlyReadUis, preExisting));
+                       var newlyRead = loadedOrCreatedSymbols[package];
+                       package.LoadUiFiles(false, newlyRead, out var newlyReadUis, out var preExisting);
+                       loadedSymbolUis.TryAdd(package, new SymbolUiLoadInfo(newlyReadUis, preExisting));
                    });
 
         loadedSymbolUis
@@ -165,13 +150,18 @@ internal static partial class ProjectSetup
         }
         
         Log.Info($"Updated {packages.Length} symbol packages in {stopWatch.ElapsedMilliseconds}ms");
+
+        var needingReload = ActivePackages.Where(x => x.NeedsAssemblyLoad).ToArray();
+        if (needingReload.Length > 0)
+        {
+            Log.Info($"Reloading {needingReload.Length} packages that need reloading...");
+            UpdateSymbolPackages(needingReload);
+        }
+
     }
 
-    private static string GetKey(this SymbolPackage package) => package.RootNamespace;
+    private static readonly HashSet<EditorSymbolPackage> ActivePackages = new();
+    internal static readonly IEnumerable<SymbolPackage> AllPackages = ActivePackages;
 
-    private static readonly Dictionary<string, PackageWithReleaseInfo> ActivePackages = new();
-    internal static readonly IEnumerable<SymbolPackage> AllPackages = ActivePackages.Values.Select(x => x.Package);
-
-    private readonly record struct ProjectWithReleaseInfo(FileInfo ProjectFile, CsProjectFile? CsProject, ReleaseInfo? ReleaseInfo);
     private readonly record struct SymbolUiLoadInfo(SymbolUi[] NewlyLoaded, SymbolUi[] PreExisting);
 }

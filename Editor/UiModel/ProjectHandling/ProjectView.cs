@@ -101,13 +101,14 @@ internal sealed partial class ProjectView
 
         void ShowSymbolReloadDialog(InstanceView composition)
         {
-            var instance = composition.Instance;
-            var parent = instance.Parent;
-            var symbolChildUi = parent?.GetSymbolUi().ChildUis[instance.SymbolChildId];
-            if (symbolChildUi != null && parent != null)
+            var symbolChildId = composition.SymbolChildId;
+            var symbol = composition.Symbol;
+            var symbolChildUi = composition.Instance.Parent?.GetSymbolUi().ChildUis[symbolChildId];
+            if (symbolChildUi != null && composition.Instance.Parent != null)
             {
+                var parentSymbolId = composition.Instance.Parent.Symbol.Id;
                 _duplicateSymbolDialog.ShowNextFrame(); // actually shows this frame
-                _duplicateSymbolDialog.Draw(compositionOp: parent,
+                _duplicateSymbolDialog.Draw(symbolGuid: parentSymbolId,
                                             selectedChildUis: [symbolChildUi],
                                             nameSpace: ref _dupeReadonlyNamespace,
                                             newTypeName: ref _dupeReadonlyName,
@@ -128,7 +129,6 @@ internal sealed partial class ProjectView
                 _duplicateSymbolDialog.Closed -= ReloadSymbol;
                 _compositionReloadStack.Pop();
                 _waitingOnReload = false;
-                var symbol = instance.Symbol;
                 var symbolPackage = (EditorSymbolPackage)symbol.SymbolPackage;
                 symbolPackage.Reload(symbol.GetSymbolUi());
             }

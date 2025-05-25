@@ -23,22 +23,34 @@ public sealed partial class Symbol : IDisposable, IResource
     #region Saved Properties
     public readonly Guid Id;
     public IReadOnlyDictionary<Guid, Child> Children => _children;
-    public IEnumerable<Instance> InstancesOfSelf => _childrenCreatedFromMe.SelectMany(x => x.Instances);
+    public IReadOnlyDictionary<Guid, Child> ChildrenCreatedFromMe => _childrenCreatedFromMe;
+    public IEnumerable<Instance> InstancesOfSelf
+    {
+        get
+        {
+            lock (_creationLock)
+            {
+                return _childrenCreatedFromMe.Values.SelectMany(x => x.Instances);
+            }
+        }
+    }
+
     public readonly List<Connection> Connections = [];
 
     /// <summary>
     /// Inputs of this symbol. input values are the default values (exist only once per symbol)
     /// </summary>
     public readonly List<InputDefinition> InputDefinitions = new();
+
     public readonly List<OutputDefinition> OutputDefinitions = new();
-        
+
     #endregion Saved Properties
 
     public string Name => InstanceType.Name;
     public string Namespace => InstanceType.Namespace ?? SymbolPackage.AssemblyInformation.Name;
     public Animator Animator { get; private set; } = new();
     public PlaybackSettings PlaybackSettings { get; set; } = new();
-        
+
     public SymbolPackage SymbolPackage { get; set; }
     IResourcePackage IResource.OwningPackage => SymbolPackage;
 
@@ -49,6 +61,7 @@ public sealed partial class Symbol : IDisposable, IResource
     internal Symbol(Type instanceType, Guid symbolId, SymbolPackage symbolPackage)
     {
         Id = symbolId;
+        _parentlessIdPath = [Child.CreateIdDeterministically(this, null)];
 
         UpdateTypeWithoutUpdatingDefinitionsOrInstances(instanceType, symbolPackage);
 
@@ -61,31 +74,43 @@ public sealed partial class Symbol : IDisposable, IResource
         }
     }
 
-    internal void UpdateTypeWithoutUpdatingDefinitionsOrInstances(Type instanceType, SymbolPackage symbolPackage)
+    internal void UpdateTypeWithoutUpdatingDefinitionsOrInstances(Type type, SymbolPackage symbolPackage)
     {
         SymbolPackage = symbolPackage; // we re-assign this here because symbols can be moved from one package to another
-        ApplyInstanceType(instanceType);
+        ApplyInstanceType(type);
         NeedsTypeUpdate = true;
     }
 
     private void ApplyInstanceType(Type value)
     {
         InstanceType = value;
+
         if (value == null)
             return;
-            
         // set type Symbol static field (TypeClass.StaticSymbol field)
-        var field = InstanceType.GetField("StaticSymbol", BindingFlags.NonPublic | BindingFlags.Static);
+        const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy;
+        var field = InstanceType.GetField("StaticSymbol", flags);
         field!.SetValue(null, this);
     }
 
     public void Dispose()
     {
-        for (var index = 0; index < _childrenCreatedFromMe.Count; index++)
+        lock (_creationLock)
         {
-            var child = _childrenCreatedFromMe[index];
-            child.Dispose();
-            _childrenCreatedFromMe.RemoveAt(index);
+            var children = _children.Values.ToArray();
+            for (var index = 0; index < children.Length; index++)
+            {
+                var child = children[index];
+                _children.Remove(child.Id, out _);
+                child.Dispose();
+            }
+
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.Dispose();
+            }
+
+            _childrenCreatedFromMe.Clear();
         }
     }
 
@@ -99,9 +124,12 @@ public sealed partial class Symbol : IDisposable, IResource
 
     public void SortInputSlotsByDefinitionOrder()
     {
-        for (var index = 0; index < _childrenCreatedFromMe.Count; index++)
+        lock (_creationLock)
         {
-            _childrenCreatedFromMe[index].SortInputSlotsByDefinitionOrder();
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.SortInputSlotsByDefinitionOrder();
+            }
         }
     }
         
@@ -178,9 +206,12 @@ public sealed partial class Symbol : IDisposable, IResource
             }
         }
 
-        for (var index = 0; index < _childrenCreatedFromMe.Count; index++)
+        lock (_creationLock)
         {
-            _childrenCreatedFromMe[index].AddConnectionToInstances(connection, multiInputIndex);
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.AddConnectionToInstances(connection, multiInputIndex);
+            }
         }
     }
 
@@ -230,9 +261,12 @@ public sealed partial class Symbol : IDisposable, IResource
             return;
         }
 
-        foreach (var child in _childrenCreatedFromMe)
+        lock (_creationLock)
         {
-            child.RemoveConnectionFromInstances(connection, multiInputIndex);
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.RemoveConnectionFromInstances(connection, multiInputIndex);
+            }
         }
     }
 
@@ -265,17 +299,24 @@ public sealed partial class Symbol : IDisposable, IResource
     {
         // first remove all connections to or from the child
         Connections.RemoveAll(c => c.SourceParentOrChildId == childId || c.TargetParentOrChildId == childId);
-            
-        var removedFromSymbol = _children.Remove(childId, out var symbolChild);
 
-        if (removedFromSymbol)
+        bool removedFromSymbol;
+        //lock (_creationLock)
         {
-            foreach (var me in _childrenCreatedFromMe)
-            {
-                me.DestroyChildInstances(symbolChild);
-            }
+            removedFromSymbol = _children.Remove(childId, out var symbolChild);
 
-            SymbolPackage.RemoveDependencyOn(symbolChild.Symbol);
+            if (removedFromSymbol)
+            {
+                lock (_creationLock)
+                {
+                    foreach (var me in _childrenCreatedFromMe.Values)
+                    {
+                        me.RemoveChildInstancesOf(symbolChild);
+                    }
+                }
+
+                SymbolPackage.RemoveDependencyOn(symbolChild.Symbol);
+            }
         }
 
         return removedFromSymbol;
@@ -312,9 +353,12 @@ public sealed partial class Symbol : IDisposable, IResource
 
     public void InvalidateInputInAllChildInstances(Guid inputId, Guid childId)
     {
-        foreach (var parent in _childrenCreatedFromMe)
+        lock (_creationLock)
         {
-            parent.InvalidateInputInChildren(inputId, childId);
+            foreach (var parent in _childrenCreatedFromMe.Values)
+            {
+                parent.InvalidateInputInChildren(inputId, childId);
+            }
         }
     }
 
@@ -324,15 +368,16 @@ public sealed partial class Symbol : IDisposable, IResource
     public void InvalidateInputDefaultInInstances(IInputSlot inputSlot)
     {
         var inputId = inputSlot.Id;
-        for (var index = 0; index < _childrenCreatedFromMe.Count; index++)
+        lock (_creationLock)
         {
-            var child = _childrenCreatedFromMe[index];
-            child.InvalidateInputDefaultInInstances(inputId);
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.InvalidateInputDefaultInInstances(inputId);
+            }
         }
     }
 
-    private bool NeedsTypeUpdate { get; set; } = true;
-    //private IEnumerable<Instance> _instancesOfSelf => _childrenCreatedFromMe.SelectMany(x => x.Instances);
+    internal bool NeedsTypeUpdate { get; private set; } = true;
     private readonly ConcurrentDictionary<Guid, Child> _children = new();
-    private readonly SynchronizedCollection<Child> _childrenCreatedFromMe = new();
+    private readonly Dictionary<Guid, Child> _childrenCreatedFromMe = new();
 }

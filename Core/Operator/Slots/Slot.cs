@@ -62,7 +62,7 @@ public class Slot<T> : ISlot
 
         _isDisabled = shouldBeDisabled;
     }
-        
+
     public bool TryGetAsMultiInputTyped(out MultiInputSlot<T> multiInput)
     {
         multiInput = _thisAsMultiInputSlot;

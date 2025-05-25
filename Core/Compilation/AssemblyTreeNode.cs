@@ -25,7 +25,8 @@ internal sealed class AssemblyTreeNode
     
     internal readonly record struct DllReference(string Path, string Name, AssemblyName AssemblyName);
 
-    private List<DllReference>? _unreferencedDlls;
+    private readonly List<DllReference> _unreferencedDlls = [];
+    private bool _collectedUnreferencedDlls = false;
     
     private readonly Lock _unreferencedLock = new();
 
@@ -35,51 +36,57 @@ internal sealed class AssemblyTreeNode
         {
             lock (_unreferencedLock)
             {
-                if (_unreferencedDlls is not null)
+                if (_collectedUnreferencedDlls)
                     return _unreferencedDlls;
 
-                _unreferencedDlls = [];
-                // locate "not used" dlls in the directory without loading them
-                var directory = Path.GetDirectoryName(Assembly.Location);
-                var searchOption = _searchNestedFolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-                foreach (var file in Directory.GetFiles(directory!, "*.dll", searchOption))
-                {
-                    bool skip = false;
-                    foreach (var dep in _references)
-                    {
-                        try
-                        {
-                            if (file == dep.Assembly.Location)
-                            {
-                                skip = true;
-                                break;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error($"{_parentName}: Exception getting assembly location: {e}");
-                        }
-                    }
-
-                    if (skip)
-                        continue;
-
-                    AssemblyName assemblyName;
-                    try
-                    {
-                        assemblyName = AssemblyName.GetAssemblyName(file);
-                    }
-                    catch
-                    {
-                        continue;
-                    }
-
-                    var reference = new DllReference(file, assemblyName.GetNameSafe(), assemblyName);
-                    _unreferencedDlls.Add(reference);
-                }
+                FindUnreferencedDllFiles();
 
                 return _unreferencedDlls;
             }
+        }
+    }
+
+    private void FindUnreferencedDllFiles()
+    {
+        _collectedUnreferencedDlls = true;
+                
+        // locate "not used" dlls in the directory without loading them
+        var directory = Path.GetDirectoryName(Assembly.Location);
+        var searchOption = _searchNestedFolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
+        foreach (var file in Directory.GetFiles(directory!, "*.dll", searchOption))
+        {
+            bool skip = false;
+            foreach (var dep in _references)
+            {
+                try
+                {
+                    if (file == dep.Assembly.Location)
+                    {
+                        skip = true;
+                        break;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"{_parentName}: Exception getting assembly location: {e}");
+                }
+            }
+
+            if (skip)
+                continue;
+
+            AssemblyName assemblyName;
+            try
+            {
+                assemblyName = AssemblyName.GetAssemblyName(file);
+            }
+            catch
+            {
+                continue;
+            }
+
+            var reference = new DllReference(file, assemblyName.GetNameSafe(), assemblyName);
+            _unreferencedDlls.Add(reference);
         }
     }
 
@@ -87,7 +94,7 @@ internal sealed class AssemblyTreeNode
     private readonly bool _searchNestedFolders;
 
     // warning : not thread safe, must be wrapped in a lock around _assemblyLock
-    public AssemblyTreeNode(Assembly assembly, AssemblyLoadContext parent, bool searchNestedFolders)
+    public AssemblyTreeNode(Assembly assembly, AssemblyLoadContext parent, bool searchNestedFolders, bool canSearchDlls)
     {
         Assembly = assembly;
         Name = assembly.GetName();
@@ -96,6 +103,11 @@ internal sealed class AssemblyTreeNode
 
         _parentName = parent.Name!;
         LoadContext = parent;
+
+        if (!canSearchDlls)
+        {
+            _collectedUnreferencedDlls = true;
+        }
 
         // if (debug && !node.NameStr.StartsWith("System")) // don't log system assemblies - too much log spam for things that are probably not error-prone
         //Log.Debug($"{parent}: Loaded assembly {NameStr} from {assembly.Location}");
@@ -124,7 +136,7 @@ internal sealed class AssemblyTreeNode
             {
                 _ = UnreferencedDlls.Remove(child.Reference);
             }
-
+            
             _references.Add(child);
         }
 
@@ -138,8 +150,9 @@ internal sealed class AssemblyTreeNode
         {
             lock (_unreferencedLock)
             {
-                foreach (var dll in UnreferencedDlls)
+                for (var index = UnreferencedDlls.Count - 1; index >= 0; index--)
                 {
+                    var dll = UnreferencedDlls[index];
                     if (dll.Name != nameToSearchFor)
                         continue;
 
@@ -152,7 +165,7 @@ internal sealed class AssemblyTreeNode
                         }
 
                         var newAssembly = LoadContext.LoadFromAssemblyPath(dll.Path);
-                        assembly = new AssemblyTreeNode(newAssembly, LoadContext, false);
+                        assembly = new AssemblyTreeNode(newAssembly, LoadContext, false, false);
                         AddReferenceTo(assembly);
                         return true;
                     }
@@ -201,21 +214,5 @@ internal sealed class AssemblyTreeNode
 
         assembly = null;
         return false;
-    }
-
-    public void Unload()
-    {
-        Log.Debug($"{_parentName}: Unloading assembly {NameStr}");
-        lock (_assemblyLock)
-        {
-            foreach (var node in _references.Where(x => x.LoadContext == LoadContext))
-            {
-                node.Unload();
-            }
-
-            _references.Clear();
-            lock (_assemblyLock)
-                _unreferencedDlls = null;
-        }
     }
 }

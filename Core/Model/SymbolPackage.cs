@@ -28,7 +28,7 @@ namespace T3.Core.Model;
 ///</remarks>
 public abstract partial class SymbolPackage : IResourcePackage
 {
-    public virtual AssemblyInformation AssemblyInformation { get; }
+    public readonly AssemblyInformation AssemblyInformation;
     public string Folder { get; }
     
     public virtual string DisplayName => AssemblyInformation.Name;
@@ -75,22 +75,25 @@ public abstract partial class SymbolPackage : IResourcePackage
         RegisterTypes();
     }
 
-    protected SymbolPackage(AssemblyInformation assembly, string? directory = null)
+    protected SymbolPackage(AssemblyInformation assembly, string? mainDirectory, bool initializeResources )
     {
         AssemblyInformation = assembly;
-        Folder = directory ?? assembly.Directory;
+        Folder = mainDirectory ?? assembly.Directory;
         lock(_allPackages)
             _allPackages.Add(this);
-        
-        // ReSharper disable once VirtualMemberCallInConstructor
-        InitializeResources(assembly);
+
+        if (initializeResources)
+        {
+            // ReSharper disable once VirtualMemberCallInConstructor
+            InitializeResources();
+        }
     }
 
-    protected virtual void InitializeResources(AssemblyInformation assemblyInformation)
+    protected virtual void InitializeResources()
     {
         ResourcesFolder = Path.Combine(Folder, ResourceManager.ResourcesSubfolder);
         Directory.CreateDirectory(ResourcesFolder);
-        ResourceManager.AddSharedResourceFolder(this, assemblyInformation.ShouldShareResources);
+        ResourceManager.AddSharedResourceFolder(this, AssemblyInformation.ShouldShareResources);
     }
 
     public virtual void Dispose()
@@ -106,20 +109,22 @@ public abstract partial class SymbolPackage : IResourcePackage
         
         AssemblyInformation.Unload();
         // Todo - symbol instance destruction...?
-    }
 
-    private void ClearSymbols()
-    {
-        if (SymbolDict.Count == 0)
-            return;
-
-        var symbols = SymbolDict.Values.ToArray();
-        foreach (var symbol in symbols)
+        return;
+        void ClearSymbols()
         {
-            var id = symbol.Id;
-            SymbolDict.Remove(id, out _);
+            if (SymbolDict.Count == 0)
+                return;
+
+            var symbols = SymbolDict.Values.ToArray();
+            foreach (var symbol in symbols)
+            {
+                var id = symbol.Id;
+                SymbolDict.Remove(id, out _);
+            }
         }
     }
+
 
     /// <summary>
     /// Loads symbols from the assembly and locates their symbol .t3/json files
@@ -272,7 +277,7 @@ public abstract partial class SymbolPackage : IResourcePackage
             }
             catch(Exception e)
             {
-                throw new FileCorruptedException(jsonInfo.FilePath, e.Message);
+                throw new FileCorruptedException(jsonInfo.FilePath, e.ToString());
             }
         }
     }
@@ -432,5 +437,3 @@ public sealed record DependencyCounter
         return $"{Package.DisplayName}: Symbol References: {SymbolChildCount}, Resource References: {ResourceCount}";
     }
 }
-
-public readonly record struct PackageWithReleaseInfo(SymbolPackage Package, ReleaseInfo ReleaseInfo);

@@ -15,20 +15,21 @@ namespace T3.Editor.UiModel;
 [DebuggerDisplay("{DisplayName}")]
 internal sealed partial class EditableSymbolProject : EditorSymbolPackage
 {
-    public override AssemblyInformation AssemblyInformation => CsProjectFile.AssemblyInfo!;
     public override string DisplayName { get; }
 
     /// <summary>
     /// Create a new <see cref="EditableSymbolProject"/> using the given <see cref="CsProjectFile"/>.
     /// </summary>
-    public EditableSymbolProject(CsProjectFile csProjectFile) : base(assembly: csProjectFile.AssemblyInfo!, directory: csProjectFile.Directory)
+    public EditableSymbolProject(CsProjectFile csProjectFile) : base(assembly: AssemblyInformation.CreateUninitialized(), directory: csProjectFile.Directory, false)
     {
+        AssemblyInformation.Initialize(csProjectFile.GetBuildTargetDirectory());
         CsProjectFile = csProjectFile;
         Log.Info($"Adding project {csProjectFile.Name}...");
-        _csFileWatcher = new CodeFileWatcher(this, OnFileChanged, OnFileRenamed);
+        _csFileWatcher = new CodeFileWatcher(this, OnFileChanged, OnCodeFileRenamed);
         DisplayName = $"{csProjectFile.Name} ({CsProjectFile.RootNamespace})";
         SymbolUpdated += OnSymbolUpdated;
         SymbolRemoved += OnSymbolRemoved;
+        InitializeResources();
     }
 
     public void OpenProjectInCodeEditor()
@@ -113,9 +114,9 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
                         .Concat(Directory.EnumerateFiles(Folder, $"*{fileExtension}"));
     }
 
-    protected override void InitializeResources(AssemblyInformation assembly)
+    protected override void InitializeResources()
     {
-        base.InitializeResources(assembly);
+        base.InitializeResources();
         _resourceFileWatcher = new ResourceFileWatcher(ResourcesFolder);
     }
 
@@ -134,6 +135,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
     private ResourceFileWatcher? _resourceFileWatcher;
     public override ResourceFileWatcher? FileWatcher => _resourceFileWatcher;
     public override bool IsReadOnly => false;
+    
 
     public static IEnumerable<EditableSymbolProject> AllProjects => ProjectSetup.AllPackages.Where(x => x is EditableSymbolProject).Cast<EditableSymbolProject>();
 }

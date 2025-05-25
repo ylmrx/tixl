@@ -1,6 +1,4 @@
 #nullable enable
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Build.Construction;
@@ -50,12 +48,7 @@ internal sealed class CsProjectFile
     /// <summary>
     /// The version of the project, as defined in the csproj file.
     /// </summary>
-    public Version Version => new(VersionString!);
-    
-    /// <summary>
-    /// The assembly information for the project, provided the assembly has been loaded.
-    /// </summary>
-    public AssemblyInformation? AssemblyInfo { get; private set; }
+    public Version Version => new(VersionString);
     
     /// <summary>
     /// Returns the target dotnet framework for the project, or adds the default framework if none is found and returns that.
@@ -165,10 +158,9 @@ internal sealed class CsProjectFile
     /// <summary>
     /// Compiles/recompiles this project in debug mode for runtime use in the Editor.
     /// </summary>
-    /// <param name="releaseInfo">The resulting release info if successful</param>
     /// <param name="nugetRestore">True if NuGet packages should be restored</param>
     /// <returns>True if successful</returns>
-    public bool TryRecompile([NotNullWhen(true)] out ReleaseInfo? releaseInfo, bool nugetRestore)
+    public bool TryRecompile(bool nugetRestore)
     {
         if(_needsIncrementBuildVersion)
             ModifyBuildVersion(0, 0, 1);
@@ -178,26 +170,10 @@ internal sealed class CsProjectFile
         {
             if(_needsIncrementBuildVersion)
                 ModifyBuildVersion(0, 0, -1);
-            releaseInfo = null;
             return false;
         }
 
-        AssemblyInfo?.Unload();
-        AssemblyInfo = null;
-
-        if (TryLoadAssemblyInfo())
-        {
-            if (!TryGetReleaseInfo(out releaseInfo))
-            {
-                Log.Error($"{Name} successfully compiled but failed to find release info");
-                return false;
-            }
-
-            return true;
-        }
-
-        releaseInfo = null;
-        return false;
+        return success;
     }
 
     public void UpdateVersionForIOChange(int modifyAmount)
@@ -321,64 +297,8 @@ internal sealed class CsProjectFile
                        });
     }
 
-    /// <summary>
-    /// Tries to load the assembly file provided - if none are provided, it will attempt to load the assembly from the default build directory.
-    /// </summary>
-    private bool TryLoadAssemblyInfo()
-    {
-        var directory = GetBuildTargetDirectory();
-
-        if (!AssemblyInformation.TryCreateFromReleasedPackage(directory, out var assembly, out var releaseInfo))
-        {
-            Log.Error($"Could not load assembly at \"{directory}\"");
-            return false;
-        }
-
-        AssemblyInfo = assembly;
-        _cachedReleaseInfo = releaseInfo;
-        return true;
-    }
-
-    /// <summary>
-    /// Attempts to retrieve the release info for this project. If the release info has already been loaded, it will return that.
-    /// Note that this method is only valid if the assembly has been loaded, or can be loaded. Therefore, the project will need to have been compiled at least
-    /// once prior to calling this method.
-    ///
-    /// The reason it must be compiled is that the release info is generated from this csproj file at build time.
-    /// </summary>
-    /// <param name="releaseInfo"></param>
-    /// <returns>True if successful</returns>
-    /// <remarks>
-    /// Todo: investigate the use of 
-    /// <a href="https://learn.microsoft.com/en-us/dotnet/standard/assembly/set-attributes-project-file">custom assembly metadata</a> to store this information
-    /// in the assembly itself
-    /// </remarks>
-    public bool TryGetReleaseInfo([NotNullWhen(true)] out ReleaseInfo? releaseInfo)
-    {
-        if (_cachedReleaseInfo != null)
-        {
-            releaseInfo = _cachedReleaseInfo;
-            return true;
-        }
-
-        if (AssemblyInfo == null)
-        {
-            if (!TryLoadAssemblyInfo())
-            {
-                releaseInfo = null;
-                return false;
-            }
-        }
-
-        var success = AssemblyInfo!.TryGetReleaseInfo(out _cachedReleaseInfo);
-        releaseInfo = _cachedReleaseInfo;
-        return success;
-    }
-    
-
     private const Compiler.BuildMode EditorBuildMode = Compiler.BuildMode.Debug;
     private const Compiler.BuildMode PlayerBuildMode = Compiler.BuildMode.Release;
-    private ReleaseInfo? _cachedReleaseInfo;
 
     private readonly string _releaseRootDirectory;
     private readonly string _debugRootDirectory;

@@ -48,23 +48,30 @@ internal sealed class OpenedProject
     /// </summary>
     public void EnsureRootExists()
     {
-        if (_rootInstance != null)
-            return;
-        
-        Log.Debug("Creating root instance (likely due to unexpected project reload).");
-        _ = CreateRoot();
+        lock (_rootLock)
+        {
+            if (_rootInstance != null)
+                return;
+
+            Log.Debug("Creating root instance (likely due to unexpected project reload).");
+            _ = CreateRoot();
+        }
     }
     
+    private readonly object _rootLock = new();
     private void OnRootDisposed()
     {
-        
-        foreach (var view in _projectViews)
+        lock (_rootLock)
         {
-            view.NodeSelection.Clear();
-            view.FlagChanges(ProjectView.ChangeTypes.Children|ProjectView.ChangeTypes.Composition);
+            _rootInstance!.Disposing -= OnRootDisposed;
+            foreach (var view in _projectViews)
+            {
+                view.NodeSelection.Clear();
+                view.FlagChanges(ProjectView.ChangeTypes.Children | ProjectView.ChangeTypes.Composition);
+            }
+
+            _rootInstance = null;
         }
-        _rootInstance!.Disposing -= OnRootDisposed;
-        _rootInstance = null;
     }
 
     public static readonly Dictionary<EditorSymbolPackage, OpenedProject> OpenedProjects = new();

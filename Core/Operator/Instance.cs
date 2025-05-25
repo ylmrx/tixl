@@ -99,8 +99,11 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
     }
 
-    internal void Dispose(Symbol.Child symbolChild, int index = -1)
+    internal void Dispose(Symbol.Child symbolChild, bool onlyIfTypeUpdateNeeded, int hash = -1)
     {
+        if (onlyIfTypeUpdateNeeded && !Symbol.NeedsTypeUpdate)
+            return;
+        
         if (_hasDisposed)
         {
             throw new Exception($"{this} has already been disposed\n" + Environment.StackTrace);
@@ -121,7 +124,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         while (ChildInstances.Values.Count > 0)
         {
             var child = ChildInstances.Values.Last();
-            child.Dispose(child.SymbolChild!);
+            child.Dispose(child.SymbolChild!, onlyIfTypeUpdateNeeded);
         }
 
         try
@@ -134,14 +137,14 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
 
         Parent?.ChildInstances.Remove(SymbolChildId);
-        symbolChild.RemoveInstance(this, index);
+        symbolChild.RemoveDisposedInstance(this, hash);
     }
 
     protected virtual void Dispose(bool disposing)
     {
     }
 
-    protected void SetupInputAndOutputsFromType()
+    private protected void SetupInputAndOutputsFromType()
     {
         var symbol = Symbol;
         var assemblyInfo = symbol.SymbolPackage.AssemblyInformation;
@@ -175,48 +178,34 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
     internal bool TryAddConnection(Symbol.Connection connection, int multiInputIndex)
     {
-        var gotSource = TryGetSourceSlot(connection, out var sourceSlot);
-        var gotTarget = TryGetTargetSlot(connection, out var targetSlot);
-
-        if (!gotSource || !gotTarget)
+        if (!TryGetSourceSlot(connection, out var sourceSlot) || 
+            !TryGetTargetSlot(connection, out var targetSlot))
             return false;
 
-        targetSlot!.AddConnection(sourceSlot, multiInputIndex);
-        sourceSlot!.DirtyFlag.Invalidate();
+        targetSlot.AddConnection(sourceSlot, multiInputIndex);
+        sourceSlot.DirtyFlag.Invalidate();
         return true;
     }
 
     private bool TryGetSourceSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? sourceSlot)
     {
-        var compositionInstance = this;
-
         // Get source Instance
         IEnumerable<ISlot> sourceSlotList;
             
         var sourceParentOrChildId = connection.SourceParentOrChildId;
         if (sourceParentOrChildId == Guid.Empty)
         {
-            sourceSlotList = compositionInstance.Inputs;
+            sourceSlotList = Inputs;
         }
         else
         {
-            Instance? sourceInstance = null;
-            foreach (var child in compositionInstance.Children.Values)
-            {
-                if (child.SymbolChildId != sourceParentOrChildId)
-                    continue;
-
-                sourceInstance = child;
-                break;
-            }
-
-            if (sourceInstance == null)
+            if (!Children.TryGetValue(sourceParentOrChildId, out var sourceInstance))
             {
                 Log.Error($"Connection in {this} has incorrect source child : {sourceParentOrChildId}");
                 sourceSlot = null;
                 return false;
             }
-
+            
             sourceSlotList = sourceInstance.Outputs;
         }
 
@@ -239,20 +228,17 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
     internal bool TryGetTargetSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? targetSlot)
     {
-        var compositionInstance = this;
-
         // Get target Instance
         var targetParentOrChildId = connection.TargetParentOrChildId;
         IEnumerable<ISlot> targetSlotList;
 
         if (targetParentOrChildId == Guid.Empty)
         {
-            targetSlotList = compositionInstance.Outputs;
+            targetSlotList = Outputs;
         }
         else
         {
-            compositionInstance.Children.TryGetValue(targetParentOrChildId, out var targetInstance);
-            if (targetInstance == null)
+            if (!Children.TryGetValue(targetParentOrChildId, out var targetInstance))
             {
                 Log.Error($"Connection in {this} has incorrect target child: {targetParentOrChildId}");
                 targetSlot = null;
@@ -344,7 +330,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         #endif
     }
 
-    public IReadOnlyList<Guid> InstancePath => OperatorUtils.BuildIdPathForInstance(this);
+    public IReadOnlyList<Guid> InstancePath { get; internal set; }
 
     private List<SymbolPackage> _availableResourcePackages = [];
     private bool _resourceFoldersDirty = true;
@@ -367,8 +353,11 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 public class Instance<T> : Instance where T : Instance
 {
     // this intended to be a different symbol per-type
+    // this is set via reflection in the Symbol ApplyInstanceType method
     // ReSharper disable once StaticMemberInGenericType
-    static Symbol StaticSymbol;
+    // ReSharper disable once MemberCanBePrivate.Global
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    private protected static Symbol StaticSymbol = null!;
         
     public sealed override Type Type => typeof(T);
     public sealed override Symbol Symbol => StaticSymbol;

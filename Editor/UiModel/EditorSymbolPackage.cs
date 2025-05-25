@@ -28,17 +28,20 @@ internal class EditorSymbolPackage : SymbolPackage
     /// Constructor for a successfully compiled package
     /// </summary>
     /// <param name="assembly">Main assembly of the package</param>
-    public EditorSymbolPackage(AssemblyInformation assembly) : base(assembly)
+    /// <param name="directory">The main package directory, if different from the directory from the provided assembly information</param>
+    /// <param name="initializeResources"></param>
+    public EditorSymbolPackage(AssemblyInformation assembly, string? directory, bool initializeResources = true) : base(assembly, directory, initializeResources)
     {
         Log.Debug($"Added package {assembly.Name}");
         SymbolAdded += OnSymbolAdded;
-        
+        assembly.Unloaded += OnAssemblyUnloaded;
+        assembly.Loaded += OnAssemblyLoaded;
+        assembly.UnloadComplete += OnAssemblyUnloadComplete;
     }
 
-    protected EditorSymbolPackage(AssemblyInformation assembly, string directory) : base(assembly, directory)
+    private void OnAssemblyUnloadComplete(AssemblyInformation obj)
     {
-        Log.Debug($"Added package {assembly.Name} in directory {directory}");
-        SymbolAdded += OnSymbolAdded;
+        UnloadInProgress = false;
     }
 
     protected virtual void OnSymbolAdded(string? path, Symbol symbol)
@@ -80,9 +83,7 @@ internal class EditorSymbolPackage : SymbolPackage
     public void LoadUiFiles(bool parallel, List<Symbol> newlyReadSymbols, out SymbolUi[] newlyReadSymbolUis,
                             out SymbolUi[] preExistingSymbolUis)
     {
-        if(!_hasLoadedCustomUis) // hacky way to load uis after their assembly has already been loaded
-            LoadCustomUis(AssemblyInformation);
-        
+        NeedsAssemblyLoad = false;
         var newSymbols = newlyReadSymbols.ToDictionary(result => result.Id, symbol => symbol);
         var newSymbolsWithoutUis = new ConcurrentDictionary<Guid, Symbol>(newSymbols);
         preExistingSymbolUis = SymbolUiDict.Values.ToArray();
@@ -157,15 +158,6 @@ internal class EditorSymbolPackage : SymbolPackage
 
         void RegisterSymbolUi(SymbolUi symbolUi)
         {
-            var symbol = symbolUi.Symbol;
-            var operatorInfo = AssemblyInformation.OperatorTypeInfo[symbol.Id];
-
-            // register descriptive UI
-            if (operatorInfo.IsDescriptiveFileNameType)
-            {
-                CustomChildUiRegistry.Register(symbol.InstanceType, DescriptiveUi.DrawChildUiDelegate, _descriptiveUiTypes);
-            }
-
             symbolUi.UpdateConsistencyWithSymbol();
             symbolUi.ClearModifiedFlag();
             //Log.Debug($"Add UI for {symbolUi.Symbol.Name} {symbolUi.Symbol.Id}");
@@ -176,25 +168,24 @@ internal class EditorSymbolPackage : SymbolPackage
     {
         ClearSymbolUis();
         base.Dispose();
-        UnregisterDescriptiveUis();
         ShaderLinter.RemovePackage(this);
-    }
-
-    private void ClearSymbolUis()
-    {
-        var symbolUis = SymbolUiDict.Values.ToArray();
-
-        foreach (var symbolUi in symbolUis)
+        return;
+        
+        void ClearSymbolUis()
         {
-            try
+            var symbolUis = SymbolUiDict.Values.ToArray();
+
+            foreach (var symbolUi in symbolUis)
             {
-                var symbol = symbolUi.Symbol;
-                SymbolUiDict.TryRemove(symbol.Id, out _);
-                CustomChildUiRegistry.Remove(symbol.InstanceType);
-            }
-            catch (KeyNotFoundException)
-            {
-                Log.Warning("Can't remove obsolete symbol.");
+                try
+                {
+                    var symbol = symbolUi.Symbol;
+                    SymbolUiDict.TryRemove(symbol.Id, out _);
+                }
+                catch (KeyNotFoundException)
+                {
+                    Log.Warning("Can't remove obsolete symbol.");
+                }
             }
         }
     }
@@ -431,27 +422,20 @@ internal class EditorSymbolPackage : SymbolPackage
         return SymbolUiDict.TryRemove(symbolId, out _) && SymbolDict.TryRemove(symbolId, out _);
     }
 
-    protected void UnregisterDescriptiveUis()
+    private void OnAssemblyLoaded(AssemblyInformation assemblyInformation)
     {
-        for (var index = _descriptiveUiTypes.Count - 1; index >= 0; index--)
-        {
-            var type = _descriptiveUiTypes[index];
-            CustomChildUiRegistry.Remove(type);
-            _descriptiveUiTypes.RemoveAt(index);
-        }
-    }
-
-    public void InitializeCustomUis()
-    {
-        AssemblyInformation.Unloaded +=                   UnloadCustomUis;
-        AssemblyInformation.Loaded += LoadCustomUis;
-    }
-
-    private void LoadCustomUis(AssemblyInformation assemblyInformation)
-    {
-        _hasLoadedCustomUis = true;
         var types = assemblyInformation.TypesInheritingFrom(typeof(IEditorUiExtension)).ToArray();
         
+        // register descriptive UI
+        foreach (var operatorInfo in assemblyInformation.OperatorTypeInfo.Values)
+        {
+            if (operatorInfo.IsDescriptiveFileNameType)
+            {
+                CustomChildUiRegistry.Register(operatorInfo.Type, DescriptiveUi.DrawChildUiDelegate, _descriptiveUiTypes);
+            }
+        }
+
+        // load ui initializers
         foreach (var type in types)
         {
             var activated = assemblyInformation.CreateInstance(type);
@@ -484,10 +468,36 @@ internal class EditorSymbolPackage : SymbolPackage
         }
     }
 
-    private void UnloadCustomUis(AssemblyInformation _)
+    public bool NeedsAssemblyLoad { get; private set; } = true;
+    
+    // remove all possible references to the assembly
+    private void OnAssemblyUnloaded(AssemblyInformation asm)
     {
-        foreach (var extension in _extensions)
+        UnloadInProgress = true;
+        try
         {
+            AssemblyUnloading?.Invoke();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to unload assembly {asm.Name}: {e}");
+        }
+        Log.Info("Unloading assembly " + asm.Name);
+        //remove type information from symbols
+        
+        // it is critical that all references to the assembly are removed to allow the assembly to be unloaded
+        // this includes all instances
+        foreach (var symbol in SymbolDict.Values)
+        {
+            symbol.RemoveAllReferencesToType();
+        }
+        
+        
+        // unload custom UIs
+        for (var index = _extensions.Count - 1; index >= 0; index--)
+        {
+            var extension = _extensions[index];
+            _extensions.RemoveAt(index);
             try
             {
                 extension.Uninitialize();
@@ -497,16 +507,19 @@ internal class EditorSymbolPackage : SymbolPackage
                 Log.Error($"Failed to uninitialize UI extension {extension.GetType().Name}: {e}");
             }
         }
-
-        _extensions.Clear();
-    }
-
-    protected virtual void OnAssemblyUnloaded()
-    {
         
+        // unload descriptive uis
+        for (var index = _descriptiveUiTypes.Count - 1; index >= 0; index--)
+        {
+            var type = _descriptiveUiTypes[index];
+            CustomChildUiRegistry.Remove(type, _descriptiveUiTypes);
+        }
+        
+        NeedsAssemblyLoad = true;
     }
 
+    protected bool UnloadInProgress { get; private set; }
+    public event Action? AssemblyUnloading;
     private readonly List<Type> _descriptiveUiTypes = [];
     private readonly List<IEditorUiExtension> _extensions = [];
-    private bool _hasLoadedCustomUis; // hacky way to load uis after their assembly has already been loaded
 }

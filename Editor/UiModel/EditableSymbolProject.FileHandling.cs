@@ -184,7 +184,6 @@ internal sealed partial class EditableSymbolProject
 
         using var sw = new StreamWriter(sourcePath, _saveOptions);
         sw.Write(sourceCode);
-        MarkAsNeedingRecompilation();
     }
 
     private void MarkAsSaving()
@@ -208,14 +207,14 @@ internal sealed partial class EditableSymbolProject
         // generated file by dotnet - ignore
         if(name.EndsWith("AssemblyInfo.cs"))
             return;
-        
-        MarkAsNeedingRecompilation();
+
+        TryRecompile(true);
     }
 
-    private void OnFileRenamed(object sender, RenamedEventArgs args)
+    private void OnCodeFileRenamed(object sender, RenamedEventArgs args)
     {
         BlockingWindow.Instance.ShowMessageBox($"File {args.OldFullPath} renamed to {args.FullPath}. Please do not do this while the editor is running.");
-        MarkAsNeedingRecompilation();
+        TryRecompile(true);
     }
 
     public override void LocateSourceCodeFiles()
@@ -225,11 +224,12 @@ internal sealed partial class EditableSymbolProject
         UnmarkAsSaving();
     }
 
-    public static bool IsSaving => Interlocked.Read(ref _savingCount) > 0 || IsCompiling(out _);
+    public static bool IsSaving => Interlocked.Read(ref _savingCount) > 0;
     private static long _savingCount;
     private static readonly FileStreamOptions _saveOptions = new() { Mode = FileMode.Create, Access = FileAccess.ReadWrite };
 
     private const bool AutoOrganizeOnStartup = false;
+    private readonly Dictionary<Guid, string> _pendingSource = new();
 
     private sealed class CodeFileWatcher : FileSystemWatcher
     {

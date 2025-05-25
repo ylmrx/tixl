@@ -22,17 +22,16 @@ public sealed partial class AssemblyInformation
     /// <param name="assembly"></param>
     /// <param name="shouldShareResources"></param>
     /// <param name="namespaces"></param>
-    /// <param name="typeDict"></param>
+    /// <param name="typesByName"></param>
     /// <param name="operatorTypeInfo"></param>
     private static void LoadTypes(Type[] types, Assembly assembly, out bool shouldShareResources, ConcurrentDictionary<Guid, OperatorTypeInfo> operatorTypeInfo,
-                                  HashSet<string> namespaces, out Dictionary<string, Type> typeDict)
+                                  HashSet<string> namespaces, Dictionary<string, Type> typesByName)
     {
         if (!operatorTypeInfo.IsEmpty)
         {
             throw new InvalidOperationException("Operator types already loaded");
         }
 
-        var typesByName = new Dictionary<string, Type>();
         foreach (var type in types)
         {
             // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
@@ -56,7 +55,7 @@ public sealed partial class AssemblyInformation
             }
         }
 
-        ConcurrentBag<Type> nonOperatorTypes = new();
+        ConcurrentBag<Type> nonOperatorTypes = [];
 
         typesByName.Values.AsParallel().ForAll(type =>
                                                {
@@ -110,8 +109,6 @@ public sealed partial class AssemblyInformation
 
                                          return false;
                                      }).Any();
-
-        typeDict = typesByName;
     }
 
     /// <summary>
