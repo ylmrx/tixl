@@ -18,12 +18,17 @@ public static class DebugDataRecording
     {
         channel ??= FindOrCreateChannel(path);
 
-        channel.Events.Add(new DataEvent
-                               {
-                                   Time = Playback.RunTimeInSecs,
-                                   TimeCode = Playback.RunTimeInSecs,
-                                   Value = data,
-                               });
+        var dataEvent = new DataEvent
+                            {
+                                Time = Playback.RunTimeInSecs,
+                                TimeCode = Playback.RunTimeInSecs,
+                                Value = data,
+                            };
+        
+        lock (channel.Events)
+        {
+            channel.Events.Add(dataEvent);
+        }
     }
 
     public static void KeepTraceData(Instance instance, string path, object data)

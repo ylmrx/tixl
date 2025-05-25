@@ -298,10 +298,14 @@ public sealed class DataSetViewCanvas
                 var randomChannelColor = DrawUtils.RandomColorForHash(channelHash);
                 
                 _channelValueRanges.TryGetValue(channelHash, out var valueRange);
+
+                var lastEvent1 = channel.GetLastEvent();
+                if (lastEvent1 == null)
+                    continue;
                 
                 if (_onlyRecentEvents)
                 {
-                    var lastEvent = channel.GetLastEvent();
+                    var lastEvent = lastEvent1;
                     var tooOld = (lastEvent == null || lastEvent.Time < currentTime - filterRecentEventDuration);
                     if (tooOld)
                         continue;
@@ -353,8 +357,11 @@ public sealed class DataSetViewCanvas
                 
                 if (channel.Events.Count > 0)
                 {
-                    _firstEventTime = Math.Min(_firstEventTime, channel.Events[0].Time);
-                    _lastEventTime = Math.Max(_lastEventTime, channel.Events[^1].Time);
+                    lock (channel.Events)
+                    {
+                        _firstEventTime = Math.Min(_firstEventTime, channel.Events[0].Time);
+                        _lastEventTime = Math.Max(_lastEventTime, channel.Events[^1].Time);
+                    }
                 }
                 
                 var keepSubWindowPos = ImGui.GetCursorScreenPos();
@@ -377,7 +384,7 @@ public sealed class DataSetViewCanvas
                                                    UiColors.WindowBackground.Fade(0.7f)
                                                   );
                         
-                        var lastEventAgeFactor = MathF.Pow((float)(currentTime - channel.GetLastEvent().Time).Clamp(0, 1) / 1, 0.2f);
+                        var lastEventAgeFactor = MathF.Pow((float)(currentTime - lastEvent1.Time).Clamp(0, 1) / 1, 0.2f);
                         var label = channel.Path.Last();
                         
                         if (!string.IsNullOrEmpty(label))

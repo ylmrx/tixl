@@ -109,10 +109,10 @@ public class DataChannel
         var lastIndex = Events.Count - 1;
         var firstIndex = 0;
         
-        if (Events[lastIndex].Time <= time)
+        if (Events[lastIndex]?.Time <= time)
             return lastIndex;
 
-        if (Events[firstIndex].Time >= time)
+        if (Events[firstIndex]?.Time >= time)
             return firstIndex;
         
         while (lastIndex - firstIndex > 1)
