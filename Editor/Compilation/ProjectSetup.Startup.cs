@@ -47,7 +47,7 @@ internal static partial class ProjectSetup
         totalStopwatch.Start();
         #endif
 
-        if (isDebugBuild)
+        if (!isDebugBuild)
         {
             // Load pre-built built-in packages as read-only
             LoadBuiltInPackages();
