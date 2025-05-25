@@ -17,6 +17,7 @@
         "X": -201.84563,
         "Y": 413.09204
       },
+      "AddPadding": "True",
       "Min": 0.0,
       "Max": 1.0
     },
@@ -69,7 +70,6 @@
         "X": -207.62389,
         "Y": 628.1625
       },
-      "GroupTitle": "Additional Options...",
       "Min": 0.0,
       "Max": 1.0
     },
@@ -78,7 +78,8 @@
       "Position": {
         "X": -201.84563,
         "Y": 98.09204
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "9c7227b6-e13e-4895-bbd3-8b92463cdecf"/*GenerateMipmaps*/,
@@ -129,7 +130,8 @@
       "Position": {
         "X": -207.62389,
         "Y": 808.1625
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "f628c5b7-0278-4d60-80ad-6670cd284cf3"/*Seed*/,
@@ -137,6 +139,7 @@
         "X": -207.62389,
         "Y": 583.1625
       },
+      "AddPadding": "True",
       "Scale": 1.0
     }
   ],
