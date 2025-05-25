@@ -9,6 +9,7 @@
         "X": -177.12624,
         "Y": 238.28091
       },
+      "GroupTitle": "Settings",
       "Scale": 1.0
     },
     {
@@ -16,14 +17,16 @@
       "Position": {
         "X": -176.0473,
         "Y": 196.41405
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "34c56d90-6b8d-413e-9ced-68a8e7db3330"/*HighlightThreshold*/,
       "Position": {
         "X": -165.65843,
         "Y": 576.5592
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "72a70b15-0342-427a-8c2f-e02ef31b2677"/*CellRange*/,
@@ -51,7 +54,8 @@
       "Position": {
         "X": -177.12624,
         "Y": 463.281
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "8a3681fa-4820-4855-9a12-c3740772f4d8"/*Texture*/,
@@ -65,7 +69,8 @@
       "Position": {
         "X": -176.0473,
         "Y": 50.414047
-      }
+      },
+      "GroupTitle": "Colors"
     },
     {
       "InputId": "d4adfa55-97d8-4c42-a2fc-4c89f6c43c8f"/*Offset*/,
