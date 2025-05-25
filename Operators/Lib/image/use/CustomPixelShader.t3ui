@@ -7,14 +7,16 @@
       "Position": {
         "X": -161.39105,
         "Y": 965.246
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "5f90f885-0ccc-4014-a921-dc710257835a"/*FxTexture*/,
       "Position": {
         "X": -178.71051,
         "Y": 1483.4381
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "60bdd684-8005-4576-b09b-1b5d6124da1d"/*C*/,
@@ -28,14 +30,16 @@
       "Position": {
         "X": -311.39105,
         "Y": 909.246
-      }
+      },
+      "GroupTitle": "Settings"
     },
     {
       "InputId": "83e06d04-02bd-40cc-8666-d5dd62a9e63e"/*Resolution*/,
       "Position": {
         "X": -178.71051,
         "Y": 1438.4381
-      }
+      },
+      "GroupTitle": "Advanced"
     },
     {
       "InputId": "8c3ffefe-8721-4dde-b252-22eb8be02d3f"/*ShaderCode*/,

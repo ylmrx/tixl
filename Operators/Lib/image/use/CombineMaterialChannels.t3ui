@@ -9,7 +9,8 @@
         "X": -514.44653,
         "Y": 790.6531
       },
-      "Description": "Hold the \"Alt\" key and left click to create points on the curve to fine tune how the loaded roughness map is used.\nRight click on the points opens more options such as interpolation etc."
+      "Description": "Hold the \"Alt\" key and left click to create points on the curve to fine tune how the loaded roughness map is used.\nRight click on the points opens more options such as interpolation etc.",
+      "AddPadding": "True"
     },
     {
       "InputId": "16522565-e9aa-4295-b219-9724d656ced3"/*GenerateMips*/,
@@ -25,6 +26,7 @@
         "X": -514.44653,
         "Y": 565.6531
       },
+      "GroupTitle": "Settings",
       "Description": "Overwrite the resolution of the input image."
     },
     {

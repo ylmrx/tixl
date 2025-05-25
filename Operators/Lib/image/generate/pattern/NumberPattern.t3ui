@@ -9,21 +9,24 @@
         "X": -553.5631,
         "Y": 250.30765
       },
+      "GroupTitle": "Settings",
       "Scale": 1.0
     },
     {
       "InputId": "3343385a-18eb-413e-a6b3-fe4d20a13260"/*OriginalImage*/,
       "Position": {
-        "X": -558.49756,
-        "Y": 115.834946
-      }
+        "X": -176.0473,
+        "Y": 196.41405
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "34c56d90-6b8d-413e-9ced-68a8e7db3330"/*HighlightThreshold*/,
       "Position": {
-        "X": -603.46533,
-        "Y": 721.01373
-      }
+        "X": -165.65843,
+        "Y": 576.5592
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "72a70b15-0342-427a-8c2f-e02ef31b2677"/*CellRange*/,
@@ -49,9 +52,10 @@
     {
       "InputId": "8a123978-eca8-4059-8381-b0983ad74223"/*ScrollOffset*/,
       "Position": {
-        "X": -610.0887,
-        "Y": 527.0227
-      }
+        "X": -177.12624,
+        "Y": 463.281
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "8a3681fa-4820-4855-9a12-c3740772f4d8"/*Texture*/,
@@ -63,9 +67,10 @@
     {
       "InputId": "90620390-0fc4-4f2f-9c8f-04c6a75ee19e"/*TextColor*/,
       "Position": {
-        "X": -421.39276,
-        "Y": -366.9138
-      }
+        "X": -176.0473,
+        "Y": 50.414047
+      },
+      "GroupTitle": "Colors"
     },
     {
       "InputId": "d4adfa55-97d8-4c42-a2fc-4c89f6c43c8f"/*Offset*/,
