@@ -8,7 +8,7 @@ using T3.Editor.UiModel.ProjectHandling;
 
 namespace T3.Editor.Gui.Windows.Variations;
 
-internal class VariationsWindow : Window
+internal sealed class VariationsWindow : Window
 {
     public VariationsWindow()
     {
@@ -141,7 +141,7 @@ internal class VariationsWindow : Window
                            .EmptyWindowMessage("No Snapshots yet.\n\nWith snapshots you can switch or blend\nbetween parameter sets in your composition.\n\n"
                                                + additionalHint, "Learn More"))
                         {
-                            var url = "https://github.com/tooll3/t3/wiki/PresetsAndSnapshots";
+                            var url = "https://github.com/tixl3d/tixl/wiki/PresetsAndSnapshots";
                             CoreUi.Instance.OpenWithDefaultApplication(url);
                         }
                         // }

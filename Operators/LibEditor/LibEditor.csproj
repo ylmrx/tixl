@@ -1,15 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="$(SolutionDir)/Tixl.props" />
   <PropertyGroup>
     <TargetFramework>net9.0-windows</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <Configurations>Debug;Release</Configurations>
     <Platforms>AnyCPU</Platforms>
-    <VersionPrefix>1.0.12</VersionPrefix>
+    <VersionPrefix>1.0.14</VersionPrefix>
     <RootNamespace>Lib.Editor</RootNamespace>
     <AssemblyName>$(RootNamespace)</AssemblyName>
     <HomeGuid>00000000-0000-0000-0000-000000000000</HomeGuid>
-    <EditorVersion>4.0.0</EditorVersion>
+    <EditorVersion>$(TixlVersion)</EditorVersion>
     <IsEditorOnly>true</IsEditorOnly>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <Deterministic>true</Deterministic>
@@ -69,6 +70,7 @@
         }
       </OperatorPackageInfoJson>
     </PropertyGroup>
-    <WriteLinesToFile File="$(OutputPath)/OperatorPackage.json" Lines="$(OperatorPackageInfoJson)" Overwrite="True" Encoding="UTF-8" />
+    <WriteLinesToFile File="$(OutputPath)/OperatorPackage.json" Lines="$(OperatorPackageInfoJson)"
+      Overwrite="True" Encoding="UTF-8" />
   </Target>
 </Project>

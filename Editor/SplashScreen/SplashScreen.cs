@@ -6,7 +6,7 @@ namespace T3.Editor.SplashScreen;
 
 internal class SplashScreen : ISplashScreen
 {
-    private class SplashForm : Form
+    private sealed class SplashForm : Form
     {
         public SplashForm()
         {
@@ -54,7 +54,7 @@ internal class SplashScreen : ISplashScreen
                                               AutoSize = false,
                                               TextAlign = ContentAlignment.BottomLeft,
                                               BackColor = Color.Transparent,
-                                              ForeColor = Color.Ivory,
+                                              ForeColor = Color.DimGray,
                                               Text = "" + Program.VersionText,
                                               UseMnemonic = false,
                                               Font = new Font("Arial", 8),
@@ -67,7 +67,7 @@ internal class SplashScreen : ISplashScreen
                                    AutoSize = false,
                                    TextAlign = ContentAlignment.BottomRight,
                                    BackColor = Color.Transparent,
-                                   ForeColor = Color.Ivory,
+                                   ForeColor = Color.DimGray,
                                    Text = @"Loading T3...",
                                    UseMnemonic = false,
                                    Font = new Font("Arial", 8),

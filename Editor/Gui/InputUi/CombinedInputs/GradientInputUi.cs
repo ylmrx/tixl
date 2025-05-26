@@ -6,7 +6,7 @@ using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.InputUi.CombinedInputs;
 
-public class GradientInputUi : InputValueUi<Gradient>
+public sealed class GradientInputUi : InputValueUi<Gradient>
 {
     public override IInputUi Clone()
     {
@@ -43,9 +43,7 @@ public class GradientInputUi : InputValueUi<Gradient>
         } 
         return modified;
     }
-
-    // TODO: Implement proper edit flags and Undo
-
+    
     protected override void DrawReadOnlyControl(string name, ref Gradient value)
     {
         ImGui.NewLine();

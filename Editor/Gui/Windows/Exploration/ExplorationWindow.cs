@@ -16,12 +16,12 @@ namespace T3.Editor.Gui.Windows.Exploration;
 /// <summary>
 /// Renders the <see cref="ExplorationWindow"/>
 /// </summary>
-internal class ExplorationWindow : Window
+internal sealed class ExplorationWindow : Window
 {
     public ExplorationWindow()
     {
         _variationCanvas = new ExploreVariationCanvas(this);
-        Config.Title = "Explore Variations";
+        Config.Title = "Variation Explorer";
         Config.Visible = true;
     }
 
@@ -278,7 +278,7 @@ internal class ExplorationWindow : Window
                         // Hover relevant operators
                         foreach (var param in _lastHoveredVariation.ValuesForParameters.Keys)
                         {
-                            nodeSelection.HoveredIds.Add(param.TargetChild.Id);
+                            FrameStats.AddHoveredId(param.TargetChild.Id);
                         }
                     }
                     else

@@ -46,7 +46,7 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
 
     private void CompositionChangedHandler(ProjectView arg1, Guid arg2)
     {
-        _context.Layout.FlagAsChanged();
+        _context.Layout.FlagStructureAsChanged();
     }
 
     private void CompositionContentChangedHandler(ProjectView view, ProjectView.ChangeTypes changes)
@@ -54,10 +54,10 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
         Debug.Assert(view == _projectView);
         if ((changes & (ProjectView.ChangeTypes.Connections | ProjectView.ChangeTypes.Children)) != 0)
         {
-            _context.Layout.FlagAsChanged();    
+            _context.Layout.FlagStructureAsChanged();
         }
     }
-    
+
     private readonly ProjectView _projectView;
 
     #region implement IGraph canvas
@@ -67,7 +67,7 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     {
         if (_projectView.CompositionInstance == null)
             return;
-        
+
         var selectionBounds = NodeSelection.GetSelectionBounds(_projectView.NodeSelection, _projectView.CompositionInstance);
         FitAreaOnCanvas(selectionBounds);
     }
@@ -106,7 +106,7 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
         _projectView.OnCompositionChanged -= CompositionChangedHandler;
         _projectView.OnCompositionContentChanged -= CompositionContentChangedHandler;
     }
-    
+
     void IGraphCanvas.CreatePlaceHolderConnectedToInput(SymbolUi.Child symbolChildUi, Symbol.InputDefinition inputInputDefinition)
     {
         if (_context.StateMachine.CurrentState != GraphStates.Default)
@@ -123,16 +123,16 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
 
     void IGraphCanvas.ExtractAsConnectedOperator<T>(InputSlot<T> inputSlot, SymbolUi.Child symbolChildUi, Symbol.Child.Input input)
     {
-        if(!_context.Layout.Items.TryGetValue(symbolChildUi.Id, out var sourceItem))
+        if (!_context.Layout.Items.TryGetValue(symbolChildUi.Id, out var sourceItem))
         {
             return;
         }
-        
-        var insertionLineIndex = InputPicking.GetInsertionLineIndex(inputSlot.Parent.Inputs, 
-                                                                    sourceItem.InputLines, 
-                                                                    input.Id, 
+
+        var insertionLineIndex = InputPicking.GetInsertionLineIndex(inputSlot.Parent.Inputs,
+                                                                    sourceItem.InputLines,
+                                                                    input.Id,
                                                                     out var shouldPushDown);
-        
+
         var focusedItemPosOnCanvas = sourceItem.PosOnCanvas + new Vector2(-sourceItem.Size.X, MagGraphItem.GridSize.Y * insertionLineIndex);
 
         _context.StartMacroCommand("Extract parameters");
@@ -141,15 +141,15 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
             MagItemMovement
                .MoveSnappedItemsVertically(_context,
                                            MagItemMovement.CollectSnappedItems(sourceItem, includeRoot: false),
-                                           sourceItem.PosOnCanvas.Y + (insertionLineIndex -0.5f) * MagGraphItem.GridSize.Y,
-                                           MagGraphItem.GridSize.Y);            
+                                           sourceItem.PosOnCanvas.Y + (insertionLineIndex - 0.5f) * MagGraphItem.GridSize.Y,
+                                           MagGraphItem.GridSize.Y);
         }
+
         // Todo: This should use undo/redo
-        ParameterExtraction.ExtractAsConnectedOperator(inputSlot, symbolChildUi, input,focusedItemPosOnCanvas);
-        _context.Layout.FlagAsChanged();
+        ParameterExtraction.ExtractAsConnectedOperator(inputSlot, symbolChildUi, input, focusedItemPosOnCanvas);
+        _context.Layout.FlagStructureAsChanged();
         _context.CompleteMacroCommand();
     }
-
 
     void IGraphCanvas.StartDraggingFromInputSlot(SymbolUi.Child symbolChildUi, Symbol.InputDefinition inputInputDefinition)
     {
@@ -180,8 +180,6 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     public bool IsFocused { get; private set; }
     public bool IsHovered { get; private set; }
 
-    // private Guid _previousCompositionId;
-
     /// <summary>
     /// This is an intermediate helper method that should be replaced with a generalized implementation shared by
     /// all graph windows. It's especially unfortunate because it relies on GraphWindow.Focus to exist as open window :(
@@ -189,23 +187,22 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     /// It uses changes to context.CompositionOp to refresh the view to either the complete content or to the
     /// view saved in user settings...
     /// </summary>
-    private void InitializeCanvasScope(GraphUiContext context)
-    {
-        if (ProjectView.Focused?.GraphCanvas is not ScalableCanvas canvas)
-            return;
-
-
-        // Meh: This relies on TargetScope already being set to new composition.
-        var newViewArea = canvas.GetVisibleCanvasArea();
-        if (UserSettings.Config.ViewedCanvasAreaForSymbolChildId.TryGetValue(context.CompositionInstance.SymbolChildId, out var savedCanvasView))
-        {
-            newViewArea = savedCanvasView;
-        }
-
-        var scope = GetScopeForCanvasArea(newViewArea);
-        context.Canvas.SetScopeWithTransition(scope, ICanvas.Transition.Instant);
-    }
-
+    // private void InitializeCanvasScope(GraphUiContext context)
+    // {
+    //     if (ProjectView.Focused?.GraphCanvas is not ScalableCanvas canvas)
+    //         return;
+    //
+    //
+    //     // Meh: This relies on TargetScope already being set to new composition.
+    //     var newViewArea = canvas.GetVisibleCanvasArea();
+    //     if (UserSettings.Config.ViewedCanvasAreaForSymbolChildId.TryGetValue(context.CompositionInstance.SymbolChildId, out var savedCanvasView))
+    //     {
+    //         newViewArea = savedCanvasView;
+    //     }
+    //
+    //     var scope = GetScopeForCanvasArea(newViewArea);
+    //     context.Canvas.SetScopeWithTransition(scope, ICanvas.Transition.Instant);
+    // }
     private void HandleSymbolDropping(GraphUiContext context)
     {
         if (!DragHandling.IsDragging)
@@ -236,7 +233,7 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
             var childUi = GraphOperations.AddSymbolChild(symbol, compositionOpSymbolUi, posOnCanvas);
             var instance = context.CompositionInstance.Children[childUi.Id];
             context.Selector.SetSelection(childUi, instance);
-            context.Layout.FlagAsChanged();
+            context.Layout.FlagStructureAsChanged();
         }
         else
         {
@@ -291,18 +288,19 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     private void HandleSelectionFenceUpdate(ImRect bounds, SelectionFence.SelectModes selectMode)
     {
         var boundsInCanvas = InverseTransformRect(bounds);
-        var itemsInFence = (from child in _context.Layout.Items.Values
-                            let rect = new ImRect(child.PosOnCanvas, child.PosOnCanvas + child.Size)
-                            where rect.Overlaps(boundsInCanvas)
-                            select child).ToList();
 
         if (selectMode == SelectionFence.SelectModes.Replace)
         {
             _context.Selector.Clear();
         }
 
-        foreach (var item in itemsInFence)
+        // Add items
+        foreach (var item in _context.Layout.Items.Values)
         {
+            var rect = new ImRect(item.PosOnCanvas, item.PosOnCanvas + item.Size);
+            if (!rect.Overlaps(boundsInCanvas))
+                continue;
+
             if (selectMode == SelectionFence.SelectModes.Remove)
             {
                 _context.Selector.DeselectNode(item, item.Instance);
@@ -319,27 +317,43 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
                 }
             }
         }
-    }
 
-    private void CenterView()
-    {
-        var visibleArea = new ImRect();
-        var isFirst = true;
-
-        foreach (var item in _context.Layout.Items.Values)
+        foreach (var magAnnotation in _context.Layout.Annotations.Values)
         {
-            if (isFirst)
-            {
-                visibleArea = item.Area;
-                isFirst = false;
+            var annotationArea = new ImRect(magAnnotation.PosOnCanvas, magAnnotation.PosOnCanvas + magAnnotation.Size);
+            if (!boundsInCanvas.Contains(annotationArea))
                 continue;
+
+            if (selectMode == SelectionFence.SelectModes.Remove)
+            {
+                _context.Selector.DeselectNode(magAnnotation.Annotation);
             }
-
-            visibleArea.Add(item.PosOnCanvas);
+            else
+            {
+                _context.Selector.AddSelection(magAnnotation.Annotation);
+            }
         }
-
-        FitAreaOnCanvas(visibleArea);
     }
+
+    // private void CenterView()
+    // {
+    //     var visibleArea = new ImRect();
+    //     var isFirst = true;
+    //
+    //     foreach (var item in _context.Layout.Items.Values)
+    //     {
+    //         if (isFirst)
+    //         {
+    //             visibleArea = item.Area;
+    //             isFirst = false;
+    //             continue;
+    //         }
+    //
+    //         visibleArea.Add(item.PosOnCanvas);
+    //     }
+    //
+    //     FitAreaOnCanvas(visibleArea);
+    // }
 
     private float GetHoverTimeForId(Guid id)
     {
@@ -353,15 +367,14 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     private Vector2 GridSizeOnScreen => TransformDirection(MagGraphItem.GridSize);
     private float CanvasScale => Scale.X;
 
-    public bool ShowDebug = false; // || ImGui.GetIO().KeyAlt;
+    // ReSharper disable once FieldCanBeMadeReadOnly.Global
+    public bool ShowDebug = false; //ImGui.GetIO().KeyAlt;
 
     private Guid _lastHoverId;
     private double _hoverStartTime;
     private float HoverTime => (float)(ImGui.GetTime() - _hoverStartTime);
     private GraphUiContext _context;
     private bool _destroyed;
-    //private sealed record ViewRequest(ImRect ViewArea, ICanvas.Transition Transition);
-    //private ViewRequest? _viewRequest;
 
     protected override ScalableCanvas? Parent => null;
 

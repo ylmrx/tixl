@@ -6,6 +6,7 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using T3.Core.Resource;
 using T3.Core.SystemUi;
+using T3.Editor.Gui;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
 using Device = SharpDX.Direct3D11.Device;
@@ -21,6 +22,7 @@ internal static class ProgramWindows
     private static Device _device;
     private static DeviceContext _deviceContext;
     private static Factory _factory;
+    public static string ActiveGpu { get; private set; } = "Unknown";
 
     internal static void SetMainWindowSize(int width, int height)
     {
@@ -55,15 +57,92 @@ internal static class ProgramWindows
         }
     }
 
+    private sealed class  DisplayAdapterRating()
+    {
+        public string Name;
+        public int Index;
+        public float MemoryInGb =0;
+        public float Rating = 1;
+    }
+
     internal static void InitializeMainWindow(string version, out Device device)
     {
-        Main = new("TiXL " + version, disableClose: false);
+        Main = new AppWindow("TiXL " + version, disableClose: false);
         device = null;
+        string[] highPerformanceKeywords = ["dedicated", "high performance", "rtx", "gtx"];
+        string[] integratedKeywords = ["integrated", "intel(r) uhd graphics"];
 
         try
         {
-            // Create Device and SwapChain
-            Device.CreateWithSwapChain(DriverType.Hardware,
+            using var factory = new Factory1();
+
+            if (factory.GetAdapterCount() == 0)
+            {
+                BlockingWindow.Instance.ShowMessageBox("We unable to find any graphics adapters",
+                                                       "Oh noooo",
+                                                       "Ok... /:");
+                Environment.Exit(0);
+            }
+
+            var adapterRatings = new List<DisplayAdapterRating>(8);
+
+            for (var i = 0; i < factory.GetAdapterCount(); i++)
+            {
+                using var adapter = factory.GetAdapter1(i);
+                const long gb = 1024 * 1024 * 1024;
+                
+                var newRating = new DisplayAdapterRating
+                                    {
+                                        Name = adapter.Description.Description,
+                                        Index = i,
+                                        MemoryInGb = (float)((double)adapter.Description.DedicatedVideoMemory/gb),
+                                    };
+                adapterRatings.Add(newRating);                
+                
+                var descriptionLower = adapter.Description.Description.ToLowerInvariant();
+                
+                // Positive keywords
+                foreach (var keyword in highPerformanceKeywords)
+                {
+                    if (!descriptionLower.Contains(keyword))
+                        continue;
+
+                    newRating.Rating *= 2f;
+                }
+
+                // Negative keywords
+                foreach (var keyword in integratedKeywords)
+                {
+                    if (!descriptionLower.Contains(keyword))
+                        continue;
+
+                    newRating.Rating *= 0.2f;
+                }
+
+                var memSizeFactor = newRating.MemoryInGb switch
+                                        {
+                                            < 1 => 0.1f,
+                                            < 2 => 0.5f,
+                                            < 4 => 1f,
+                                            < 8 => 2f,
+                                            > 8 => 3f,
+                                            _ => 4f
+                                        };
+                newRating.Rating *= memSizeFactor;
+            }
+
+            var selectedAdapterIndex = adapterRatings.OrderByDescending(r => r.Rating).First().Index;
+            Log.Debug("Detected display adapters...");
+            foreach (var r in adapterRatings)
+            {
+                Log.Debug($"  #{r.Index}: {r.Name} / {r.MemoryInGb:0.0}GB  -> rated {r.Rating:0.0}");
+            }
+            
+            var selectedAdapter = factory.GetAdapter1(selectedAdapterIndex);
+            ActiveGpu = selectedAdapter.Description.Description;
+
+            // Create Device and SwapChain with the selected adapter
+            Device.CreateWithSwapChain(selectedAdapter, // Pass the selected adapter
                                        DeviceCreationFlags.Debug,
                                        Main.SwapChainDescription,
                                        out device,
@@ -73,18 +152,8 @@ internal static class ProgramWindows
             _deviceContext = device.ImmediateContext;
             _factory = swapchain.GetParent<Factory>();
 
-            // Log used graphics card
-            foreach (var a in _factory.Adapters)
-            {
-                Log.Info($"Using {a.Description.Description}");
-                break;
-            }
-
             Main.SetDevice(device, _deviceContext, swapchain);
-
             Main.InitializeWindow(FormWindowState.Maximized, OnCloseMainWindow, true);
-
-            // Ignore all windows events
             _factory.MakeWindowAssociation(Main.HwndHandle, WindowAssociationFlags.IgnoreAll);
         }
         catch (Exception e)
@@ -92,8 +161,9 @@ internal static class ProgramWindows
             if (e.Message.Contains("DXGI_ERROR_SDK_COMPONENT_MISSING"))
             {
                 var result =
-                    BlockingWindow.Instance.ShowMessageBox("You need to install Windows Graphics diagnostics tools.\n\nClick Ok to download this Windows component directly from Microsoft.",
-                                                          "Windows component missing", "Ok", "Cancel");
+                    BlockingWindow.Instance
+                                  .ShowMessageBox("You need to install Windows Graphics diagnostics tools.\n\nClick Ok to download this Windows component directly from Microsoft.",
+                                                  "Windows component missing", "Ok", "Cancel");
                 if (result == "Ok")
                 {
                     CoreUi.Instance
@@ -102,8 +172,9 @@ internal static class ProgramWindows
             }
             else
             {
-                BlockingWindow.Instance.ShowMessageBox("We are sorry but your graphics hardware might not be capable of running Tooll3\n\n" + e.Message, "Oh noooo",
-                                                 "Ok... /:");
+                BlockingWindow.Instance.ShowMessageBox("We are sorry but your graphics hardware might not be capable of running TiXL\n\n" + e.Message,
+                                                       "Oh noooo",
+                                                       "Ok... /:");
             }
 
             Environment.Exit(0);
@@ -130,7 +201,12 @@ internal static class ProgramWindows
         }
         else
         {
-            Log.Debug("Shutting down");
+#if DEBUG
+            args.Cancel = false;
+#else
+            args.Cancel = true;
+            T3Ui.ExitDialog.ShowNextFrame();
+#endif
         }
     }
 
@@ -250,30 +326,30 @@ internal static class ProgramWindows
 
         if (!needsRebuild)
             return;
-        
+
         // Create a shader resource-compatible texture
         var textureDesc = new Texture2DDescription
-                              {
-                                  Width = Main.SwapChain.Description.ModeDescription.Width,
-                                  Height = Main.SwapChain.Description.ModeDescription.Height,
-                                  MipLevels = 1,
-                                  ArraySize = 1,
-                                  Format = Main.SwapChain.Description.ModeDescription.Format,
-                                  SampleDescription = new SampleDescription(1, 0),
-                                  Usage = ResourceUsage.Default,
-                                  BindFlags = BindFlags.ShaderResource,
-                                  CpuAccessFlags = CpuAccessFlags.None,
-                                  OptionFlags = ResourceOptionFlags.None
-                              };
+        {
+            Width = Main.SwapChain.Description.ModeDescription.Width,
+            Height = Main.SwapChain.Description.ModeDescription.Height,
+            MipLevels = 1,
+            ArraySize = 1,
+            Format = Main.SwapChain.Description.ModeDescription.Format,
+            SampleDescription = new SampleDescription(1, 0),
+            Usage = ResourceUsage.Default,
+            BindFlags = BindFlags.ShaderResource,
+            CpuAccessFlags = CpuAccessFlags.None,
+            OptionFlags = ResourceOptionFlags.None
+        };
 
         if (_uiCopyTexture is { IsDisposed: false })
             _uiCopyTexture.Dispose();
-        
+
         _uiCopyTexture = new Texture2D(_device, textureDesc);
-        
+
         if (UiCopyTextureSrv is { IsDisposed: false })
             UiCopyTextureSrv.Dispose();
-        
+
         UiCopyTextureSrv = new ShaderResourceView(_device, _uiCopyTexture);
     }
 
@@ -291,12 +367,10 @@ internal static class ProgramWindows
             Log.Warning("Can't use undefined uiCopyTexture");
             return;
         }
-        
+
         _deviceContext.CopyResource(Main.BackBufferTexture, _uiCopyTexture);
     }
-    
-    private static  Texture2D _uiCopyTexture;
-    public static  ShaderResourceView UiCopyTextureSrv { get; private set; }
 
-
+    private static Texture2D _uiCopyTexture;
+    public static ShaderResourceView UiCopyTextureSrv { get; private set; }
 }

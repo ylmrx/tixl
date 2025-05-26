@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Graph;
 using T3.Editor.Gui.MagGraph.Model;
 using T3.Editor.Gui.MagGraph.States;
@@ -159,7 +158,7 @@ internal sealed class PlaceholderCreation
         {
             if (direction == MagGraphItem.Directions.Vertical)
             {
-                if(c.Style == MagGraphConnection.ConnectionStyles.AdditionalOutToMainInputSnappedVertical)
+                if(c.Style == MagGraphConnection.ConnectionStyles.MainOutToMainInSnappedVertical)
                     return c.SourceOutput.ValueType;
             }
             else
@@ -241,7 +240,7 @@ internal sealed class PlaceholderCreation
         context.TempConnections.Add(tempConnectionOut);
         
         context.DisconnectedInputHashes.Add(MagGraphConnection.GetItemInputHash(targetItem.Id, selectedInputId, 0)); // keep input visible until state is complete
-        context.Layout.FlagAsChanged();
+        context.Layout.FlagStructureAsChanged();
 
         PlaceHolderUi.Open(context,
                            PlaceholderItem,
@@ -279,7 +278,7 @@ internal sealed class PlaceholderCreation
         _snappedTargetItem = null;
         _snappedTargetInputId = Guid.Empty;
         context.DisconnectedInputHashes.Clear();
-        context.Layout.FlagAsChanged();
+        context.Layout.FlagStructureAsChanged();
         context.ConnectionHovering.ConnectionHoversWhenClicked.Clear();
         context.TempConnections.Clear();
 
@@ -345,6 +344,12 @@ internal sealed class PlaceholderCreation
                     // Reroute original connections...
                     foreach (var mc in _snappedSourceOutputLine.ConnectionsOut)
                     {
+                        if (newItemOutput.ValueType != mc.Type)
+                        {
+                            Log.Warning("Skipping mismatched connection type");
+                            continue;
+                        }
+                            
                         var splitVertically = _connectionOrientation == MagGraphItem.Directions.Vertical
                                               && mc.Style == MagGraphConnection.ConnectionStyles.BottomToTop;
 
@@ -374,22 +379,27 @@ internal sealed class PlaceholderCreation
                 // Find first input with matching type
                 var outputType = _snappedSourceOutputLine.Output.ValueType;
                 var matchingInputSlot = newInstance.Inputs.FirstOrDefault(i => i.ValueType == outputType);
-                if (matchingInputSlot != null)
+                if (matchingInputSlot == null)
                 {
+                    Log.Debug($"Can't find input with type {outputType}");
+                }
+                else if (matchingInputSlot.ValueType != outputType)
+                {
+                    Log.Warning("Skipping connection with mismatching types");
+                }
+                else
+                {
+                    var sourceId = _snappedSourceItem.Variant == MagGraphItem.Variants.Input ? Guid.Empty : _snappedSourceItem.Id;
+                    var sourceOutputId = _snappedSourceItem.Variant == MagGraphItem.Variants.Input ? _snappedSourceItem.Id : _snappedSourceOutputLine.Id;
                     context.MacroCommand
                            .AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
-                                                                       new Symbol.Connection(_snappedSourceItem.Id,
-                                                                                             _snappedSourceOutputLine.Id,
+                                                                       new Symbol.Connection(sourceId,
+                                                                                             sourceOutputId,
                                                                                              newInstance.SymbolChildId,
                                                                                              matchingInputSlot.Id
                                                                                             ),
                                                                        0));
                 }
-                else
-                {
-                    Log.Debug($"Can't find input with type {outputType}");
-                }
-                
             }
 
             // Push snapped ops further down if new op exceed initial default height
@@ -426,10 +436,10 @@ internal sealed class PlaceholderCreation
                                                MagGraphItem.GridSize.Y * (newHeight - 1));
             }            
         }
-        else if (context.TryGetActiveOutputLine(out var outputLine))
+        else if (context.TryGetActiveOutputLine(out _))
         {
-            var primaryInput = newInstance.Inputs.FirstOrDefault();
-            if (primaryInput != null && primaryInput.ValueType == context.DraggedPrimaryOutputType)
+            var primaryInput = newInstance.Inputs.FirstOrDefault(i => i.ValueType == context.DraggedPrimaryOutputType);
+            if (primaryInput != null)
             {
                 var connectionToAdd = new Symbol.Connection(context.ActiveSourceItem!.Id,
                                                             context.ActiveSourceOutputId,
@@ -512,7 +522,7 @@ internal sealed class PlaceholderCreation
         // TODO: add preset selection...
 
         ParameterPopUp.NodeIdRequestedForParameterWindowActivation = newSymbolChild.Id;
-        context.Layout.FlagAsChanged();
+        context.Layout.FlagStructureAsChanged();
 
         Complete(context);
     }

@@ -1,3 +1,4 @@
+#nullable enable
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
@@ -7,28 +8,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using T3.Core.UserData;
 using T3.Editor.Gui.Styling;
+using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Layouts;
 using T3.Editor.UiModel;
 
 namespace T3.Editor.Gui.AutoBackup;
 
-public static class AutoBackup
+internal static class AutoBackup
 {
     public static int SecondsBetweenSaves { get; set; } = 3 * 60;
-
-    public static bool IsEnabled { get; set; }
-
+    
     /// <summary>
     /// Should be call after all frame operators are completed
     /// </summary>
     public static void CheckForSave()
     {
-        if (!IsEnabled || _isSaving || Stopwatch.ElapsedMilliseconds < SecondsBetweenSaves * 1000)
+        if (!UserSettings.Config.EnableAutoBackup 
+            || _isSaving 
+            || _stopwatch.ElapsedMilliseconds < SecondsBetweenSaves * 1000)
             return;
 
         _isSaving = true;
         Task.Run(CreateBackupCallback);
-        Stopwatch.Restart();
+        _stopwatch.Restart();
     }
 
     private static void CreateBackupCallback()
@@ -52,15 +54,28 @@ public static class AutoBackup
 
         var zipFilePath = Path.Join(BackupDirectory, $"#{index:D5}-{DateTime.Now:yyyy_MM_dd-HH_mm_ss_fff}.zip");
 
+        var excludedDirs = new[] { "bin", "obj", ".git", "Render", "ImageSequence" };
         try
         {
             using var archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Create);
-
+            
             foreach (var sourcePath in SourcePaths)
             {
+                if (!Directory.Exists(sourcePath))
+                    continue;
+
+                var projectRootName = Path.GetFileName(sourcePath);
+
                 foreach (var filepath in Directory.GetFiles(sourcePath, "*", SearchOption.AllDirectories))
                 {
-                    archive.CreateEntryFromFile(filepath, filepath, CompressionLevel.Fastest);
+                    var relativeUnderProject = filepath[sourcePath.Length..].TrimStart(Path.DirectorySeparatorChar);
+                    var relativePath = Path.Combine(projectRootName, relativeUnderProject);
+
+                    var parts = relativePath.Split(Path.DirectorySeparatorChar);
+                    if (parts.Any(part => excludedDirs.Contains(part, StringComparer.OrdinalIgnoreCase)))
+                        continue;
+
+                    archive.CreateEntryFromFile(filepath, relativePath, CompressionLevel.Fastest);
                 }
             }
         }
@@ -169,7 +184,7 @@ public static class AutoBackup
         return index;
     }
 
-    public static string GetLatestArchiveFilePath()
+    public static string? GetLatestArchiveFilePath()
     {
         Directory.CreateDirectory(BackupDirectory);
         return Directory.EnumerateFiles(BackupDirectory, "*.zip", SearchOption.TopDirectoryOnly)
@@ -281,24 +296,25 @@ public static class AutoBackup
         return 0;
     }
 
-    private static readonly Stopwatch Stopwatch = Stopwatch.StartNew();
+    private static readonly Stopwatch _stopwatch = Stopwatch.StartNew();
     private static bool _isSaving;
-    private static string BackupDirectory => Path.Combine(UserData.SettingsFolder, "backup");
+    internal static string BackupDirectory => Path.Combine(FileLocations.SettingsPath, "Backup");
 
     private static string[] SourcePaths
     {
         get
         {
             return EditableSymbolProject.AllProjects
+                                        .Where(x => x.HasHome)
                                         .Select(x => x.Folder)
-                                        .Concat(NonProjectSourcePaths)
+                                        .Concat(_nonProjectSourcePaths)
                                         .ToArray();
         }
     }
 
-    private static readonly string[] NonProjectSourcePaths =
+    private static readonly string[] _nonProjectSourcePaths =
         {
-            ThemeHandling.ThemeFolder,
-            LayoutHandling.LayoutFolder
+            //ThemeHandling.ThemeFolder,
+            //LayoutHandling.LayoutFolder
         };
 }

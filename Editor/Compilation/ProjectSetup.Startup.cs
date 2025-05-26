@@ -6,6 +6,7 @@ using System.IO;
 using T3.Core.Compilation;
 using T3.Core.Model;
 using T3.Core.Resource;
+using T3.Core.UserData;
 using T3.Editor.External;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
@@ -94,7 +95,7 @@ internal static partial class ProjectSetup
 
         directory
            .EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
-           .Where(folder => !folder.Name.EndsWith(PlayerExporter.ExportFolderName, StringComparison.OrdinalIgnoreCase)) // ignore "player" project directory
+           .Where(folder => !folder.Name.EndsWith(FileLocations.ExportFolderName, StringComparison.OrdinalIgnoreCase)) // ignore "player" project directory
            .ToList()
            .ForEach(directoryInfo =>
                     {
@@ -104,6 +105,9 @@ internal static partial class ProjectSetup
     
     private readonly record struct ProjectLoadInfo(FileInfo fileInfo, CsProjectFile? csProjFile, bool success);
 
+    /// <summary>
+    /// Load each project file and its associated assembly
+    /// </summary>
     [SuppressMessage("ReSharper", "OutParameterValueIsAlwaysDiscarded.Local")]
     private static void LoadProjects(FileInfo[] csProjFiles, bool forceRecompile, out List<ProjectLoadInfo> failedProjects)
     {
@@ -158,12 +162,12 @@ internal static partial class ProjectSetup
         static IEnumerable<string> GetProjectDirectories(bool includeBuiltInAsProjects)
         {
             // ReSharper disable once JoinDeclarationAndInitializer
-            string[] topDirectories = [UserSettings.Config.DefaultNewProjectDirectory];
+            string[] topDirectories = [UserSettings.Config.ProjectsFolder];
 
             var projectSearchDirectories = topDirectories
                                           .Where(Directory.Exists)
                                           .SelectMany(Directory.EnumerateDirectories)
-                                          .Where(dirName => !dirName.Contains(PlayerExporter.ExportFolderName, StringComparison.OrdinalIgnoreCase));
+                                              .Where(dirName => !dirName.Contains(FileLocations.ExportFolderName, StringComparison.OrdinalIgnoreCase));
 
             // Add Built-in packages as projects
             if (includeBuiltInAsProjects)

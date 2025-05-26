@@ -126,7 +126,6 @@ public partial class Symbol
                     Log.Warning($"{typeof(Symbol.Child)} {ReadableName} does not have the following child output as defined: " +
                                 $"{childOutput?.OutputDefinition.Name}({nameof(Guid)}{childOutput?.OutputDefinition.Id})");
                 }
-
             }
 
             // Set disabled status on outputs of each instanced copy of this child within all parents that contain it
@@ -312,120 +311,136 @@ public partial class Symbol
             foreach (var parentInstance in Parent.InstancesOfSelf)
             {
                 var instance = parentInstance.Children[id];
-                var mainInputSlot = instance.Inputs[0];
-                var mainOutputSlot = instance.Outputs[0];
+                SetBypassForInstance(instance, shouldBypass);
+            }
 
-                var wasByPassed = false;
+            _isBypassed = shouldBypass;
+        }
 
-                switch (mainOutputSlot)
-                {
-                    case Slot<Command> commandOutput when mainInputSlot is Slot<Command> commandInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = commandOutput.TrySetBypassToInput(commandInput);
-                        }
-                        else
-                        {
-                            commandOutput.RestoreUpdateAction();
-                        }
+        private static bool SetBypassForInstance(Instance instance, bool shouldBypass, bool invalidate = true)
+        {
+            var mainInputSlot = instance.Inputs[0];
+            var mainOutputSlot = instance.Outputs[0];
 
+            var wasByPassed = false;
+
+            switch (mainOutputSlot)
+            {
+                case Slot<Command> commandOutput when mainInputSlot is Slot<Command> commandInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = commandOutput.TrySetBypassToInput(commandInput);
+                    }
+                    else
+                    {
+                        commandOutput.RestoreUpdateAction();
+                    }
+
+                    if (invalidate)
                         InvalidateConnected(commandInput);
-                        break;
+                    break;
 
-                    case Slot<BufferWithViews> bufferOutput when mainInputSlot is Slot<BufferWithViews> bufferInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = bufferOutput.TrySetBypassToInput(bufferInput);
-                        }
-                        else
-                        {
-                            bufferOutput.RestoreUpdateAction();
-                        }
+                case Slot<BufferWithViews> bufferOutput when mainInputSlot is Slot<BufferWithViews> bufferInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = bufferOutput.TrySetBypassToInput(bufferInput);
+                    }
+                    else
+                    {
+                        bufferOutput.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(bufferInput);
-                        break;
-                    case Slot<MeshBuffers> bufferOutput when mainInputSlot is Slot<MeshBuffers> bufferInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = bufferOutput.TrySetBypassToInput(bufferInput);
-                        }
-                        else
-                        {
-                            bufferOutput.RestoreUpdateAction();
-                        }
+                    
+                    break;
+                case Slot<MeshBuffers> bufferOutput when mainInputSlot is Slot<MeshBuffers> bufferInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = bufferOutput.TrySetBypassToInput(bufferInput);
+                    }
+                    else
+                    {
+                        bufferOutput.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(bufferInput);
 
-                        break;
-                    case Slot<Texture2D> texture2dOutput when mainInputSlot is Slot<Texture2D> texture2dInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = texture2dOutput.TrySetBypassToInput(texture2dInput);
-                        }
-                        else
-                        {
-                            texture2dOutput.RestoreUpdateAction();
-                        }
+                    break;
+                case Slot<Texture2D> texture2dOutput when mainInputSlot is Slot<Texture2D> texture2dInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = texture2dOutput.TrySetBypassToInput(texture2dInput);
+                    }
+                    else
+                    {
+                        texture2dOutput.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(texture2dInput);
 
-                        break;
-                    case Slot<float> floatOutput when mainInputSlot is Slot<float> floatInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = floatOutput.TrySetBypassToInput(floatInput);
-                        }
-                        else
-                        {
-                            floatOutput.RestoreUpdateAction();
-                        }
+                    break;
+                case Slot<float> floatOutput when mainInputSlot is Slot<float> floatInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = floatOutput.TrySetBypassToInput(floatInput);
+                    }
+                    else
+                    {
+                        floatOutput.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(floatInput);
 
-                        break;
+                    break;
 
-                    case Slot<System.Numerics.Vector2> vec2Output when mainInputSlot is Slot<System.Numerics.Vector2> vec2Input:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = vec2Output.TrySetBypassToInput(vec2Input);
-                        }
-                        else
-                        {
-                            vec2Output.RestoreUpdateAction();
-                        }
+                case Slot<System.Numerics.Vector2> vec2Output when mainInputSlot is Slot<System.Numerics.Vector2> vec2Input:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = vec2Output.TrySetBypassToInput(vec2Input);
+                    }
+                    else
+                    {
+                        vec2Output.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(vec2Input);
 
-                        break;
-                    case Slot<System.Numerics.Vector3> vec3Output when mainInputSlot is Slot<System.Numerics.Vector3> vec3Input:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = vec3Output.TrySetBypassToInput(vec3Input);
-                        }
-                        else
-                        {
-                            vec3Output.RestoreUpdateAction();
-                        }
+                    break;
+                case Slot<System.Numerics.Vector3> vec3Output when mainInputSlot is Slot<System.Numerics.Vector3> vec3Input:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = vec3Output.TrySetBypassToInput(vec3Input);
+                    }
+                    else
+                    {
+                        vec3Output.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(vec3Input);
 
-                        break;
-                    case Slot<string> stringOutput when mainInputSlot is Slot<string> stringInput:
-                        if (shouldBypass)
-                        {
-                            wasByPassed = stringOutput.TrySetBypassToInput(stringInput);
-                        }
-                        else
-                        {
-                            stringOutput.RestoreUpdateAction();
-                        }
+                    break;
+                case Slot<string> stringOutput when mainInputSlot is Slot<string> stringInput:
+                    if (shouldBypass)
+                    {
+                        wasByPassed = stringOutput.TrySetBypassToInput(stringInput);
+                    }
+                    else
+                    {
+                        stringOutput.RestoreUpdateAction();
+                    }
 
+                    if (invalidate)
                         InvalidateConnected(stringInput);
-                        break;
-                }
-
-                _isBypassed = wasByPassed;
+                    break;
             }
+
+            return wasByPassed;
         }
 
         private static void InvalidateConnected<T>(Slot<T> bufferInput)
@@ -882,6 +897,11 @@ public partial class Symbol
                 // connect animations if available
                 Symbol.Animator.CreateUpdateActionsForExistingCurves(newInstance.Children.Values);
 
+                if (_isBypassed)
+                {
+                    SetBypassForInstance(newInstance, true, invalidate: false);
+                }
+
                 return true;
 
                 bool TryInstantiate([NotNullWhen(true)] out Instance? instance,
@@ -937,7 +957,6 @@ public partial class Symbol
                 }
             }
         }
-
 
         internal void AddConnectionToInstances(Connection connection, int multiInputIndex)
         {

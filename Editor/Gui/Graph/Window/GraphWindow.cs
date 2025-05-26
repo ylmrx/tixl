@@ -263,7 +263,9 @@ internal sealed class GraphWindow : Windows.Window
 
                 ImGui.BeginGroup();
                 ImGui.SetScrollY(0);
-                CustomComponents.DrawWindowFocusFrame();
+                
+                if(!UserSettings.Config.FocusMode)
+                    CustomComponents.DrawWindowFocusFrame();
 
                 if (ImGui.IsWindowFocused())
                 {
@@ -274,7 +276,8 @@ internal sealed class GraphWindow : Windows.Window
 
                 ImGui.EndGroup();
 
-                ParameterPopUp.DrawParameterPopUp(ProjectView);
+                if(ProjectView != null)
+                    ParameterPopUp.DrawParameterPopUp(ProjectView);
             }
         }
         drawList.ChannelsMerge();

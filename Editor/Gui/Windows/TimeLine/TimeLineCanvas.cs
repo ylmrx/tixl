@@ -4,7 +4,6 @@ using T3.Core.DataTypes;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Interaction;
-using T3.Editor.Gui.Interaction.Snapping;
 using T3.Editor.Gui.Interaction.Timing;
 using T3.Editor.Gui.Interaction.WithCurves;
 using T3.Editor.Gui.Styling;
@@ -44,7 +43,6 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     }
 
     public NodeSelection NodeSelection => _nodeSelection;
-    public HashSet<Guid> HoveredIds => _nodeSelection.HoveredIds;
 
     public void Draw(Instance compositionOp, Playback playback)
     {
@@ -261,7 +259,11 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
             var draggedTime = InverseTransformX(mouseX);
             if (ImGui.GetIO().KeyShift)
             {
-                SnapHandlerForU.CheckForSnapping(ref draggedTime, Scale.X, new List<IValueSnapAttractor> { _currentTimeMarker });
+
+                if (SnapHandlerForU.TryCheckForSnapping(draggedTime, out var snappedValue, Scale.X, [_currentTimeMarker]))
+                {
+                    draggedTime = (float)snappedValue;
+                }
             }
 
             Playback.TimeInBars = draggedTime;

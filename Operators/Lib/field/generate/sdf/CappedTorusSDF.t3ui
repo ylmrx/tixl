@@ -1,0 +1,49 @@
+{
+  "Id": "b85198a8-6475-45e1-b2d2-83ec8f59d6ed"/*CappedTorusSDF*/,
+  "Description": "Generates a procedural torus field with which can be capped (with rounded edges).\nIt can be rendered with [RaymarchField] and visualized with [VisualizeFieldDistance].\nAlso known as Cube SDF.\n\nFor a simple and interactive tutorial on the TiXL rendering pipeline, see [HowToRaymarchField].\n\nIt can be modified with [BendField] , [TransformField] , [PolarRepeat] and more.\n\nSimilar nodes: [BoxSDF], [ChainLinkSDF], [FractalSDF].\n\nTo use a Mesh made of polygons refer to [TorusMesh].",
+  "InputUis": [
+    {
+      "InputId": "00cec9de-3be4-403f-8677-dcc2ef473708"/*Radius*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 90.0
+      },
+      "Description": "Defines the size of the ring"
+    },
+    {
+      "InputId": "d37914dd-7bbd-47fa-ad90-9921621afb9e"/*Fill*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 45.0
+      },
+      "Description": "Defines which part of the torus is capped.\n0.930 = the torus is completely capped\n3.218 = the torus is uncapped",
+      "AddPadding": "True"
+    },
+    {
+      "InputId": "e1dc5cdc-24d2-409f-9ea6-6dd14fdb70d3"/*Thickness*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 135.0
+      },
+      "Description": "Defines the thickness of the ring"
+    },
+    {
+      "InputId": "f5a24e80-741a-49c5-9a0b-d7074e80940a"/*Center*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      },
+      "Description": "Transforms the center of the object"
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "170b545f-c7c0-47d9-8b19-d8d8e8a3d2fa"/*Result*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    }
+  ]
+}
