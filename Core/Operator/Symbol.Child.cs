@@ -784,11 +784,7 @@ public partial class Symbol
                 }
 
                 // make sure we're not instantiating a child that needs to be updated again later
-                if (Symbol.NeedsTypeUpdate)
-                {
-                    Symbol.UpdateInstanceType();
-                }
-                
+                Symbol.UpdateInstanceType();
 
                 if (!TryInstantiate(out newInstance, out reason2))
                 {
