@@ -22,7 +22,8 @@
       "Position": {
         "X": -1068.845,
         "Y": 885.2632
-      }
+      },
+      "GroupTitle": "Transform"
     },
     {
       "InputId": "605dd318-4462-43c3-940c-6709a75b7f95"/*Take*/,
@@ -74,7 +75,8 @@
       "Position": {
         "X": -1068.845,
         "Y": 1110.2632
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "a0de0994-8870-4ff4-add2-04e235ec9a91"/*Rotation*/,
@@ -126,7 +128,8 @@
       "Position": {
         "X": -1068.845,
         "Y": 1065.2632
-      }
+      },
+      "GroupTitle": "Advanced"
     },
     {
       "InputId": "e6fcfecd-6ebe-479b-9454-fb40e9a2b9d0"/*Points*/,

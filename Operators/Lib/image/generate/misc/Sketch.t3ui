@@ -16,6 +16,7 @@
         "X": -729.5201,
         "Y": 249.8527
       },
+      "GroupTitle": "Visuals",
       "Min": 0.0,
       "Max": 10.0,
       "Clamp": true
@@ -67,7 +68,8 @@
       "Position": {
         "X": -729.5201,
         "Y": 609.8527
-      }
+      },
+      "GroupTitle": "Settings"
     },
     {
       "InputId": "f823fdfd-fc3d-41c4-bd9d-6badf764d702"/*InputImage*/,

@@ -37,6 +37,11 @@ public static class BeatTiming
 
         var tappedMeasureSync = _syncMeasureTriggeredLastFrame;
         _syncMeasureTriggeredLastFrame = false;
+        if (tappedMeasureSync)
+        {
+            BeatSynchronizer.Resync(Bpm);
+            _resynced = true;
+        }
 
         // Fix BPM if completely out of control
         if (double.IsNaN(Bpm) || Bpm < 20 || Bpm > 200)
@@ -58,10 +63,13 @@ public static class BeatTiming
 
         //--------------------------------------------------------
 
+
         void ProcessBeatTaps()
         {
             if (!tappedBeatSync)
                 return;
+
+            _resynced = false;
 
             BeatTimingDetails.LastTapDistanceToBeat = (float)GetDeltaToSync(runTime);
 
@@ -139,10 +147,19 @@ public static class BeatTiming
                 _measureStartTime += MeasureDuration;
             }
 
-            var tInMeasure = (runTime - _measureStartTime) / MeasureDuration;
-            BeatTime = (_measureCount + tInMeasure + _syncMeasureOffset) * BeatsPerBar;
+            if (_resynced)
+            {
+                BeatTime = _barTimeAverage.UpdateAndCompute(BeatSynchronizer.BarProgress) + 0.05f;
+                _beatDuration =   (float)(60f / BeatSynchronizer.CurrentBpm);
+            }
+            else
+            {
+                var tInMeasure = (runTime - _measureStartTime) / MeasureDuration;
+                BeatTime = (_measureCount + tInMeasure + _syncMeasureOffset) * BeatsPerBar;
+            }
         }
 
+        
         void UpdateDebugData()
         {
             BeatTimingDetails.WasResyncTriggered = tappedMeasureSync ? 1f : 0f;
@@ -172,6 +189,8 @@ public static class BeatTiming
         var beatCount = Math.Round(Math.Abs(timeInMeasure) / _beatDuration);
         return timeInMeasure - _beatDuration * beatCount;
     }
+    
+    private static bool _resynced;
 
     private static double MeasureDuration => _beatDuration * BeatsPerMeasure;
     private const int MaxTapsCount = 16;
@@ -193,4 +212,43 @@ public static class BeatTiming
     private static bool _tapTriggeredLastFrame;
 
     private const double Threshold = 0.3;
+
+    private static readonly SlidingAverage _barTimeAverage = new(10);
+}
+
+internal class SlidingAverage
+{
+    public SlidingAverage(int maxLength)
+    {
+        _length = maxLength;
+        _queue = new Queue<double>(maxLength);
+    }
+        
+    public  double UpdateAndCompute(double current)
+    {
+        _queue.Enqueue(current);
+        _currentSum += current;
+
+        var tailValue = current;
+        
+        if (_queue.Count > _length)
+        {
+            tailValue = _queue.Dequeue();
+            _currentSum -= tailValue;
+        }
+
+        var delta = (current - tailValue);
+
+        var averageStrength = 0.0;
+        if (_queue.Count > 0)
+        {
+            averageStrength = _currentSum / _queue.Count;
+        }
+
+        return averageStrength + Math.Max(0,delta /2);
+    }
+
+    private readonly int _length;
+    private readonly Queue<double> _queue;
+    private double _currentSum;
 }

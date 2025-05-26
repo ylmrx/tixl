@@ -73,7 +73,13 @@ internal sealed class SettingsWindow : Window
                     changed |= FormInputs.AddEnumDropdown(ref UserSettings.Config.GraphStyle,
                                                           "Graph Style",
                                                           "Allows to switch between different graphical representations.\nThis also will affect usability and performance"
-                                                         );
+                                                          );
+                    
+                    changed |= FormInputs.AddCheckBox("Enable keyboard shortcut",
+                                                      ref UserSettings.Config.EnableKeyboardShortCuts,
+                                                      "This option might prevent unintended user interactions while live performing with [KeyInput] operators.",
+                                                      UserSettings.Defaults.EnableKeyboardShortCuts);
+                    
                     if (UserSettings.Config.GraphStyle == UserSettings.GraphStyles.Magnetic)
                     {
                         changed |= FormInputs.AddCheckBox("Disconnect on unsnap",
@@ -395,6 +401,12 @@ internal sealed class SettingsWindow : Window
                                                       "Logs additional compilation details with the given severity",
                                                       UserSettings.Defaults.LogCsCompilationDetails);
 
+                    FormInputs.AddVerticalSpace();
+                    changed |= FormInputs.AddCheckBox("Profile Beat Syncing",
+                                                      ref ProjectSettings.Config.EnableBeatSyncProfiling,
+                                                      "Logs beat sync timing to IO Window",
+                                                      ProjectSettings.Defaults.EnableBeatSyncProfiling);
+                    
                     FormInputs.SetIndentToParameters();
 
                     if (UserSettings.Config.LogCsCompilationDetails)

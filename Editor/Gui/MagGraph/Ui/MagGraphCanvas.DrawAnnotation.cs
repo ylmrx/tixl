@@ -1,4 +1,4 @@
-﻿using ImGuiNET;
+using ImGuiNET;
 using T3.Core.Utils;
 using T3.Editor.Gui.Interaction.Snapping;
 using T3.Editor.Gui.MagGraph.Model;
@@ -22,20 +22,27 @@ internal sealed partial class MagGraphCanvas
         var pMin = TransformPosition(magAnnotation.DampedPosOnCanvas);
         var pMax = TransformPosition(magAnnotation.DampedPosOnCanvas + magAnnotation.DampedSize);
 
-        drawList.AddRectFilled(pMin,
+        drawList.PushClipRect(pMin, pMax, true); // Start with a simple rectangular clip 
+        // Background
+        var backgroundColor = ColorVariations.AnnotationBackground.Apply(magAnnotation.Annotation.Color).Fade(0.4f);
+
+        var rounding = 8;// * canvas.Scale.X; 
+        var flags = ImDrawFlags.RoundCornersTop | ImDrawFlags.RoundCornersBottomLeft;
+
+
+        drawList.AddRectFilled(pMin + Vector2.One,
                                pMax,
-                               UiColors.BackgroundFull.Fade(0.2f),
-                               3 * context.Canvas.CanvasScale);
+                               backgroundColor,
+                               rounding, flags);
 
         var isNodeSelected = context.Selector.IsNodeSelected(magAnnotation.Annotation);
-        var borderColor = isNodeSelected
-                              ? UiColors.ForegroundFull
-                              : UiColors.ForegroundFull.Fade(0.1f);
 
+        // Outline
         drawList.AddRect(pMin,
                          pMax,
-                         borderColor,
-                         3 * context.Canvas.CanvasScale);
+                         isNodeSelected ? UiColors.ForegroundFull : ColorVariations.AnnotationOutline.Apply(magAnnotation.Annotation.Color),
+                         rounding,
+                         flags);
 
         // Keep height of title area at a minimum height when zooming out
         var screenArea = new ImRect(pMin, pMax);
@@ -59,7 +66,7 @@ internal sealed partial class MagGraphCanvas
         drawList.AddRectFilled(clickableArea.Min, clickableArea.Max,
                                UiColors.ForegroundFull.Fade(isHeaderHovered
                                                                 ? headerHoverAlpha
-                                                                : 0));
+                                                                : 0), rounding, ImDrawFlags.RoundCornersTop);
 
         // Clicked -> Drag
         if (ImGui.IsItemClicked(ImGuiMouseButton.Left) && !ImGui.GetIO().KeyAlt)
@@ -77,7 +84,7 @@ internal sealed partial class MagGraphCanvas
         }
 
         // Label and description
-        if (context.StateMachine.CurrentState != GraphStates.RenameAnnotation)
+        if (context.ActiveAnnotationId != magAnnotation.Id || context.StateMachine.CurrentState != GraphStates.RenameAnnotation)
         {
             var labelHeight = 0f;
             var canvasScale = canvas.Scale.X;
@@ -94,7 +101,7 @@ internal sealed partial class MagGraphCanvas
                     drawList.AddText(Fonts.FontLarge,
                                      fontSize,
                                      pMin + new Vector2(8, 3),
-                                     UiColors.ForegroundFull.Fade(fade),
+                                     ColorVariations.OperatorLabel.Apply(magAnnotation.Annotation.Color.Fade(fade)),
                                      magAnnotation.Annotation.Label);
                     labelHeight = Fonts.FontLarge.FontSize;
                 }
@@ -124,17 +131,24 @@ internal sealed partial class MagGraphCanvas
         // Resize handle
         {
             ImGui.PushID(magAnnotation.Id.GetHashCode());
-            ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE);
-            ImGui.SetCursorScreenPos(screenArea.Max - new Vector2(10, 10) * T3Ui.UiScaleFactor);
-            ImGui.Button("##resize", new Vector2(10, 10) * T3Ui.UiScaleFactor);
+            
+            var thumbSize = (int)10 * T3Ui.UiScaleFactor;
+
+            ImGui.SetCursorScreenPos(screenArea.Max - new Vector2(11, 11) * T3Ui.UiScaleFactor);
+
+            ImGui.InvisibleButton("##resize", new Vector2(10, 10) * T3Ui.UiScaleFactor);
+
+            if (ImGui.IsItemHovered()){
+                ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeNWSE);
+            }
 
             if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
             {
                 context.ActiveAnnotationId = magAnnotation.Id;
                 context.StateMachine.SetState(GraphStates.ResizeAnnotation, context);
             }
-
-            ImGui.SetMouseCursor(ImGuiMouseCursor.Arrow);
+            drawList.AddTriangleFilled(screenArea.Max - new Vector2(11, 1) * T3Ui.UiScaleFactor, screenArea.Max - new Vector2(1, 11) * T3Ui.UiScaleFactor, screenArea.Max - new Vector2(1, 1) * T3Ui.UiScaleFactor, UiColors.BackgroundButton);
+            drawList.PopClipRect();
             ImGui.PopID();
         }
     }

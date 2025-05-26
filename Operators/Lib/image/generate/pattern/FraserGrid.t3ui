@@ -55,6 +55,7 @@
         "X": -219.05618,
         "Y": 825.9896
       },
+      "GroupTitle": "Elements",
       "Min": -90.0,
       "Max": 90.0,
       "Format": "{0:0.000}°"
@@ -91,14 +92,16 @@
       "Position": {
         "X": -223.4553,
         "Y": 474.05212
-      }
+      },
+      "GroupTitle": "Transform"
     },
     {
       "InputId": "75c859fa-9dad-4da3-994c-7232811d5ede"/*Resolution*/,
       "Position": {
         "X": -195.6851,
         "Y": 1497.3857
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "84afcc08-74ae-4218-8250-2a0c72130f41"/*Feather*/,
@@ -106,6 +109,7 @@
         "X": -219.05618,
         "Y": 780.9896
       },
+      "AddPadding": "True",
       "Min": 0.0,
       "Max": 0.1
     },
@@ -142,6 +146,7 @@
         "X": -197.88463,
         "Y": 1264.1416
       },
+      "AddPadding": "True",
       "Min": -1.0,
       "Max": 1.0,
       "Format": "{0:0.000} ±"

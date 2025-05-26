@@ -19,6 +19,7 @@
         "X": -482.60156,
         "Y": 612.95074
       },
+      "AddPadding": "True",
       "Min": -0.1,
       "Max": 0.1,
       "Scale": 0.0005
@@ -28,7 +29,8 @@
       "Position": {
         "X": -486.94925,
         "Y": 799.91724
-      }
+      },
+      "GroupTitle": "Color"
     },
     {
       "InputId": "1e6d0245-b5d4-45a5-8dac-6d905837060d"/*SampleDistance*/,
@@ -53,7 +55,7 @@
         "X": -489.22665,
         "Y": 1529.2065
       },
-      "AddPadding": "True"
+      "GroupTitle": "Advanced"
     },
     {
       "InputId": "4232af30-de5f-4fd6-af92-d704e26f6850"/*LuminosityRange*/,
@@ -61,6 +63,7 @@
         "X": -489.22665,
         "Y": 1259.2065
       },
+      "AddPadding": "True",
       "Min": 0.0,
       "Max": 1.0,
       "Clamp": true
@@ -71,6 +74,7 @@
         "X": -488.05676,
         "Y": 337.64746
       },
+      "GroupTitle": "Movement",
       "Min": -90.0,
       "Max": 90.0,
       "Format": "{0:0.0}°"
@@ -80,7 +84,8 @@
       "Position": {
         "X": -489.22665,
         "Y": 1214.2065
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "54ecb0e0-6fc0-4441-b26b-b820e95475a0"/*ShiftBrightness*/,
@@ -107,6 +112,7 @@
         "X": -479.68738,
         "Y": 12.322414
       },
+      "GroupTitle": "Feedback",
       "Min": -10.0,
       "Max": 10.0
     },

@@ -19,6 +19,7 @@
       <option name="Build" default="false" projectName="pixtur" projectPath="$PROJECT_DIR$/Operators/user/pixtur/pixtur.csproj" />
       <option name="Build" default="false" projectName="TypeOperators" projectPath="$PROJECT_DIR$/Operators/TypeOperators/TypeOperators.csproj" />
       <option name="Build" default="false" projectName="ndi" projectPath="$PROJECT_DIR$/Operators/Ndi/ndi.csproj" />
+      <option name="Build" default="false" projectName="spout" projectPath="$PROJECT_DIR$/Operators/Spout/spout.csproj" />
       <option name="Build" default="false" projectName="Editor" projectPath="$PROJECT_DIR$/Editor/Editor.csproj" />
     </method>
   </configuration>

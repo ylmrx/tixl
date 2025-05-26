@@ -54,6 +54,16 @@ internal static class AppMenuBar
 
             ImGui.SameLine();
 
+            if (!UserSettings.Config.EnableKeyboardShortCuts)
+            {
+                ImGui.TextColored(UiColors.StatusAttention, "Keyboard Disabled!");
+                if (ImGui.IsItemClicked())
+                {
+                    UserSettings.Config.EnableKeyboardShortCuts = true;
+                }
+                ImGui.SameLine();
+            }
+
             Program.StatusErrorLine.Draw();
 
             ImGui.EndMainMenuBar();
@@ -172,13 +182,15 @@ internal static class AppMenuBar
 
     private static void DrawMainMenu()
     {
+        ImGui.PushStyleColor(ImGuiCol.Header, UiColors.BackgroundActive.Fade(0.5f).Rgba);
+        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, UiColors.BackgroundActive.Rgba);
         if (ImGui.BeginMenu("TiXL"))
         {
             UserSettings.Config.ShowMainMenu = true;
 
             var currentProject = ProjectView.Focused?.OpenedProject.Package;
             var showNewTemplateOption = !T3Ui.IsCurrentlySaving && currentProject != null;
-
+            
             if (ImGui.MenuItem("New Project..."))
             {
                 T3Ui.NewProjectDialog.ShowNextFrame();
@@ -208,7 +220,7 @@ internal static class AppMenuBar
                         Log.Error("Not implemented yet");
                     }
                 }
-
+                
                 ImGui.EndMenu();
             }
 
@@ -247,6 +259,12 @@ internal static class AppMenuBar
                 //_importDialog.ShowNextFrame();
             }
 
+            ImGui.Separator();
+            if (ImGui.MenuItem("Disable Keyboard ShortCuts", KeyboardBinding.ListKeyboardShortcuts(UserActions.Save, false), !UserSettings.Config.EnableKeyboardShortCuts))
+            {
+                UserSettings.Config.EnableKeyboardShortCuts = !UserSettings.Config.EnableKeyboardShortCuts;
+            }
+            
             ImGui.Separator();
 
             if (ImGui.MenuItem("Save Changes", KeyboardBinding.ListKeyboardShortcuts(UserActions.Save, false), false, !T3Ui.IsCurrentlySaving))
@@ -307,6 +325,8 @@ internal static class AppMenuBar
             ImGui.Separator();
 
             WindowManager.SettingsWindow.DrawMenuItemToggle();
+
+            ImGui.Separator();
 
             if (ImGui.MenuItem("Exit", !T3Ui.IsCurrentlySaving))
             {
@@ -451,6 +471,8 @@ internal static class AppMenuBar
 
             ImGui.EndMenu();
         }
+        ImGui.PopStyleColor();
+        ImGui.PopStyleColor();
     }
 
     private sealed class HelpLink(string title, string url, string toolTip = "")

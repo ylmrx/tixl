@@ -15,14 +15,16 @@
       "Position": {
         "X": -254.34756,
         "Y": 151.96799
-      }
+      },
+      "GroupTitle": "Movement"
     },
     {
       "InputId": "4109af01-5c9a-4a9f-af7f-87fbcdcece3d"/*Offset*/,
       "Position": {
         "X": -254.34756,
         "Y": 331.96786
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "41c080de-575f-4041-b605-8f55e4bcf797"/*SampleDistance*/,
@@ -36,7 +38,8 @@
       "Position": {
         "X": -254.34756,
         "Y": 466.9679
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "78b314b8-f9d2-4723-9b11-c07ba926db86"/*Shade*/,
@@ -78,7 +81,8 @@
       "Position": {
         "X": -254.34756,
         "Y": 5.9679832
-      }
+      },
+      "GroupTitle": "Feedback"
     },
     {
       "InputId": "ebd35d33-dc73-46ae-a82c-2060d750018a"/*Command*/,

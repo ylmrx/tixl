@@ -1,8 +1,7 @@
-﻿using System.IO;
 using ImGuiNET;
+using System.IO;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
-using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.OutputUi;
 using T3.Editor.Gui.Styling;
@@ -10,6 +9,7 @@ using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Layouts;
 using T3.Editor.Gui.Windows.RenderExport;
 using T3.Editor.UiModel;
+using T3.Editor.UiModel.ProjectHandling;
 using Texture2D = T3.Core.DataTypes.Texture2D;
 using Vector2 = System.Numerics.Vector2;
 
@@ -186,14 +186,19 @@ internal sealed class OutputWindow : Window
         CustomComponents.TooltipForLastItem("Adjust background color of view");
         ImGui.PopStyleColor();
 
-        var texture = GetCurrentTexture();
-        if (texture != null)
+        var texture = GetCurrentTexture();  
+        // if (texture != null)
+        if (drawnType == typeof(Texture2D) || drawnType == typeof(Command))
         {
             ImGui.SameLine();
 
+            var project = ProjectView.Focused?.OpenedProject;
+            var projectFolder = project.Package.Folder;
+            var folder = Path.Combine(projectFolder, "Screenshots");
+
             if (CustomComponents.IconButton(Icon.Snapshot, new Vector2(ImGui.GetFrameHeight(), ImGui.GetFrameHeight())))
             {
-                const string folder = @"Screenshots/";
+                
                 if (!Directory.Exists(folder))
                 {
                     Directory.CreateDirectory(folder);
@@ -201,6 +206,7 @@ internal sealed class OutputWindow : Window
 
                 var filename = Path.Join(folder, $"{DateTime.Now:yyyy_MM_dd-HH_mm_ss_fff}.png");
                 ScreenshotWriter.StartSavingToFile(texture, filename, ScreenshotWriter.FileFormats.Png);
+                Log.Assert("Screenshot saved in: " + folder);
             }
 
             CustomComponents.TooltipForLastItem("Save screenshot");

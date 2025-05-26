@@ -25,6 +25,9 @@ public class ProjectSettings : Settings<ProjectSettings.ConfigData>
         public bool EnableMidiSnapshotIndication = false;
         public WindowMode DefaultWindowMode = WindowMode.Fullscreen;
         public int DefaultOscPort = 8000;
+
+        // Profiling
+        public bool EnableBeatSyncProfiling = false;
     }
 }
 

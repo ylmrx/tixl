@@ -1,5 +1,6 @@
 ﻿using ImGuiNET;
 using T3.Core.DataTypes.Vector;
+using T3.Core.Operator.Interfaces;
 using T3.Core.Utils;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.MagGraph.Interaction;
@@ -88,6 +89,8 @@ internal sealed partial class MagGraphCanvas
         foreach (var item in _context.Layout.Items.Values)
         {
             DrawNode(item, drawList, _context);
+
+            InvalidateSelectedGizmoProviders(item);
         }
 
         Fonts.FontSmall.Scale = 1; // WTF. Some of the drawNode seems to spill out fontSize
@@ -228,6 +231,21 @@ internal sealed partial class MagGraphCanvas
     }
 
     /// <summary>
+    /// Transform gizmos of cached operators like [Point] might not be visible in the output window.
+    /// This method force-invalidates them, if selected. 
+    /// </summary>
+    private void InvalidateSelectedGizmoProviders(MagGraphItem item)
+    {
+        if (item.Variant == MagGraphItem.Variants.Operator
+            && item.Instance is ITransformable transformable
+            && _context.Selector.IsSelected(item)
+            && item.Instance.Inputs.Count > 0)
+        {
+            item.Instance.Inputs[0].DirtyFlag.ForceInvalidate();
+        }
+    }
+
+    /// <summary>
     /// This a very simple proof-of-concept implementation to test it's fidelity.
     /// A simple optimization could be to only do this for some time after a drag manipulation and then apply
     /// the correct position. Also, this animation does not affect connection lines.
@@ -318,9 +336,9 @@ internal sealed partial class MagGraphCanvas
 
     private void DrawBackgroundGrid(ImDrawListPtr drawList, Vector2 gridSize, Color color)
     {
-        var window = new ImRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize());
+        var window = new ImRect(WindowPos, WindowPos + WindowSize);
 
-        var topLeftOnCanvas = InverseTransformPositionFloat(ImGui.GetWindowPos());
+        var topLeftOnCanvas = InverseTransformPositionFloat(WindowPos);
         var alignedTopLeftCanvas = new Vector2((int)(topLeftOnCanvas.X / gridSize.X) * gridSize.X,
                                                (int)(topLeftOnCanvas.Y / gridSize.Y) * gridSize.Y);
 
@@ -333,7 +351,7 @@ internal sealed partial class MagGraphCanvas
         {
             var x = (int)(topLeftOnScreen.X + ix * screenGridSize.X);
             drawList.AddRectFilled(new Vector2(x, window.Min.Y),
-                                   new Vector2(x + 1, window.Max.Y),
+                                   new Vector2(x+1, window.Max.Y),
                                    color);
         }
 
@@ -341,7 +359,7 @@ internal sealed partial class MagGraphCanvas
         {
             var y = (int)(topLeftOnScreen.Y + iy * screenGridSize.Y);
             drawList.AddRectFilled(new Vector2(window.Min.X, y),
-                                   new Vector2(window.Max.X, y + 1),
+                                   new Vector2(window.Max.X, y+1 ),
                                    color);
         }
     }

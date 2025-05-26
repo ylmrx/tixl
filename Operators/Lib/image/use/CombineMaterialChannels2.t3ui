@@ -44,7 +44,8 @@
       "Position": {
         "X": -48.61692,
         "Y": 316.2407
-      }
+      },
+      "GroupTitle": "Selection"
     },
     {
       "InputId": "8e959b1a-5f19-4962-a595-468370f42965"/*ColorA*/,
@@ -68,7 +69,8 @@
       "Position": {
         "X": -47.30455,
         "Y": 535.8021
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "af0ee1f7-e78f-4ed8-a1c4-ef0928f6a69c"/*ImageC*/,

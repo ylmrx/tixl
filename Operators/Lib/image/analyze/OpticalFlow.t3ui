@@ -32,6 +32,7 @@
         "X": 705.1704,
         "Y": -206.1409
       },
+      "GroupTitle": "Settings",
       "Min": 0.0,
       "Max": 1.0,
       "Clamp": true
@@ -41,7 +42,8 @@
       "Position": {
         "X": 705.1704,
         "Y": -71.1409
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "dc54082f-0e94-471e-8aca-4573c167fda3"/*OutputMethod*/,
@@ -62,7 +64,8 @@
       "Position": {
         "X": 705.1704,
         "Y": -161.1409
-      }
+      },
+      "AddPadding": "True"
     }
   ],
   "SymbolChildUis": [

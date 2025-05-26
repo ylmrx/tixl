@@ -8,7 +8,8 @@
       "Position": {
         "X": -200.0,
         "Y": 90.0
-      }
+      },
+      "AddPadding": "True"
     },
     {
       "InputId": "662b8a63-58db-4c9e-b53a-7ece1f118e12"/*SubGraph*/,
@@ -31,6 +32,7 @@
         "X": -200.0,
         "Y": 0.0
       },
+      "GroupTitle": "Settings",
       "Usage": "Default"
     },
     {
