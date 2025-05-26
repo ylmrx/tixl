@@ -8,6 +8,7 @@ cbuffer Params : register(b0)
     float4x4 TransformVolume;
     float4x4 InverseTransformVolume;
 
+    float Amount;
     float Bounciness;
     float RandomizeBounce;
     float RandomizeReflection;
@@ -15,8 +16,8 @@ cbuffer Params : register(b0)
     float Attraction;
     float Repulsion;
     float SpeedFactor;
-
     float InvertVolumeFactor;
+
     float AttractionDecay;
 }
 
@@ -153,5 +154,7 @@ static const int VolumeNoise = 4;
     }
 
     if (!isnan(velocity.x) && !isnan(velocity.y) && !isnan(velocity.z))
-        Particles[gi].Velocity = velocity;
+    {
+        Particles[gi].Velocity = lerp(Particles[gi].Velocity, velocity, Amount);
+    }
 }
