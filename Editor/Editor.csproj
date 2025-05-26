@@ -160,7 +160,7 @@
         </ItemGroup>
 
         <!-- Copy Dlls and symbols using the items and subfolders defined above -->
-        <Copy SourceFiles="@(Lib);@(TypeOperators);@(LibEditor);@(Examples);@(Unsplash);@(Ndi);@(pixtur)" DestinationFolder="$(ExportFolder)/%(SubFolder)/%(RecursiveDir)" SkipUnchangedFiles="true" UseHardlinksIfPossible="true" />
+        <Copy SourceFiles="@(Lib);@(TypeOperators);@(LibEditor);@(Examples);@(Unsplash);@(Ndi);@(pixtur);@(Spout)" DestinationFolder="$(ExportFolder)/%(SubFolder)/%(RecursiveDir)" SkipUnchangedFiles="true" UseHardlinksIfPossible="true" />
     </Target>
     <!-- ==================================//====================================== -->
 

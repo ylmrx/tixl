@@ -98,6 +98,14 @@
   <ItemGroup>
     <PackageReference Include="NDILibDotNet6" Version="1.0.11" />
   </ItemGroup>
+
+  <!-- Native dependencies -->
+  <ItemGroup>
+    <Content Include="./dependencies/**/*" CopyToOutputDirectory="PreserveNewest">
+      <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </Content>
+  </ItemGroup>
+  
   <!-- Include Resources/** into output/Resources -->
   <ItemGroup Condition="'$(Configuration)' == 'Release'">
     <Content Include="Resources/**/*" Exclude="bin/**">
