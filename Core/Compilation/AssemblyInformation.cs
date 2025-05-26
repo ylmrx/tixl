@@ -151,10 +151,16 @@ public sealed partial class AssemblyInformation
     {
         Log.Debug($"{Name}: Assembly actually unloading");
 
-        const int maxTryCount = 10;
         obj.Unloading -= Unloading;
-        obj = null!;
 
+        /*
+         * We need to dereference the assembly to allow its types to be unloaded, allowing us to recompile into the same directory.
+         * This is done by forcing a garbage collection and waiting for finalizers to complete.
+         * If the references are still alive after a certain number of attempts, we log a warning.
+         */
+        /*
+        obj = null!;
+        const int maxTryCount = 10;
         int i = 0;
         for (; _asmReference!.IsAlive && (i < maxTryCount); i++)
         {
@@ -207,6 +213,7 @@ public sealed partial class AssemblyInformation
             }
             Log.Error(sb.ToString());
         }
+        */
         
         _ctxReference = null;
         _asmReference = null;

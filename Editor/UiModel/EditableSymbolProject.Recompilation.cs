@@ -46,19 +46,26 @@ internal partial class EditableSymbolProject
             
         bool alreadyExists;
 
+        _csFileWatcher.EnableRaisingEvents = false;
+        MarkAsSaving();
         try
         {
             alreadyExists = File.Exists(path);
             File.WriteAllText(path, sourceCode);
+            UnmarkAsSaving();
         }
         catch
         {
             Log.Error($"Could not write source code to {path}");
             newSymbol = null;
             newSymbolUi = null;
+            UnmarkAsSaving();
             return false;
         }
 
+        // non-breaking change - increment build number
+        CsProjectFile.IncrementBuildNumber(1);
+        
         if (TryRecompile(true))
         {
             newSymbolUi = null;
@@ -71,7 +78,10 @@ internal partial class EditableSymbolProject
 
             return gotSymbol;
         }
-            
+        
+        // we failed compilation, so we revert the build number
+        CsProjectFile.IncrementBuildNumber(-1);
+        
         if (!alreadyExists)
         {
             // delete the newly created file

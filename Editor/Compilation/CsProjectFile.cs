@@ -162,23 +162,16 @@ internal sealed class CsProjectFile
     /// <returns>True if successful</returns>
     public bool TryRecompile(bool nugetRestore)
     {
-        if(_needsIncrementBuildVersion)
-            ModifyBuildVersion(0, 0, 1);
-        var success = Compiler.TryCompile(this, EditorBuildMode, nugetRestore);
-
-        if (!success)
+        if (!Compiler.TryCompile(this, EditorBuildMode, nugetRestore, GetBuildTargetDirectory()))
         {
-            if(_needsIncrementBuildVersion)
-                ModifyBuildVersion(0, 0, -1);
             return false;
         }
 
-        return success;
+        return true;
     }
 
     public void UpdateVersionForIOChange(int modifyAmount)
     {
-        _needsIncrementBuildVersion = false;
         ModifyBuildVersion(0, Math.Clamp(modifyAmount, -1, 1), 0);
     }
 
@@ -303,10 +296,13 @@ internal sealed class CsProjectFile
     private readonly string _releaseRootDirectory;
     private readonly string _debugRootDirectory;
     private readonly ProjectRootElement _projectRootElement;
-    private bool _needsIncrementBuildVersion;
 
-    public void MarkCodeChanged()
+
+    public void IncrementBuildNumber(int amount)
     {
-        _needsIncrementBuildVersion = true;
+        if (amount == 0)
+            return;
+
+        ModifyBuildVersion(0, 0, amount);
     }
 }
