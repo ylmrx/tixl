@@ -46,7 +46,7 @@ public sealed partial class Symbol
                 // we have already created a child for this id, so we can just return it? maybe?
                 if (parent != child.Parent)
                 {
-                    Log.Error($"Parent mismatch for {childId} in {Name}");
+                    Log.Warning($"Parent mismatch for {childId} in {Name}");
                     if (parent != null)
                     {
                         child = CreateWithNewId(child, parent);
