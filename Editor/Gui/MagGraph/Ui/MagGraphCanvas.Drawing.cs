@@ -71,6 +71,9 @@ internal sealed partial class MagGraphCanvas
         if (_context.StateMachine.CurrentState == GraphStates.Default)
         {
             _context.ActiveItem = null;
+            _context.ActiveSourceItem = null;
+            _context.ActiveTargetItem = null;
+            
             _context.ItemWithActiveCustomUi = null;
             _context.ActiveSourceOutputId = Guid.Empty;
             _context.ActiveTargetInputId = Guid.Empty;

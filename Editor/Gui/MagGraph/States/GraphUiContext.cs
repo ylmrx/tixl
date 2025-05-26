@@ -90,24 +90,30 @@ internal sealed class GraphUiContext
     
     /** Keep for continuous update of dragged items */
     internal  ModifyCanvasElementsCommand? MoveElementsCommand;
-    
-    internal MagGraphItem? ActiveItem { get; set; }
-    internal MagGraphItem? ItemWithActiveCustomUi { get; set; }
-    internal MagGraphItem.Directions ActiveOutputDirection { get; set; }
 
     // Input picking... (should probably be moved into Placeholder)
     internal Type? DraggedPrimaryOutputType;
-    internal MagGraphItem? ItemForInputSelection;
+    
+    internal MagGraphItem? ItemWithActiveCustomUi { get; set; }
+    
+    /** Set when clicking on a node.
+     * Is cleared on the beginning of each frame when in default state.
+     */
+    internal MagGraphItem? ActiveItem { get; set; }
+    
     internal MagGraphItem? ActiveSourceItem;
     internal Guid ActiveSourceOutputId { get; set; }
+    internal MagGraphItem.Directions ActiveOutputDirection { get; set; }
     
     internal MagGraphItem? ActiveTargetItem;
     internal Guid ActiveTargetInputId { get; set; }
+    internal MagGraphItem.Directions ActiveInputDirection { get; set; }
 
+    /** Only relevant while picking inputs or hovering an op while dragging connecting end. */
+    internal MagGraphItem? ItemForInputSelection;
+    
     internal Guid ActiveAnnotationId { get; set; }
     
-    // internal GraphImageBackground GraphImageBackground { get;private set; }
-
     /** Used to prevent disconnected inputLines from collapsing... */
     internal readonly HashSet<int> DisconnectedInputHashes = []; 
     

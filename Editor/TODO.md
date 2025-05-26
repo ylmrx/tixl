@@ -98,7 +98,8 @@
 - [ ] StatusProvideIcon should support non-warning indicator
 - [ ] Separate Value Clamping for lower and upper values 
 - [ ] Drag and drop of files (copy them to resources folder and create LoadXYZ instance...)
-
+- [ ] With Tapping and Beat-Lock, no Idle-Animation should probably "pause" all playback?
+- 
 
 
 ## Refactoring
