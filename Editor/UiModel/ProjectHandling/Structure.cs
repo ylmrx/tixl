@@ -14,11 +14,11 @@ namespace T3.Editor.UiModel.ProjectHandling;
 /// </summary>
 internal sealed class Structure
 {
-    private readonly Func<Instance> _getRootInstance;
+    private readonly Func<Symbol.Child> _getRoot;
 
-    public Structure(Func<Instance> getRootInstance)
+    public Structure(Func<Symbol.Child> getRoot)
     {
-        _getRootInstance = getRootInstance;
+        _getRoot = getRoot;
     }
 
     public Instance? GetInstanceFromIdPath(IReadOnlyList<Guid>? compositionPath)
@@ -113,25 +113,31 @@ internal sealed class Structure
         }
     }
 
+    private static readonly List<Guid> _searchPath = [];
     public static bool TryGetUiAndInstanceInComposition(Guid id,
                                                         Instance compositionOp,
                                                         [NotNullWhen(true)] out SymbolUi.Child? childUi,
                                                         [NotNullWhen(true)] out Instance? instance)
     {
-        if (!compositionOp.Children.TryGetValue(id, out instance))
+        var child = compositionOp.SymbolChild;
+        lock (_searchPath)
         {
-            Log.Assert($"Can't select child with id {id} in composition {compositionOp}");
-            childUi = null;
-            return false;
+            _searchPath.AddRange(compositionOp.InstancePath);
+            _searchPath.Add(id);
+
+            if (!child.TryGetOrCreateInstance(_searchPath, out instance, out _))
+            {
+                Log.Warning($"Failed to get instance for {id} in {compositionOp.Symbol.Name}");
+                childUi = null;
+                _searchPath.Clear();
+                return false;
+            }
+            
+            _searchPath.Clear();
         }
 
-        childUi = instance.GetChildUi();
-        if (childUi == null)
-        {
-            Log.Assert($"Can't select child with id {id} in composition {compositionOp}");
-            return false;
-        }
 
+        childUi = child.GetChildUi();
         return true;
     }
 
@@ -320,35 +326,33 @@ internal sealed class Structure
             return false;
         }
 
-        var rootInstance = _getRootInstance();
-        var rootId = rootInstance.SymbolChildId;
+        var rootSymbolChild = _getRoot();
+        if (rootSymbolChild == null)
+        {
+            instance = null;
+            Log.Error("Root does not exist? \n" + Environment.StackTrace);
+            return false;
+        }
 
-        if (childPath[0] != rootId)
+        if (childPath[0] != rootSymbolChild.Id)
         {
             instance = null;
             Log.Warning("Can't access instance after root changed.\n" + Environment.StackTrace);
             return false;
         }
-
-        instance = rootInstance;
-        var pathCount = childPath.Count;
-
-        if (pathCount == 1)
+        
+        var current = rootSymbolChild;
+        for (int i = 1; i < childPath.Count; i++)
         {
-            return true;
-        }
-
-        for (int i = 1; i < pathCount; i++)
-        {
-            if (!instance.Children.TryGetValue(childPath[i], out instance))
+            if (!current.Symbol.Children.TryGetValue(childPath[i], out current))
             {
-                //Log.Error("Did not find instance in path provided.\n" + Environment.StackTrace);
+                Log.Error("Did not find child in path provided.\n" + Environment.StackTrace);
                 instance = null;
                 return false;
             }
         }
-
-        return true;
+        
+        return current.TryGetOrCreateInstance(childPath, out instance, out _);
     }
 
     public static bool TryGetInstanceFromPath(IReadOnlyList<Guid> entrySourceIdPath, out Instance? hoveredSourceInstance,

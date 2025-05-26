@@ -81,7 +81,7 @@ internal sealed class GraphWindow : Windows.Window
         // ProjectView = Legacy.GraphCanvas.CreateWithComponents(project);
         ProjectView.OnCompositionChanged += CompositionChangedHandler;
 
-        var rootInstance = project.RootInstance;
+        var rootInstance = ProjectView.RootInstance;
         var rootSymbolChildId = rootInstance.SymbolChildId;
         IReadOnlyList<Guid> rootPath = [rootSymbolChildId];
         var startPath = rootPath;
@@ -102,7 +102,6 @@ internal sealed class GraphWindow : Windows.Window
             return false;
         }
 
-        project.RegisterView(ProjectView);
         _focusOnNextFrame = true;
         return true;
     }
@@ -193,9 +192,7 @@ internal sealed class GraphWindow : Windows.Window
         if (ProjectView == null)
             return;
 
-        // we need to check again as graph canvas may have caused recompilation events above, eg when an input slot is created
         ProjectView.CheckDisposal(); 
-        ProjectView.OpenedProject.EnsureRootExists();
         
         if (UserSettings.Config.ShowTimeline)
         {

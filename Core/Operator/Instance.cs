@@ -17,17 +17,18 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 {
     public abstract Type Type { get; }
 
-    public Guid SymbolChildId { get; private set; } = Guid.Empty;
+    public Guid SymbolChildId => SymbolChild!.Id;
 
-    internal void SetChildId(Guid symbolChildId)
+    internal void InitializeSymbolChildInfo(Symbol.Child child, IReadOnlyList<Guid> instancePath)
     {
-        if(SymbolChildId != Guid.Empty)
+        if(SymbolChild != null)
             throw new InvalidOperationException("Instance already has a symbol child");
-            
-        SymbolChildId = symbolChildId;
+        
+        InstancePath = instancePath;
+        SymbolChild = child;
     }
 
-    public Symbol.Child? SymbolChild => _parent?.Symbol.Children[SymbolChildId];
+    public Symbol.Child SymbolChild { get; private set; }
 
     private Instance? _parent;
 
@@ -42,7 +43,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     }
         
     SymbolPackage IResourceConsumer.Package => Symbol.SymbolPackage;
-    public event Action? Disposing;
+    public event Action<IResourceConsumer>? Disposing;
 
     public abstract Symbol Symbol { get; }
 
@@ -113,7 +114,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
         try
         {
-            Disposing?.Invoke();
+            Disposing?.Invoke(this);
         }
         catch (Exception e)
         {
@@ -330,7 +331,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         #endif
     }
 
-    public IReadOnlyList<Guid> InstancePath { get; internal set; }
+    public IReadOnlyList<Guid> InstancePath { get; private set; }
 
     private List<SymbolPackage> _availableResourcePackages = [];
     private bool _resourceFoldersDirty = true;

@@ -212,10 +212,9 @@ internal sealed class GraphUiContext
         if (projectView.CompositionInstance != null)
         {
             var symbol = projectView.InstView!.Symbol;
-            if (projectView.CompositionInstance != projectView.OpenedProject.RootInstance 
+            if (projectView.CompositionInstance != projectView.RootInstance 
                 && !symbol.SymbolPackage.IsReadOnly)
             {
-                
                 results |= AddInputDialog.Draw(symbol);
                 results |= AddOutputDialog.Draw(symbol);
             }

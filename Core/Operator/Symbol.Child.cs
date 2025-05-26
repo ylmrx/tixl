@@ -746,6 +746,18 @@ public partial class Symbol
                         newInstance = null;
                         return false;
                     }
+                    
+                    // check recursion
+                    var currentParent = parent;
+                    while (currentParent != null)
+                    {
+                        if (currentParent.Symbol == Symbol)
+                        {
+                            throw new InvalidOperationException($"Recursion detected in {Symbol} with parent {currentParent.Symbol}");
+                        }
+                        
+                        currentParent = currentParent.Parent;
+                    }
                 }
                 else
                 {
@@ -758,6 +770,7 @@ public partial class Symbol
                 {
                     Symbol.UpdateInstanceType();
                 }
+                
 
                 if (!TryInstantiate(out newInstance, out reason2))
                 {
@@ -769,9 +782,8 @@ public partial class Symbol
                 {
                     throw new InvalidOperationException($"Attempted to create a new instance when one already exists at that path");
                 }
-                
-                newInstance.SetChildId(Id);
-                newInstance.InstancePath = newInstancePath;
+
+                newInstance.InitializeSymbolChildInfo(this, newInstancePath);
 
                 Instance.SortInputSlotsByDefinitionOrder(newInstance);
                
@@ -790,24 +802,25 @@ public partial class Symbol
                     childPath[^1] = child.Id;
                     if (child.TryGetOrCreateInstance(childPath, out var childInstance, out var created))
                     {
-                        if (!newInstance.Children.TryGetValue(child.Id, out var inst2))
+                        if (created)
                         {
-                            throw new InvalidOperationException($"Child instance {child.Id} not found in {newInstance}");
-                        }
+                            if (!newInstance.Children.TryGetValue(child.Id, out var inst2))
+                                throw new InvalidOperationException($"Child instance {child.Id} not found in {newInstance}");
                         
-                        if(inst2 != childInstance)
-                        {
-                            throw new InvalidOperationException($"Child instance {child.Id} does not match {childInstance}");
+                            if(inst2 != childInstance)
+                            {
+                                throw new InvalidOperationException($"Child instance {child.Id} does not match {childInstance}");
+                            }
                         }
-
-                        if (!created)
+                        else
                         {
+                            // this operator has likely recompiled and the child instance is orphaned from the previous version of this op 
+                            // clear connections
+
                             if (childInstance.Parent!.Symbol != newInstance.Symbol)
                             {
                                 throw new InvalidOperationException($"Child instance {childInstance} has a different parent than expected");
                             }
-                            // this operator has likely recompiled and the child instance is orphaned from the previous version of this op 
-                            // clear connections
                             
                             for (int i = 0; i < childInstance.Inputs.Count; i++)
                             {
@@ -823,6 +836,12 @@ public partial class Symbol
                                     output.RemoveConnection();
                             }
 
+                            
+                            if (newInstance.Children.TryGetValue(child.Id, out var inst2))
+                            {
+                                throw new InvalidOperationException($"Child instance {child.Id} does not match {childInstance}");
+                            }
+                            
                             childInstance.Parent = newInstance;
                             Instance.AddChildTo(newInstance, childInstance);
                         }
@@ -1028,7 +1047,7 @@ public partial class Symbol
             DestroyAndClearAllInstances(true);
         }
 
-        internal bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, [NotNullWhen(true)] out Instance? instance, out bool created)
+        public bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, [NotNullWhen(true)] out Instance? instance, out bool created)
         {
             // throw exceptions if the path is invalid
             if (path.Count == 0)
