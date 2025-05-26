@@ -54,6 +54,7 @@ public sealed partial class AssemblyInformation
     
     private string? _directory;
     private bool _initialized;
+    private ReleaseInfo? _releaseInfo;
 
     private AssemblyInformation()
     {
@@ -235,6 +236,7 @@ public sealed partial class AssemblyInformation
             _loadContext!.UnloadBegan -= OnUnloadBegan;
             _loadContext = null;
             _loadedTypes = false;
+            _releaseInfo = null;
             _operatorTypeInfo.Clear();
             _types.Clear(); // explicitly dereference all our types
             _namespaces.Clear();
@@ -269,7 +271,16 @@ public sealed partial class AssemblyInformation
     /// </summary>
     /// <param name="releaseInfo"></param>
     /// <returns></returns>
-    public bool TryGetReleaseInfo([NotNullWhen(true)] out ReleaseInfo? releaseInfo) => TryLoadReleaseInfo(_directory, out releaseInfo);
+    public bool TryGetReleaseInfo([NotNullWhen(true)] out ReleaseInfo? releaseInfo)
+    {
+        if (_releaseInfo == null && _directory != null)
+        {
+            TryLoadReleaseInfo(_directory, out _releaseInfo);
+        }
+        
+        releaseInfo = _releaseInfo;
+        return releaseInfo != null;
+    }
 
     private static bool TryLoadReleaseInfo(string directory, [NotNullWhen(true)] out ReleaseInfo? releaseInfo)
     {
@@ -331,10 +342,11 @@ public sealed partial class AssemblyInformation
             {
                 throw new InvalidOperationException($"Cannot create load context for {Name} - directory is null");
             }
-            
+
+            ReleaseInfo? releaseInfo;
             try
             {
-                if (!TryLoadReleaseInfo(_directory, out var releaseInfo))
+                if (!TryLoadReleaseInfo(_directory, out releaseInfo))
                 {
                     throw new Exception($"Failed to load release info from {_directory} - does it need to be compiled?");
                 }
@@ -352,6 +364,7 @@ public sealed partial class AssemblyInformation
                 return;
             }
 
+            _releaseInfo = releaseInfo;
             _loadContext.UnloadBegan += OnUnloadBegan;
             _loadContext.Unloading += Unloading;
             Name = _loadContext!.Name!; 
