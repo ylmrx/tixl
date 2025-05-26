@@ -1144,5 +1144,38 @@ public partial class Symbol
                 }
             }
         }
+
+        public bool SearchForChild(Guid search, [NotNullWhen(true)] out Child? child, [NotNullWhen(true)] out IReadOnlyList<Guid>? path)
+        {
+            return SearchForChild(search, ReadOnlySpan<Guid>.Empty, out child, out path);
+        }
+
+        private bool SearchForChild(Guid search, ReadOnlySpan<Guid> path, out Child? child, [NotNullWhen(true)] out IReadOnlyList<Guid>? fullPath)
+        {
+            Span<Guid> pathIncludingMe = stackalloc Guid[path.Length + 1];
+            path.CopyTo(pathIncludingMe);
+            pathIncludingMe[^1] = Id;
+            if (Id == search)
+            {
+                child = this;
+                fullPath = pathIncludingMe.ToArray();
+                return true;
+            }
+
+            var symbol = Symbol;
+            foreach (var symbolChild in symbol.Children.Values)
+            {
+                if(symbolChild.SearchForChild(search, pathIncludingMe, out var foundChild, out var foundPath))
+                {
+                    child = foundChild;
+                    fullPath = foundPath;
+                    return true;
+                }
+            }
+            
+            child = null;
+            fullPath = null;
+            return false;
+        }
     }
 }

@@ -89,15 +89,10 @@ internal sealed class GraphWindow : Windows.Window
         var opId = UserSettings.GetLastOpenOpForWindow(Config.Title);
         if (opId != Guid.Empty && opId != rootSymbolChildId)
         {
-         /*   if(rootInstance.SymbolChild.TryFindChildInstance(opId, true, out Instance childInstance))
+            if (rootInstance.SymbolChild.SearchForChild(opId, out _, out var path))
             {
-                // If the opId is a child of the root instance, we can use it directly
-                startPath = childInstance.InstancePath;
+                startPath = path;
             }
-            else
-            {
-                Log.Warning($"OpId {opId} not found in root instance {rootInstance.SymbolChildId}");
-            }*/
         }
 
         const ICanvas.Transition transition = ICanvas.Transition.JumpIn;
