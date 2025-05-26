@@ -293,7 +293,7 @@ public static class T3Ui
         if(!symbolUi.ChildUis.TryGetValue(symbolChildId, out var sourceChildUi))
             return;
         
-        if(!compositionOp.Children.TryGetValue(symbolChildId, out var selectionTargetInstance))
+        if(!compositionOp.Children.TryGetChildInstance(symbolChildId, out var selectionTargetInstance))
             return;
         
         components.NodeSelection.SetSelection(sourceChildUi, selectionTargetInstance);

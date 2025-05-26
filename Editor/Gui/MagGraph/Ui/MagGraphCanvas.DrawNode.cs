@@ -989,7 +989,7 @@ internal sealed partial class MagGraphCanvas
 
         // Unfortunately we have to test if symbolChild of instance is still valid.
         // This might not be the case for operators like undo/redo.
-        if (instance.Parent != null && instance.Parent.Children.TryGetValue(instance.SymbolChildId, out _))
+        if (instance.Parent != null && instance.Parent.Children.TryGetChildInstance(instance.SymbolChildId, out _))
             return drawFunction(instance, drawList, selectableScreenRect, canvasScale);
 
         return SymbolUi.Child.CustomUiResult.None;

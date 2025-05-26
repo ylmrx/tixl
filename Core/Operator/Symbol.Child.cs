@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using T3.Core.Compilation;
 using T3.Core.DataTypes;
 using T3.Core.Logging;
+using T3.Core.Model;
 using T3.Core.Operator.Slots;
 using Texture2D = T3.Core.DataTypes.Texture2D;
 
@@ -132,7 +133,7 @@ public partial class Symbol
             foreach (var parentInstance in Parent.InstancesOfSelf)
             {
                 // This parent doesn't have an instance of our SymbolChild. Ignoring and continuing.
-                if (!parentInstance.Children.TryGetValue(Id, out var matchingChildInstance))
+                if (!parentInstance.Children.TryGetChildInstance(Id, out var matchingChildInstance))
                     continue;
 
                 // Set disabled status on all outputs of each instance
@@ -498,19 +499,15 @@ public partial class Symbol
                 {
                     var instance = instanceKvp.Value;
                     var pathHash = instanceKvp.Key;
-                    if (instance.ChildInstances.Remove(idToDestroy, out var childInstance))
+                    if (instance.Children.TryGetChildInstance(idToDestroy, out var childInstance, false))
                     {
-                        childInstance.Dispose(child, false, pathHash);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException($"Failed to remove child instance {childInstance} from {instance}");
+                        childInstance.Dispose(null, pathHash);
                     }
                 }
             }
         }
 
-        private void DestroyAndClearAllInstances(bool onlyIfTypeUpdateNeeded)
+        private void DestroyAndClearAllInstances(SymbolPackage? onlyDisposeInPackage)
         {
             lock (_creationLock)
             {
@@ -520,7 +517,7 @@ public partial class Symbol
                     var info = allInstances[i];
                     var instance = info.Value;
                     var pathHash = info.Key;
-                    instance.Dispose(this, onlyIfTypeUpdateNeeded, pathHash);
+                    instance.Dispose(onlyDisposeInPackage, pathHash);
                     _instancesOfSelf.Remove(pathHash);
                 }
             }
@@ -528,7 +525,7 @@ public partial class Symbol
 
         internal void Dispose()
         {
-            DestroyAndClearAllInstances(false);
+            DestroyAndClearAllInstances(null);
             lock (_creationLock)
             {
                 var removed = Symbol._childrenCreatedFromMe.Remove(Id, out _);
@@ -556,7 +553,7 @@ public partial class Symbol
 
             if (Parent == null)
             {
-                DestroyAndClearAllInstances(true);
+                DestroyAndClearAllInstances(Symbol.SymbolPackage);
                 // just destroy all instances - we have no connections to worry about since we dont have a parent
                 return;
             }
@@ -738,9 +735,6 @@ public partial class Symbol
                                    [NotNullWhen(true)] out Instance? newInstance,
                                    [NotNullWhen(false)] out string? reason2)
             {
-                if(parent?.Symbol != Parent)
-                    throw new InvalidOperationException($"Parent symbol {parent?.Symbol} does not match {Parent}");
-                
                 if(parent != null)
                 {
                     if(parent.Symbol != Parent)
@@ -756,13 +750,6 @@ public partial class Symbol
                     if (newInstancePath[^2] != parent.SymbolChildId)
                     {
                         throw new InvalidOperationException($"Parent instance path {parent.InstancePath} does not match child instance path {newInstancePath}");
-                    }
-                    
-                    if(parent.Children.ContainsKey(Id))
-                    {
-                        reason2 = $"Instance {Name} with id ({Id}) already exists in {parent.Symbol}";
-                        newInstance = null;
-                        return false;
                     }
                     
                     // check recursion
@@ -796,16 +783,10 @@ public partial class Symbol
                 {
                     throw new InvalidOperationException($"Attempted to create a new instance when one already exists at that path");
                 }
-
-                newInstance.InitializeSymbolChildInfo(this, newInstancePath);
+                
+                newInstance.InitializeSymbolChildInfo(this, parent?.SymbolChild, newInstancePath);
 
                 Instance.SortInputSlotsByDefinitionOrder(newInstance);
-               
-                if (parent != null)
-                {
-                    newInstance.Parent = parent;
-                    Instance.AddChildTo(parent, newInstance);
-                }
                 
                 var childPath = new Guid[newInstancePath.Length + 1];
                 Array.Copy(newInstancePath, childPath, newInstancePath.Length);
@@ -818,7 +799,7 @@ public partial class Symbol
                     {
                         if (created)
                         {
-                            if (!newInstance.Children.TryGetValue(child.Id, out var inst2))
+                            if (!newInstance.Children.TryGetChildInstance(child.Id, out var inst2, false))
                                 throw new InvalidOperationException($"Child instance {child.Id} not found in {newInstance}");
                         
                             if(inst2 != childInstance)
@@ -829,35 +810,31 @@ public partial class Symbol
                         else
                         {
                             // this operator has likely recompiled and the child instance is orphaned from the previous version of this op 
-                            // clear connections
-
-                            if (childInstance.Parent!.Symbol != newInstance.Symbol)
+                            if (childInstance.Parent != newInstance)
                             {
                                 throw new InvalidOperationException($"Child instance {childInstance} has a different parent than expected");
                             }
                             
+                            /* // moved to the instance Dispose method
                             for (int i = 0; i < childInstance.Inputs.Count; i++)
                             {
                                 var input = childInstance.Inputs[i];
                                 while (input.HasInputConnections)
                                     input.RemoveConnection();
                             }
+                            */
                             
-                            for (int i = 0; i < childInstance.Outputs.Count; i++)
-                            {
-                                var output = childInstance.Outputs[i];
-                                while(output.HasInputConnections)
-                                    output.RemoveConnection();
-                            }
-
-                            
-                            if (newInstance.Children.TryGetValue(child.Id, out var inst2))
+                            if (!newInstance.Children.TryGetChildInstance(child.Id, out var inst2, false))
                             {
                                 throw new InvalidOperationException($"Child instance {child.Id} does not match {childInstance}");
                             }
+
+                            if (inst2 != childInstance)
+                            {
+                                throw new InvalidOperationException($"Child instance found does not match {childInstance}");
+                            }
                             
-                            childInstance.Parent = newInstance;
-                            Instance.AddChildTo(newInstance, childInstance);
+                            childInstance.MarkResourceDirectoriesDirty();
                         }
                     }
                 }
@@ -875,8 +852,7 @@ public partial class Symbol
                         ulong highPart = 0xFFFFFFFF & (ulong)connection.TargetSlotId.GetHashCode();
                         ulong lowPart = 0xFFFFFFFF & (ulong)connection.TargetParentOrChildId.GetHashCode();
                         ulong hash = (highPart << 32) | lowPart;
-                        if (!conHashToCount.TryGetValue(hash, out int count))
-                            conHashToCount.Add(hash, 0);
+                        conHashToCount.TryGetValue(hash, out int count);
 
                         if (!newInstance.TryAddConnection(connection, count))
                         {
@@ -1016,7 +992,7 @@ public partial class Symbol
                     var instance = instanceInfo.Value;
                     
                     //var child = instance.Children[childId];
-                    if (!instance.Children.TryGetValue(childId, out var child))
+                    if (!instance.Children.TryGetChildInstance(childId, out var child))
                     {
                         Log.Debug("Failed to invalidate missing child");
                         continue;
@@ -1062,10 +1038,10 @@ public partial class Symbol
 
         internal void PrepareForReload()
         {
-            DestroyAndClearAllInstances(true);
+            DestroyAndClearAllInstances(Symbol.SymbolPackage);
         }
 
-        public bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, [NotNullWhen(true)] out Instance? instance, out bool created)
+        public bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, [NotNullWhen(true)] out Instance? instance, out bool created, bool allowCreate = true)
         {
             // throw exceptions if the path is invalid
             if (path.Count == 0)
@@ -1101,6 +1077,12 @@ public partial class Symbol
                     created = false;
                     return true;
                 }
+                
+                if(!allowCreate)
+                {
+                    created = false;
+                    return false;
+                }
 
                 if (Parent == null)
                 {
@@ -1114,7 +1096,7 @@ public partial class Symbol
                 if (parentSymbolChild.TryGetOrCreateInstance(parentPath, out var parentInstance, out created))
                 {
                     // try to get our instance straight from the parent
-                    if (!parentInstance.Children.TryGetValue(Id, out instance))
+                    if (!parentInstance.Children.TryGetChildInstance(Id, out instance, false))
                     {
                         // since we dont exist yet, lets create us
                         created = TryCreateNewInstance(parentInstance, out instance);
@@ -1149,6 +1131,18 @@ public partial class Symbol
         public void ClearPreviousId()
         {
             PreviousId = null;
+        }
+
+        internal void DisposeAndRemoveIfExists(IReadOnlyList<Guid> path, SymbolPackage? onlyDisposeInPackage)
+        {
+            var hash = HashCodeOf(path);
+            lock (_creationLock)
+            {
+                if (_instancesOfSelf.TryGetValue(hash, out var instance))
+                {
+                    instance.Dispose(onlyDisposeInPackage, hash);
+                }
+            }
         }
     }
 }

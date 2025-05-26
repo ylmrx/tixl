@@ -844,8 +844,8 @@ internal static class ConnectionMaker
         inProgressCommand.AddExecutedCommandForUndo(moveCommand); // FIXME: this will break consistency check 
         
         var siblingDict = parent.Children;
-        if (!siblingDict.TryGetValue(oldConnection.SourceParentOrChildId, out var sourceInstance)
-            || !siblingDict.TryGetValue(oldConnection.TargetParentOrChildId, out var targetInstance))
+        if (!siblingDict.TryGetChildInstance(oldConnection.SourceParentOrChildId, out var sourceInstance)
+            || !siblingDict.TryGetChildInstance(oldConnection.TargetParentOrChildId, out var targetInstance))
         {
             Log.Warning("Can't split this connection");
             return;

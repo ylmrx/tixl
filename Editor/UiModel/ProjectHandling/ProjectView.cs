@@ -68,7 +68,7 @@ internal sealed partial class ProjectView
     private readonly Stack<InstanceView> _compositionReloadStack = [];
     private bool _waitingOnReload;
 
-    public void SetCompositionOp(Instance? newCompositionOp)
+    private void SetCompositionOp(Instance? newCompositionOp)
     {
         if (newCompositionOp == null)
         {

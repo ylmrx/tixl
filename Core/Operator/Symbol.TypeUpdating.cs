@@ -14,6 +14,7 @@ public sealed partial class Symbol
         if (!NeedsTypeUpdate && !forceTypeUpdate)
             return;
         
+        NeedsTypeUpdate = false;
         UpdateSlotsAndConnectionsForType(out var oldInputDefinitions, out var oldOutputDefinitions);
 
         var slotChanges = new SlotChangeInfo(oldInputDefinitions, oldOutputDefinitions, InputDefinitions, OutputDefinitions);
@@ -30,7 +31,6 @@ public sealed partial class Symbol
             }
         }
 
-        NeedsTypeUpdate = false;
         return;
 
         void UpdateSlotsAndConnectionsForType(out List<InputDefinition> removedInputDefinitions, out List<OutputDefinition> removedOutputDefinitions)

@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using T3.Core.Logging;
 using T3.Core.Model;
@@ -19,26 +18,48 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
     public Guid SymbolChildId => SymbolChild!.Id;
 
-    internal void InitializeSymbolChildInfo(Symbol.Child child, IReadOnlyList<Guid> instancePath)
+    internal void InitializeSymbolChildInfo(Symbol.Child child, Symbol.Child? parent, IReadOnlyList<Guid> instancePath)
     {
         if(SymbolChild != null)
             throw new InvalidOperationException("Instance already has a symbol child");
         
+        if (instancePath.Count > 1)
+        {
+            _parentPath = new Guid[instancePath.Count - 1];
+            for (var i = 0; i < _parentPath.Length; i++)
+            {
+                _parentPath[i] = instancePath[i];
+            }
+        }
+        
         InstancePath = instancePath;
         SymbolChild = child;
+        _parentSymbolChild = parent;
+        Children = new InstanceChildren(instancePath, child);
     }
 
     public Symbol.Child SymbolChild { get; private set; }
 
-    private Instance? _parent;
-
+    private Guid[]? _parentPath;
+    private Symbol.Child? _parentSymbolChild;
     public Instance? Parent
     {
-        get => _parent;
-        internal set
+        get
         {
-            _parent = value;
-            _resourceFoldersDirty = true;
+            if (_parentSymbolChild == null)
+            {
+                return null;
+            }
+            
+            if (_parentPath == null)
+                throw new InvalidOperationException($"Parent path is not initialized. Did you call {nameof(InitializeSymbolChildInfo)}?");
+            
+            if(_parentSymbolChild.TryGetOrCreateInstance(_parentPath, out var parentInstance, out _))
+            {
+                return parentInstance;
+            }
+            Log.Error($"Could not find parent instance for {_parentSymbolChild} with path {_parentPath}");
+            return null;
         }
     }
         
@@ -50,8 +71,6 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     private readonly List<ISlot> _outputs = [];
     public readonly IReadOnlyList<ISlot> Outputs;
 
-    internal readonly Dictionary<Guid, Instance> ChildInstances = new();
-    public readonly IReadOnlyDictionary<Guid, Instance> Children;
     private readonly List<IInputSlot> _inputs = [];
     public readonly IReadOnlyList<IInputSlot> Inputs;
 
@@ -88,8 +107,9 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     {
         Outputs = _outputs;
         Inputs = _inputs;
-        Children = ChildInstances;
     }
+
+    public InstanceChildren Children;
 
     ~Instance()
     {
@@ -100,10 +120,34 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
     }
 
-    internal void Dispose(Symbol.Child symbolChild, bool onlyIfTypeUpdateNeeded, int hash = -1)
+    internal void Dispose(SymbolPackage? packageToDispose, int hash = -1)
     {
-        if (onlyIfTypeUpdateNeeded && !Symbol.NeedsTypeUpdate)
+        if (packageToDispose != null && Symbol.SymbolPackage != packageToDispose)
+        {
+            // clear connections - they need to be repopulated with valid connections next time
+            
+            if(SymbolChild.TryGetOrCreateInstance(_parentPath!, out var parent, out _, false))
+            {
+                if (parent.IsDisposed)
+                {
+                    // clear our connections - we may be reassigned to another parent
+                    for (var index = 0; index < _inputs.Count; index++)
+                    {
+                        var input = _inputs[index];
+                        while (input.HasInputConnections)
+                            input.RemoveConnection();
+                    }
+                }
+            }
+            
+            // note this early return requires that no circular dependencies exist
+            // (e.g. package A has an op from package B, which contains an op from package A - big no-no)
+            // id love to keep this here but i know that it will be an issue since it is not currently enforced as far as i know
+            // so we're gonna dispose our children anyway before we return
+            // the goal is definitely to not need to though
+            Children.Dispose(packageToDispose);
             return;
+        }
         
         if (_hasDisposed)
         {
@@ -122,11 +166,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
 
         // kill children
-        while (ChildInstances.Values.Count > 0)
-        {
-            var child = ChildInstances.Values.Last();
-            child.Dispose(child.SymbolChild!, onlyIfTypeUpdateNeeded);
-        }
+        Children.Dispose(packageToDispose);
 
         try
         {
@@ -137,8 +177,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
             Log.Error($"Error disposing instance {this}: {e}");
         }
 
-        Parent?.ChildInstances.Remove(SymbolChildId);
-        symbolChild.RemoveDisposedInstance(this, hash);
+        SymbolChild.RemoveDisposedInstance(this, hash);
     }
 
     protected virtual void Dispose(bool disposing)
@@ -187,7 +226,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         sourceSlot.DirtyFlag.Invalidate();
         return true;
     }
-
+    
     private bool TryGetSourceSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? sourceSlot)
     {
         // Get source Instance
@@ -200,13 +239,12 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
         else
         {
-            if (!Children.TryGetValue(sourceParentOrChildId, out var sourceInstance))
+            if (!Children.TryGetChildInstance(sourceParentOrChildId, out var sourceInstance))
             {
-                Log.Error($"Connection in {this} has incorrect source child : {sourceParentOrChildId}");
                 sourceSlot = null;
                 return false;
             }
-            
+
             sourceSlotList = sourceInstance.Outputs;
         }
 
@@ -239,9 +277,8 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
         else
         {
-            if (!Children.TryGetValue(targetParentOrChildId, out var targetInstance))
+            if (!Children.TryGetChildInstance(targetParentOrChildId, out var targetInstance))
             {
-                Log.Error($"Connection in {this} has incorrect target child: {targetParentOrChildId}");
                 targetSlot = null;
                 return false;
             }
@@ -262,6 +299,8 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         targetSlot = null;
         return gotTargetSlot;
     }
+    
+   
 
     private static void GatherResourcePackages(Instance? instance, ref List<SymbolPackage> resourceFolders)
     {
@@ -279,7 +318,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         {
             resourceFolders = [];
         }
-            
+
         while (instance != null)
         {
             var package = instance.Symbol.SymbolPackage;
@@ -288,7 +327,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
                 resourceFolders.Add(package);
             }
 
-            instance = instance._parent;
+            instance = instance.Parent;
         }
     }
 
@@ -336,12 +375,6 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     private List<SymbolPackage> _availableResourcePackages = [];
     private bool _resourceFoldersDirty = true;
 
-
-    internal static void AddChildTo(Instance parentInstance, Instance childInstance)
-    {
-        parentInstance.ChildInstances.Add(childInstance.SymbolChildId, childInstance);
-    }
-
     public sealed override string ToString()
     {
         const string fmt = "{0} ({1})";
@@ -349,6 +382,11 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     }
 
     private string? _asString;
+
+    internal void MarkResourceDirectoriesDirty()
+    {
+        _resourceFoldersDirty = true;
+    }
 }
 
 public class Instance<T> : Instance where T : Instance

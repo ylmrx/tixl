@@ -21,7 +21,7 @@ internal static class SymbolUiRegistry
 
     public static bool TryGetChildInstance(this Instance instance, Guid id, bool recursive, [NotNullWhen(true)] out Instance? child, [NotNullWhen(true)] out IReadOnlyList<Guid>? pathFromRoot)
     {
-        if (instance.Children.TryGetValue(id, out child))
+        if (instance.Children.TryGetChildInstance(id, out child))
         {
             pathFromRoot = child.InstancePath;
             return true;

@@ -207,11 +207,5 @@ internal static class ChangeSymbol
         /// A change that should trigger cache invalidation of UI structures for connections, nodes, etc.
         /// </summary>
         StructureChanged,
-        
-        /// <summary>
-        /// Some dialog will trigger the recompilation of user projects can the only be resolved after reloading
-        /// symbol definition after the next frame. 
-        /// </summary>
-        ProjectViewDiscarded,
     }
 }

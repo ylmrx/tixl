@@ -27,13 +27,6 @@ internal sealed partial class MagGraphCanvas
         {
             result |= KeyboardActions.HandleKeyboardActions(_context);
         }
-        
-        // General pre-update
-        if ((result & ChangeSymbol.SymbolModificationResults.ProjectViewDiscarded) != 0)
-        {
-            Log.Debug("Skip graph draw after composition update...");
-            return;
-        }
 
         if (_context.ProjectView.InstView is not { IsValid: true })
         {

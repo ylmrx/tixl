@@ -479,7 +479,7 @@ internal sealed class SymbolVariationPool
                 continue;
             }
 
-            if (!compositionInstance.Children.TryGetValue(childId, out var instance))
+            if (!compositionInstance.Children.TryGetChildInstance(childId, out var instance))
                 continue;
 
             var symbolChild = instance.SymbolChild;
@@ -527,7 +527,7 @@ internal sealed class SymbolVariationPool
 
         foreach (var childId2 in affectedInstances)
         {
-            if (!compositionInstance.Children.TryGetValue(childId2, out var instance))
+            if (!compositionInstance.Children.TryGetChildInstance(childId2, out var instance))
                 continue;
 
             // Collect variation parameters

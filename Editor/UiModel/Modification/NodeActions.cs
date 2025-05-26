@@ -496,7 +496,7 @@ internal static class NodeActions
             if (node is not SymbolUi.Child childUi)
                 continue;
 
-            if (!compositionOp.Children.TryGetValue(childUi.Id, out var instance) || instance.Parent == null)
+            if (!compositionOp.Children.TryGetChildInstance(childUi.Id, out var instance) || instance.Parent == null)
             {
                 Log.Error("Can't disconnect missing instance");
                 continue;
