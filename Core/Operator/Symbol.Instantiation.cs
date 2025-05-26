@@ -75,7 +75,7 @@ public sealed partial class Symbol
         {
             var newId = Guid.NewGuid();
             var originalId = original.Id;
-            var newChild = new Child(this, newId, childsParent, original.Name, original.IsBypassed, _creationLock);
+            var newChild = new Child(this, newId, childsParent, original.Name, original.IsBypassed, _creationLock, originalId);
             _childrenCreatedFromMe.TryAdd(newId, newChild);
 
             if (childsParent != null)

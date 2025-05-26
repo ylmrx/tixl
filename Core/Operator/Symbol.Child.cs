@@ -66,9 +66,11 @@ public partial class Symbol
         private readonly Dictionary<int, Instance> _instancesOfSelf = [];
         private readonly object _creationLock;
         private readonly bool _isGeneric;
+        
+        public Guid? PreviousId { get; private set; }
 
 
-        internal Child(Symbol symbol, Guid childId, Symbol? parent, string? name, bool isBypassed, object creationLock)
+        internal Child(Symbol symbol, Guid childId, Symbol? parent, string? name, bool isBypassed, object creationLock, Guid? previousId = null)
         {
             _creationLock = creationLock;
             Symbol = symbol;
@@ -77,6 +79,7 @@ public partial class Symbol
             Name = name ?? string.Empty;
             _isBypassed = isBypassed;
             _isGeneric = symbol.IsGeneric;
+            PreviousId = previousId;
 
             foreach (var inputDefinition in symbol.InputDefinitions)
             {
@@ -1126,6 +1129,11 @@ public partial class Symbol
                 hash = HashCode.Combine(hash, path[i].GetHashCode());
             }
             return hash;
+        }
+
+        public void ClearPreviousId()
+        {
+            PreviousId = null;
         }
     }
 }
