@@ -13,7 +13,6 @@
     <EditorVersion>$(TixlVersion)</EditorVersion>
     <IsEditorOnly>false</IsEditorOnly>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
-    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>

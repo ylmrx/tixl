@@ -160,7 +160,7 @@ internal static class NodeActions
             return;
         }
 
-        if (compositionOp.TryGetChildInstance(selection[0].Id, false, out var child, out _))
+        if (compositionOp.Children.TryGetChildInstance(selection[0].Id, out var child))
         {
             outputWindow.Pinning.PinInstance(child, components);
         }

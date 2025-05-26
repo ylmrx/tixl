@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using ImGuiNET;
 using T3.Core.Animation;
+using T3.Core.Operator;
 using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Interaction.TransformGizmos;
@@ -83,15 +84,20 @@ internal sealed class GraphWindow : Windows.Window
 
         var rootInstance = ProjectView.RootInstance;
         var rootSymbolChildId = rootInstance.SymbolChildId;
-        IReadOnlyList<Guid> rootPath = [rootSymbolChildId];
+        var rootPath = rootInstance.InstancePath;
         var startPath = rootPath;
         var opId = UserSettings.GetLastOpenOpForWindow(Config.Title);
         if (opId != Guid.Empty && opId != rootSymbolChildId)
         {
-            if (rootInstance.TryGetChildInstance(opId, true, out _, out var path))
+         /*   if(rootInstance.SymbolChild.TryFindChildInstance(opId, true, out Instance childInstance))
             {
-                startPath = path;
+                // If the opId is a child of the root instance, we can use it directly
+                startPath = childInstance.InstancePath;
             }
+            else
+            {
+                Log.Warning($"OpId {opId} not found in root instance {rootInstance.SymbolChildId}");
+            }*/
         }
 
         const ICanvas.Transition transition = ICanvas.Transition.JumpIn;

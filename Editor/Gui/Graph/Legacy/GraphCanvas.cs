@@ -500,7 +500,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         {
             if (node is SymbolUi.Child symbolChildUi)
             {
-                if (!compositionOp.TryGetChildInstance(symbolChildUi.Id, false, out var instance, out _))
+                if (!compositionOp.Children.TryGetChildInstance(symbolChildUi.Id, out var instance))
                 {
                     Log.Error("Can't find instance");
                 }
