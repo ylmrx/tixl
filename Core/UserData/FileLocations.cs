@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using T3.Core.Compilation;
 
@@ -14,6 +14,7 @@ public static class FileLocations
     public const string ThemeSubFolder = "Themes";
     public const string RenderSubFolder = "RenderOutput";
     public const string ExportFolderName = "T3Exports";
+    public const string KeyBindingSubFolder = "KeyBindings";
     public static string TempFolder => Path.Combine(SettingsPath, "Tmp");
 
     

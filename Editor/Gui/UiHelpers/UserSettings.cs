@@ -136,7 +136,9 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
         public readonly List<Bookmark> Bookmarks = [];
 
         public string ColorThemeName = string.Empty;
-            
+
+        public string KeyBindingName = "KeyboardBinding.json";
+
         public bool ExpandSpectrumVisualizerVertically = true;
             
         //private string _defaultNewProjectDirectory = _defaultProjectFolder;
