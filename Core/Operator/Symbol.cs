@@ -87,9 +87,15 @@ public sealed partial class Symbol : IDisposable, IResource
 
         if (value == null)
             return;
+        
+        if(!value.IsAssignableTo(typeof(Instance)))
+        {
+            return;
+        }
+        
         // set type Symbol static field (TypeClass.StaticSymbol field)
         const BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.FlattenHierarchy;
-        var field = InstanceType.GetField("StaticSymbol", flags);
+        var field = value.GetField("StaticSymbol", flags);
         field!.SetValue(null, this);
     }
 
