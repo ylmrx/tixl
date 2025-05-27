@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
 using T3.Core.Logging;
@@ -29,6 +30,7 @@ internal sealed class AssemblyTreeNode
     private bool _collectedUnreferencedDlls = false;
     
     private readonly Lock _unreferencedLock = new();
+    private readonly DllImportResolver? _nativeResolver;
 
     private List<DllReference> UnreferencedDlls
     {
@@ -94,9 +96,12 @@ internal sealed class AssemblyTreeNode
     private readonly bool _searchNestedFolders;
 
     // warning : not thread safe, must be wrapped in a lock around _assemblyLock
-    public AssemblyTreeNode(Assembly assembly, AssemblyLoadContext parent, bool searchNestedFolders, bool canSearchDlls)
+    public AssemblyTreeNode(Assembly assembly, AssemblyLoadContext parent, bool searchNestedFolders, bool canSearchDlls, DllImportResolver? nativeResolver)
     {
         Assembly = assembly;
+        if(nativeResolver != null)
+            NativeLibrary.SetDllImportResolver(assembly, nativeResolver);
+        _nativeResolver = nativeResolver;
         Name = assembly.GetName();
         NameStr = Name.GetNameSafe();
         _searchNestedFolders = searchNestedFolders;
@@ -165,7 +170,7 @@ internal sealed class AssemblyTreeNode
                         }
 
                         var newAssembly = LoadContext.LoadFromAssemblyPath(dll.Path);
-                        assembly = new AssemblyTreeNode(newAssembly, LoadContext, false, false);
+                        assembly = new AssemblyTreeNode(newAssembly, LoadContext, false, false, _nativeResolver);
                         AddReferenceTo(assembly);
                         return true;
                     }

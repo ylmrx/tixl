@@ -44,6 +44,7 @@ public sealed partial class AssemblyInformation
     private readonly HashSet<string> _namespaces = [];
 
     internal bool ShouldShareResources;
+    internal T3AssemblyLoadContext? LoadContext => _loadContext;
     private T3AssemblyLoadContext? _loadContext;
     private readonly Lock _assemblyLock = new();
 

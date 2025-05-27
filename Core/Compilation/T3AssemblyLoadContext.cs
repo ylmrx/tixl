@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
 using T3.Core.IO;
@@ -26,7 +27,7 @@ namespace T3.Core.Compilation;
 ///
 /// Unfortunately this process is very complex, and is not thoroughly tested with large dependency chains.
 /// </summary>
-public sealed class T3AssemblyLoadContext : AssemblyLoadContext
+internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
 {
     public event EventHandler? UnloadBegan;
     internal event EventHandler? UnloadBeganInternal;
@@ -120,7 +121,7 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
                     continue;
 
                 directories.Add(directory);
-                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false, true);
+                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false, true, null);
                 _coreNodes.Add(node);
             }
         }
@@ -147,7 +148,7 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
                                 break;
                         }
 
-                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false);
+                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false, null);
 
                         node.AddReferenceTo(depNode);
                     }
@@ -160,6 +161,8 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
 
     private static readonly List<T3AssemblyLoadContext> _loadContexts = [];
     private static readonly Lock _loadContextLock = new();
+    private readonly string _nativeDllDirectory;
+    private readonly DllImportResolver _dllImportResolver; 
 
     internal T3AssemblyLoadContext(string assemblyName, string directory) :
         base(assemblyName, true)
@@ -198,19 +201,24 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
         {
             _loadContexts.Add(this);
         }
+        
+        _nativeDllDirectory = directory;
 
         var path = Path.Combine(directory, Name!) + ".dll";
+        _dllImportResolver = NativeDllResolver;
 
         try
         {
             var asm = LoadFromAssemblyPath(path);
-            Root = new AssemblyTreeNode(asm, this, true, true);
+            Root = new AssemblyTreeNode(asm, this, true, true, _dllImportResolver);
             Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
         }
         catch (Exception e)
         {
             Log.Error($"{Name!}: Failed to load root assembly {Name}: {e}");
         }
+        
+        
     }
 
     // called if Load method returns null - searches other contexts and nuget packages
@@ -305,7 +313,7 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
                 {
                     package.Claimed = true;
                     var assembly = _nugetContext.LoadFromAssemblyPath(package.Path);
-                    var node = new AssemblyTreeNode(assembly, _nugetContext, true, true);
+                    var node = new AssemblyTreeNode(assembly, _nugetContext, true, true, null);
                     AddDependency(node);
                     _loadedNuGetAssemblies.Add(node);
                     Log.Debug($"{Name!}: Loaded assembly {asmName.FullName} from nuget package");
@@ -370,10 +378,52 @@ public sealed class T3AssemblyLoadContext : AssemblyLoadContext
         return OnResolving(assemblyName);
     }
 
+    public bool TryLoadNativeDll(string name)
+    {
+        var rootAssembly = Root?.Assembly;
+        if(rootAssembly == null)
+        {
+            Log.Error($"{Name!}: Root assembly is null, cannot load native dll {name}");
+            return false;
+        }
+
+        const DllImportSearchPath searchPath = DllImportSearchPath.AssemblyDirectory | 
+                                               DllImportSearchPath.UseDllDirectoryForDependencies |
+                                               DllImportSearchPath.ApplicationDirectory;
+        if(NativeLibrary.TryLoad(name, rootAssembly, searchPath, out var handle))
+        {
+            Log.Debug($"{Name!}: Successfully loaded native dll {name}");
+            return true;
+        }
+        
+        Log.Error($"{Name!}: Failed to load native dll {name}");
+        return false;
+    }
+    
+    private IntPtr NativeDllResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        Log.Debug($"{Name!}: Resolving native dll {libraryName} for assembly {assembly.FullName}");
+        if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? DllImportSearchPath.AssemblyDirectory, out var handle))
+        {
+            Log.Debug($"{Name!}: Successfully resolved native dll {libraryName}");
+            return handle;
+        }
+
+        Log.Error($"{Name!}: Failed to resolve native dll {libraryName}");
+        return IntPtr.Zero;
+    }
+
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
-        Console.WriteLine($"{Name!}: Attempting to load unmanaged dll: {unmanagedDllName}");
-        return base.LoadUnmanagedDll(unmanagedDllName);
+        Log.Info($"{Name!}: Attempting to load unmanaged dll: {unmanagedDllName}");
+        if (!unmanagedDllName.EndsWith(".dll"))
+        {
+            unmanagedDllName += ".dll";
+        }
+        
+        
+        var fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName);
+        return LoadUnmanagedDllFromPath(fullPath);
     }
 
     private void AddDependency(AssemblyTreeNode node)

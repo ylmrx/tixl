@@ -1,6 +1,4 @@
 #nullable enable
-using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using T3.Core.Compilation;
@@ -10,7 +8,6 @@ using T3.Core.UserData;
 using T3.Editor.External;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
-using T3.Editor.UiModel.Exporting;
 
 namespace T3.Editor.Compilation;
 
