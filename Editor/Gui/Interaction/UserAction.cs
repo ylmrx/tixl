@@ -1,5 +1,6 @@
 #nullable enable
 using ImGuiNET;
+using System.ComponentModel;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
@@ -10,9 +11,8 @@ using T3.SystemUi;
 namespace T3.Editor.Gui.Interaction;
 
 /// <summary>
-/// UserAction represent single atomic commands that can be mapped to a keyboard shortcuts
+/// UserAction represents single atomic commands that can be mapped to keyboard shortcuts
 /// </summary>
-/// 
 internal enum UserActions
 {
     // General
@@ -47,7 +47,6 @@ internal enum UserActions
     InsertKeyframeWithIncrement,
     TapBeatSync,
     TapBeatSyncMeasure,
-
     ToggleAnimationPinning,
 
     // Graph
@@ -61,24 +60,21 @@ internal enum UserActions
     AddAnnotation,
     AddComment,
     RenameChild,
-
     ToggleSnapshotControl,
 
+    // Navigation
     ScrollLeft,
     ScrollRight,
     ScrollUp,
     ScrollDown,
     ZoomIn,
     ZoomOut,
-
     NavigateBackwards,
     NavigateForward,
-
     SelectToAbove,
     SelectToRight,
     SelectToBelow,
     SelectToLeft,
-
     SearchGraph,
     OpenOperator,
     CloseOperator,
@@ -89,65 +85,61 @@ internal enum UserActions
     ToggleFullscreen,
     ToggleFocusMode,
 
-    LoadLayout0,
-    LoadLayout1,
-    LoadLayout2,
-    LoadLayout3,
-    LoadLayout4,
-    LoadLayout5,
-    LoadLayout6,
-    LoadLayout7,
-    LoadLayout8,
-    LoadLayout9,
-    SaveLayout0,
-    SaveLayout1,
-    SaveLayout2,
-    SaveLayout3,
-    SaveLayout4,
-    SaveLayout5,
-    SaveLayout6,
-    SaveLayout7,
-    SaveLayout8,
-    SaveLayout9,
+    // Layouts (0-9)
+    LoadLayout0, LoadLayout1, LoadLayout2, LoadLayout3, LoadLayout4,
+    LoadLayout5, LoadLayout6, LoadLayout7, LoadLayout8, LoadLayout9,
+    SaveLayout0, SaveLayout1, SaveLayout2, SaveLayout3, SaveLayout4,
+    SaveLayout5, SaveLayout6, SaveLayout7, SaveLayout8, SaveLayout9,
 
-    LoadBookmark0,
-    LoadBookmark1,
-    LoadBookmark2,
-    LoadBookmark3,
-    LoadBookmark4,
-    LoadBookmark5,
-    LoadBookmark6,
-    LoadBookmark7,
-    LoadBookmark8,
-    LoadBookmark9,
-    SaveBookmark0,
-    SaveBookmark1,
-    SaveBookmark2,
-    SaveBookmark3,
-    SaveBookmark4,
-    SaveBookmark5,
-    SaveBookmark6,
-    SaveBookmark7,
-    SaveBookmark8,
-    SaveBookmark9,
+    // Bookmarks (0-9)
+    LoadBookmark0, LoadBookmark1, LoadBookmark2, LoadBookmark3, LoadBookmark4,
+    LoadBookmark5, LoadBookmark6, LoadBookmark7, LoadBookmark8, LoadBookmark9,
+    SaveBookmark0, SaveBookmark1, SaveBookmark2, SaveBookmark3, SaveBookmark4,
+    SaveBookmark5, SaveBookmark6, SaveBookmark7, SaveBookmark8, SaveBookmark9,
 }
 
 internal static class UserActionRegistry
 {
-    public static readonly HashSet<UserActions> DeferredActions = [];
-    
+    private static readonly HashSet<UserActions> _deferredActions = new();
+
     public static bool WasActionQueued(UserActions action)
     {
-        if (!DeferredActions.Contains(action))
-            return false;
-    
-        DeferredActions.Remove(action);
-        return true;
+        return _deferredActions.Remove(action);
+    }
+
+    public static void QueueAction(UserActions action)
+    {
+        _deferredActions.Add(action);
     }
 }
 
 internal sealed class KeyboardBinding
 {
+    private static readonly List<KeyboardBinding> _bindings = new();
+    private static readonly Dictionary<UserActions, string> _shortcutLabels = new();
+    private static bool _initialized;
+    private static bool _anyKeysPressed;
+
+    // Metadata for the current binding set
+    public static string CurrentBindingSetName { get; private set; } = "Default";
+    public static string CurrentBindingSetAuthor { get; private set; } = "Community";
+
+    public UserActions Action { get; }
+    public KeyCombination Combination { get; }
+    public bool NeedsWindowFocus { get; }
+    public bool NeedsWindowHover { get; }
+    public bool KeyPressOnly { get; }
+
+    private KeyboardBinding(UserActions action, KeyCombination combination,
+        bool needsWindowFocus = false, bool needsWindowHover = false, bool keyPressOnly = false)
+    {
+        Action = action;
+        Combination = combination;
+        NeedsWindowFocus = needsWindowFocus;
+        NeedsWindowHover = needsWindowHover;
+        KeyPressOnly = keyPressOnly;
+    }
+
     internal static void InitFrame()
     {
         if (!_initialized)
@@ -156,19 +148,83 @@ internal sealed class KeyboardBinding
             InitializeShortcutLabels();
             _initialized = true;
         }
-        
+
         _anyKeysPressed = ImGui.GetIO().KeysDown.Count > 0;
+    }
+
+    internal static bool Triggered(UserActions action)
+    {
+        if (!_anyKeysPressed || !UserSettings.Config.EnableKeyboardShortCuts)
+            return false;
+
+        // Prevent keyboard shortcuts while inputs are active
+        if (ImGui.IsAnyItemActive())
+            return false;
+
+        var io = ImGui.GetIO();
+
+        foreach (var binding in _bindings)
+        {
+            if (binding.Action != action)
+                continue;
+
+            if (!binding.IsContextValid())
+                continue;
+
+            if (binding.IsTriggered(io))
+                return true;
+        }
+
+        return false;
+    }
+
+    private bool IsContextValid()
+    {
+        if (NeedsWindowFocus && !ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+            return false;
+
+        if (NeedsWindowHover && !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
+            return false;
+
+        return true;
+    }
+
+    private bool IsTriggered(ImGuiIOPtr io)
+    {
+        var isKeyPressed = !KeyPressOnly || ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false);
+
+        return ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false)
+               && isKeyPressed
+               && ModifiersMatch(io);
+    }      
+
+    private bool ModifiersMatch(ImGuiIOPtr io)
+    {
+        return (!Combination.Alt || io.KeyAlt) && (Combination.Alt || !io.KeyAlt)
+               && (!Combination.Ctrl || io.KeyCtrl) && (Combination.Ctrl || !io.KeyCtrl)
+               && (!Combination.Shift || io.KeyShift) && (Combination.Shift || !io.KeyShift);
+    }
+
+    internal static string ListKeyboardShortcuts(UserActions action, bool showLabel = true)
+    {
+        if (!_shortcutLabels.TryGetValue(action, out var shortcuts))
+            return string.Empty;
+
+        if (!showLabel)
+            return shortcuts;
+
+        var label = shortcuts.Contains(" and ") ? "Shortcuts: " : "Shortcut: ";
+        return label + shortcuts;
     }
 
     private static void LoadBindingsFromJson()
     {
+        var jsonPath = GetBindingsFilePath();
+
         try
         {
-            var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
-            var jsonPath = Path.Combine( folder, "KeyboardBindings.json");
             if (!File.Exists(jsonPath))
             {
-                // Create default JSON if file doesn't exist
                 CreateDefaultBindingsFile(jsonPath);
             }
 
@@ -180,64 +236,125 @@ internal sealed class KeyboardBinding
             };
 
             var jsonBindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, options);
-            _bindings.Clear();
-
-            foreach (var binding in jsonBindings.KeyboardBindings)
-            {
-                if (!Enum.TryParse<Key>(binding.Key, out var key))
-                {
-                    continue;
-                }
-
-                if (!Enum.TryParse<UserActions>(binding.Action, out var action))
-                {
-                    continue;
-                }
-
-                var combination = new KeyCombination(
-                    key,
-                    binding.Ctrl ?? false,
-                    binding.Alt ?? false,
-                    binding.Shift ?? false
-                );
-
-                _bindings.Add(new KeyboardBinding(
-                    action,
-                    combination,
-                    binding.NeedsWindowFocus ?? false,
-                    binding.KeyPressOnly ?? false
-                )
-                {
-                    _needsWindowHover = binding.NeedsWindowHover ?? false
-                });
-            }
+            ParseJsonBindings(jsonBindings);
         }
-        catch (Exception e)
+        catch
         {
             // Fall back to default bindings if loading fails
             InitializeDefaultBindings();
         }
     }
 
+    private static string GetBindingsFilePath()
+    {
+        var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
+        return Path.Combine(folder, "KeyboardBindings.json");
+    }
+
+    private static void ParseJsonBindings(KeyboardBindingsJson? jsonBindings)
+    {
+        if (jsonBindings?.KeyboardBindings == null)
+        {
+            InitializeDefaultBindings();
+            return;
+        }
+
+        // Load metadata
+        CurrentBindingSetName = jsonBindings.Name ?? "Default";
+        CurrentBindingSetAuthor = jsonBindings.Author ?? "Community";
+
+        _bindings.Clear();
+
+        foreach (var binding in jsonBindings.KeyboardBindings)
+        {
+            if (!Enum.TryParse<Key>(binding.Key, out var key) ||
+                !Enum.TryParse<UserActions>(binding.Action, out var action))
+                continue;
+
+            var combination = new KeyCombination(key,
+                binding.Ctrl ?? false,
+                binding.Alt ?? false,
+                binding.Shift ?? false);
+
+            _bindings.Add(new KeyboardBinding(
+                action,
+                combination,
+                binding.NeedsWindowFocus ?? false,
+                binding.NeedsWindowHover ?? false,
+                binding.KeyPressOnly ?? false
+            ));
+        }
+    }
+
     private static void CreateDefaultBindingsFile(string path)
     {
-        // Initialize default bindings first
         InitializeDefaultBindings();
+        SaveBindingsToFile(path);
+    }
 
-        // Create JSON structure from default bindings
+    /// <summary>
+    /// Saves the current bindings to a custom file with specified name and author
+    /// </summary>
+    public static void SaveCustomBindings(string fileName, string name, string author)
+    {
+        CurrentBindingSetName = name;
+        CurrentBindingSetAuthor = author;
+
+        var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
+        var customPath = Path.Combine(folder, fileName.EndsWith(".json") ? fileName : fileName + ".json");
+
+        SaveBindingsToFile(customPath);
+    }
+
+    /// <summary>
+    /// Loads bindings from a custom file
+    /// </summary>
+    public static bool LoadCustomBindings(string fileName)
+    {
+        try
+        {
+            var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
+            var customPath = Path.Combine(folder, fileName.EndsWith(".json") ? fileName : fileName + ".json");
+
+            if (!File.Exists(customPath))
+                return false;
+
+            var json = File.ReadAllText(customPath);
+            var options = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
+            };
+
+            var jsonBindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, options);
+            ParseJsonBindings(jsonBindings);
+            InitializeShortcutLabels();
+
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static void SaveBindingsToFile(string path)
+    {
         var jsonBindings = new KeyboardBindingsJson
         {
-            KeyboardBindings = _bindings.Select(b => new KeyboardBindingJson
+            Name = CurrentBindingSetName,
+            Author = CurrentBindingSetAuthor,
+            KeyboardBindings = [.. _bindings.Select(b => new KeyboardBindingJson
             {
-                Action = b._action.ToString(),
-                Key = b._combination.Key.ToString(),
-                Ctrl = b._combination.Ctrl,
-                Alt = b._combination.Alt,
-                Shift = b._combination.Shift,
-                NeedsWindowFocus = b._needsWindowFocus,
-                NeedsWindowHover = b._needsWindowHover,
-                KeyPressOnly = b._keyPressOnly
-            }).ToList()
+                Action = b.Action.ToString(),
+                Key = b.Combination.Key.ToString(),
+                Ctrl = b.Combination.Ctrl ? true : null,
+                Alt = b.Combination.Alt ? true : null,
+                Shift = b.Combination.Shift ? true : null,
+                NeedsWindowFocus = b.NeedsWindowFocus ? true : null,
+                NeedsWindowHover = b.NeedsWindowHover ? true : null,
+                KeyPressOnly = b.KeyPressOnly ? true : null
+            })]
         };
 
         var options = new JsonSerializerOptions
@@ -245,132 +362,155 @@ internal sealed class KeyboardBinding
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        string directory = Path.GetDirectoryName(path) ?? string.Empty;
-        if (!Directory.Exists(directory))
+
+        var directory = Path.GetDirectoryName(path);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {
             Directory.CreateDirectory(directory);
             Thread.Sleep(100); // Ensure directory is created before writing
         }
+
         File.WriteAllText(path, JsonSerializer.Serialize(jsonBindings, options));
     }
 
     private static void InitializeDefaultBindings()
     {
-        _bindings = new List<KeyboardBinding>
-        {
-             new KeyboardBinding(UserActions.Save, new KeyCombination(Key.S, ctrl: true)),
-                  new KeyboardBinding(UserActions.FocusSelection, new KeyCombination(Key.F)) { _needsWindowHover = true },
-                  new KeyboardBinding(UserActions.Duplicate, new KeyCombination(Key.D, ctrl: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.DeleteSelection, new KeyCombination(Key.Delete)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.DeleteSelection, new KeyCombination(Key.Backspace)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.CopyToClipboard, new KeyCombination(Key.C, ctrl: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.PasteFromClipboard, new KeyCombination(Key.V, ctrl: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.PasteValues, new KeyCombination(Key.V, ctrl: true, shift:true)) { _needsWindowFocus = true },
-
-                  // Playback
-                  new KeyboardBinding(UserActions.PlaybackForward, new KeyCombination(Key.L)),
-                  new KeyboardBinding(UserActions.PlaybackForwardHalfSpeed, new KeyCombination(Key.L, shift: true)),
-                  new KeyboardBinding(UserActions.PlaybackBackwards, new KeyCombination(Key.J)),
-                  new KeyboardBinding(UserActions.PlaybackStop, new KeyCombination(Key.K)),
-                  new KeyboardBinding(UserActions.PlaybackToggle, new KeyCombination(Key.Space)), // TODO: Fixme!
-                  new KeyboardBinding(UserActions.PlaybackPreviousFrame, new KeyCombination(Key.CursorLeft, shift: true)),
-                  new KeyboardBinding(UserActions.PlaybackNextFrame, new KeyCombination(Key.CursorRight, shift: true)),
-                  new KeyboardBinding(UserActions.PlaybackJumpToStartTime, new KeyCombination(Key.Home)),
-                  new KeyboardBinding(UserActions.PlaybackJumpToNextKeyframe, new KeyCombination(Key.Period)),
-                  new KeyboardBinding(UserActions.PlaybackJumpToPreviousKeyframe, new KeyCombination(Key.Comma)),
-
-                  new KeyboardBinding(UserActions.Undo, new KeyCombination(Key.Z, ctrl: true)),
-                  new KeyboardBinding(UserActions.Redo, new KeyCombination(Key.Z, ctrl: true, shift: true)),
-
-                  // Timeline
-                  new KeyboardBinding(UserActions.InsertKeyframe, new KeyCombination(Key.C)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.InsertKeyframeWithIncrement, new KeyCombination(Key.C, shift: true)),
-                  new KeyboardBinding(UserActions.ToggleAnimationPinning, new KeyCombination(Key.K, shift: true)),
-
-                  new KeyboardBinding(UserActions.SetStartTime, new KeyCombination(Key.B)),
-                  new KeyboardBinding(UserActions.SetEndTime, new KeyCombination(Key.N)),
-                  new KeyboardBinding(UserActions.TapBeatSync, new KeyCombination(Key.Z)),
-                  new KeyboardBinding(UserActions.TapBeatSyncMeasure, new KeyCombination(Key.X)),
-                  
-                  // Graph window
-                  new KeyboardBinding(UserActions.ToggleDisabled, new KeyCombination(Key.D, shift: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.ToggleBypassed, new KeyCombination(Key.B, shift: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.PinToOutputWindow, new KeyCombination(Key.P)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.DisplayImageAsBackground, new KeyCombination(Key.P, ctrl: true)) { _needsWindowFocus = false },
-                  new KeyboardBinding(UserActions.ClearBackgroundImage, new KeyCombination(Key.P, ctrl: true, shift: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.LayoutSelection, new KeyCombination(Key.G)),
-
-                  new KeyboardBinding(UserActions.AddAnnotation, new KeyCombination(Key.A, shift: true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.AddComment, new KeyCombination(Key.C, shift: true, ctrl:true)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.ToggleVariationsWindow, new KeyCombination(Key.V, alt: true)) { _needsWindowFocus = false },
-                  new KeyboardBinding(UserActions.SearchGraph, new KeyCombination(Key.F, ctrl: true)) { _needsWindowFocus = false },
-                  new KeyboardBinding(UserActions.OpenOperator, new KeyCombination(Key.I)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.CloseOperator, new KeyCombination(Key.U)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.RenameChild, new KeyCombination(Key.Return)) { _needsWindowFocus = true },
-
-                  new KeyboardBinding(UserActions.NavigateBackwards, new KeyCombination(Key.CursorLeft, alt: true)) { _needsWindowFocus = false },
-                  new KeyboardBinding(UserActions.NavigateForward, new KeyCombination(Key.CursorRight, alt: true)) { _needsWindowFocus = false },
-
-                  new KeyboardBinding(UserActions.SelectToAbove, new KeyCombination(Key.CursorUp)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.SelectToRight, new KeyCombination(Key.CursorRight)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.SelectToBelow, new KeyCombination(Key.CursorDown)) { _needsWindowFocus = true },
-                  new KeyboardBinding(UserActions.SelectToLeft, new KeyCombination(Key.CursorLeft)) { _needsWindowFocus = true },
-
-                  // Layout and window management
-                  new KeyboardBinding(UserActions.ToggleAllUiElements, new KeyCombination(Key.Esc, shift: true)),
-                  new KeyboardBinding(UserActions.ToggleFullscreen, new KeyCombination(Key.F11)),
-                  new KeyboardBinding(UserActions.ToggleFocusMode, new KeyCombination(Key.F12)),
-
-                  new KeyboardBinding(UserActions.LoadBookmark1, new KeyCombination(Key.D1, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark2, new KeyCombination(Key.D2, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark3, new KeyCombination(Key.D3, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark4, new KeyCombination(Key.D4, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark5, new KeyCombination(Key.D5, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark6, new KeyCombination(Key.D6, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark7, new KeyCombination(Key.D7, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark8, new KeyCombination(Key.D8, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark9, new KeyCombination(Key.D9, ctrl: true)),
-                  new KeyboardBinding(UserActions.LoadBookmark0, new KeyCombination(Key.D0, ctrl: true)),
-
-                  new KeyboardBinding(UserActions.SaveBookmark1, new KeyCombination(Key.D1, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark2, new KeyCombination(Key.D2, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark3, new KeyCombination(Key.D3, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark4, new KeyCombination(Key.D4, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark5, new KeyCombination(Key.D5, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark6, new KeyCombination(Key.D6, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark7, new KeyCombination(Key.D7, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark8, new KeyCombination(Key.D8, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark9, new KeyCombination(Key.D9, ctrl: true, shift: true)),
-                  new KeyboardBinding(UserActions.SaveBookmark0, new KeyCombination(Key.D0, ctrl: true, shift: true)),
-
-                  new KeyboardBinding(UserActions.LoadLayout0, new KeyCombination(Key.F1)),
-                  new KeyboardBinding(UserActions.LoadLayout1, new KeyCombination(Key.F2)),
-                  new KeyboardBinding(UserActions.LoadLayout2, new KeyCombination(Key.F3)),
-                  new KeyboardBinding(UserActions.LoadLayout3, new KeyCombination(Key.F4)),
-                  new KeyboardBinding(UserActions.LoadLayout4, new KeyCombination(Key.F5)),
-                  new KeyboardBinding(UserActions.LoadLayout5, new KeyCombination(Key.F6)),
-                  new KeyboardBinding(UserActions.LoadLayout6, new KeyCombination(Key.F7)),
-                  new KeyboardBinding(UserActions.LoadLayout7, new KeyCombination(Key.F8)),
-                  new KeyboardBinding(UserActions.LoadLayout8, new KeyCombination(Key.F9)),
-                  new KeyboardBinding(UserActions.LoadLayout9, new KeyCombination(Key.F10)),
-
-                  new KeyboardBinding(UserActions.SaveLayout0, new KeyCombination(Key.F1, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout1, new KeyCombination(Key.F2, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout2, new KeyCombination(Key.F3, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout3, new KeyCombination(Key.F4, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout4, new KeyCombination(Key.F5, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout5, new KeyCombination(Key.F6, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout6, new KeyCombination(Key.F7, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout7, new KeyCombination(Key.F8, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout8, new KeyCombination(Key.F9, ctrl: true)),
-                  new KeyboardBinding(UserActions.SaveLayout9, new KeyCombination(Key.F10, ctrl: true)),
-        };
+        _bindings.Clear();
+        _bindings.AddRange(CreateDefaultBindings());
     }
 
+    private static IEnumerable<KeyboardBinding> CreateDefaultBindings()
+    {
+        // General actions
+        yield return new(UserActions.Save, new(Key.S, ctrl: true));
+        yield return new(UserActions.FocusSelection, new(Key.F), needsWindowHover: true);
+        yield return new(UserActions.Duplicate, new(Key.D, ctrl: true), needsWindowFocus: true);
+        yield return new(UserActions.DeleteSelection, new(Key.Delete), needsWindowFocus: true);
+        yield return new(UserActions.DeleteSelection, new(Key.Backspace), needsWindowFocus: true);
+        yield return new(UserActions.CopyToClipboard, new(Key.C, ctrl: true), needsWindowFocus: true);
+        yield return new(UserActions.PasteFromClipboard, new(Key.V, ctrl: true), needsWindowFocus: true);
+        yield return new(UserActions.PasteValues, new(Key.V, ctrl: true, shift: true), needsWindowFocus: true);
+        yield return new(UserActions.Undo, new(Key.Z, ctrl: true));
+        yield return new(UserActions.Redo, new(Key.Z, ctrl: true, shift: true));
+
+        // Playback controls
+        yield return new(UserActions.PlaybackForward, new(Key.L));
+        yield return new(UserActions.PlaybackForwardHalfSpeed, new(Key.L, shift: true));
+        yield return new(UserActions.PlaybackBackwards, new(Key.J));
+        yield return new(UserActions.PlaybackStop, new(Key.K));
+        yield return new(UserActions.PlaybackToggle, new(Key.Space));
+        yield return new(UserActions.PlaybackPreviousFrame, new(Key.CursorLeft, shift: true));
+        yield return new(UserActions.PlaybackNextFrame, new(Key.CursorRight, shift: true));
+        yield return new(UserActions.PlaybackJumpToStartTime, new(Key.Home));
+        yield return new(UserActions.PlaybackJumpToNextKeyframe, new(Key.Period));
+        yield return new(UserActions.PlaybackJumpToPreviousKeyframe, new(Key.Comma));
+
+        // Timeline actions
+        yield return new(UserActions.InsertKeyframe, new(Key.C), needsWindowFocus: true);
+        yield return new(UserActions.InsertKeyframeWithIncrement, new(Key.C, shift: true));
+        yield return new(UserActions.ToggleAnimationPinning, new(Key.K, shift: true));
+        yield return new(UserActions.SetStartTime, new(Key.B));
+        yield return new(UserActions.SetEndTime, new(Key.N));
+        yield return new(UserActions.TapBeatSync, new(Key.Z));
+        yield return new(UserActions.TapBeatSyncMeasure, new(Key.X));
+
+        // Graph window actions
+        yield return new(UserActions.ToggleDisabled, new(Key.D, shift: true), needsWindowFocus: true);
+        yield return new(UserActions.ToggleBypassed, new(Key.B, shift: true), needsWindowFocus: true);
+        yield return new(UserActions.PinToOutputWindow, new(Key.P), needsWindowFocus: true);
+        yield return new(UserActions.DisplayImageAsBackground, new(Key.P, ctrl: true));
+        yield return new(UserActions.ClearBackgroundImage, new(Key.P, ctrl: true, shift: true), needsWindowFocus: true);
+        yield return new(UserActions.LayoutSelection, new(Key.G));
+        yield return new(UserActions.AddAnnotation, new(Key.A, shift: true), needsWindowFocus: true);
+        yield return new(UserActions.AddComment, new(Key.C, shift: true, ctrl: true), needsWindowFocus: true);
+        yield return new(UserActions.ToggleVariationsWindow, new(Key.V, alt: true));
+        yield return new(UserActions.SearchGraph, new(Key.F, ctrl: true));
+        yield return new(UserActions.OpenOperator, new(Key.I), needsWindowFocus: true);
+        yield return new(UserActions.CloseOperator, new(Key.U), needsWindowFocus: true);
+        yield return new(UserActions.RenameChild, new(Key.Return), needsWindowFocus: true);
+
+        // Navigation
+        yield return new(UserActions.NavigateBackwards, new(Key.CursorLeft, alt: true));
+        yield return new(UserActions.NavigateForward, new(Key.CursorRight, alt: true));
+        yield return new(UserActions.SelectToAbove, new(Key.CursorUp), needsWindowFocus: true);
+        yield return new(UserActions.SelectToRight, new(Key.CursorRight), needsWindowFocus: true);
+        yield return new(UserActions.SelectToBelow, new(Key.CursorDown), needsWindowFocus: true);
+        yield return new(UserActions.SelectToLeft, new(Key.CursorLeft), needsWindowFocus: true);
+
+        // Layout and window management
+        yield return new(UserActions.ToggleAllUiElements, new(Key.Esc, shift: true));
+        yield return new(UserActions.ToggleFullscreen, new(Key.F11));
+        yield return new(UserActions.ToggleFocusMode, new(Key.F12));
+
+        // Camera controls
+
+        yield return new(UserActions.ScrollLeft, new(Key.A), needsWindowHover: true);
+
+        // Generate bookmark bindings
+        foreach (var binding in GenerateNumberedBindings(UserActions.LoadBookmark0, UserActions.SaveBookmark0, true))
+            yield return binding;
+
+        // Generate layout bindings  
+        foreach (var binding in GenerateLayoutBindings())
+            yield return binding;
+    }
+
+    private static IEnumerable<KeyboardBinding> GenerateNumberedBindings(UserActions loadBase, UserActions saveBase, bool useCtrl)
+    {
+        var keys = new[] { Key.D0, Key.D1, Key.D2, Key.D3, Key.D4, Key.D5, Key.D6, Key.D7, Key.D8, Key.D9 };
+
+        for (int i = 0; i < 10; i++)
+        {
+            var loadAction = loadBase + i;
+            var saveAction = saveBase + i;
+
+            if (useCtrl)
+            {
+                yield return new(loadAction, new(keys[i], ctrl: true));
+                yield return new(saveAction, new(keys[i], ctrl: true, shift: true));
+            }
+            else
+            {
+                yield return new(loadAction, new(keys[i]));
+                yield return new(saveAction, new(keys[i], shift: true));
+            }
+        }
+    }
+
+    private static IEnumerable<KeyboardBinding> GenerateLayoutBindings()
+    {
+        var fKeys = new[] { Key.F1, Key.F2, Key.F3, Key.F4, Key.F5, Key.F6, Key.F7, Key.F8, Key.F9, Key.F10 };
+
+        for (int i = 0; i < 10; i++)
+        {
+            yield return new(UserActions.LoadLayout0 + i, new(fKeys[i]));
+            yield return new(UserActions.SaveLayout0 + i, new(fKeys[i], ctrl: true));
+        }
+    }
+
+    private static void InitializeShortcutLabels()
+    {
+        _shortcutLabels.Clear();
+
+        foreach (var action in Enum.GetValues<UserActions>())
+        {
+            var shortcuts = _bindings
+                .Where(b => b.Action == action)
+                .Select(b => b.Combination.ToString())
+                .ToList();
+
+            if (shortcuts.Count > 0)
+            {
+                _shortcutLabels[action] = string.Join(" and ", shortcuts);
+            }
+        }
+    }
+
+    #region JSON Classes
     private class KeyboardBindingJson
     {
-        public string Action { get; set; }
-        public string Key { get; set; }
+        public string Action { get; set; } = string.Empty;
+        public string Key { get; set; } = string.Empty;
         public bool? Ctrl { get; set; }
         public bool? Alt { get; set; }
         public bool? Shift { get; set; }
@@ -381,121 +521,36 @@ internal sealed class KeyboardBinding
 
     private class KeyboardBindingsJson
     {
+        public string Name { get; set; } = "Default";
+        public string Author { get; set; } = "Community";
         public List<KeyboardBindingJson> KeyboardBindings { get; set; } = new();
     }
+    #endregion
+}
 
-    private readonly UserActions _action;
-    private bool _needsWindowFocus;
-    private bool _needsWindowHover;
-    private readonly bool _keyPressOnly;
-    private readonly KeyCombination _combination;
-    private static bool _initialized;
+internal sealed class KeyCombination
+{
+    public Key Key { get; }
+    public bool Ctrl { get; }
+    public bool Alt { get; }
+    public bool Shift { get; }
 
-    internal static bool Triggered(UserActions action)
+    public KeyCombination(Key key, bool ctrl = false, bool alt = false, bool shift = false)
     {
-        // Checking all bindings is expensive, so we only do this if any keys are pressed.
-        if (!_anyKeysPressed)
-            return false;
-
-        if (!UserSettings.Config.EnableKeyboardShortCuts)
-            return false;
-
-        // Prevent keyboard short-cuts while inputs are active
-        if (ImGui.IsAnyItemActive())
-            return false;
-
-        var io = ImGui.GetIO();
-        foreach (var binding in _bindings)
-        {
-            if (binding._action != action)
-                continue;
-
-            if (binding._needsWindowFocus && !ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
-                continue;
-
-            if (binding._needsWindowHover && !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
-                continue;
-
-            var kc = binding._combination;
-
-            var isKeyPressed = (!binding._keyPressOnly || ImGui.IsKeyPressed((ImGuiKey)kc.Key, false));
-            if (ImGui.IsKeyPressed((ImGuiKey)kc.Key, false)
-                && isKeyPressed
-                && (!kc.Alt && !io.KeyAlt || kc.Alt && io.KeyAlt)
-                && (!kc.Ctrl && !io.KeyCtrl || kc.Ctrl && io.KeyCtrl)
-                && (!kc.Shift && !io.KeyShift || kc.Shift && io.KeyShift)
-               )
-            {
-                return true;
-            }
-        }
-
-        return false;
+        Key = key;
+        Ctrl = ctrl;
+        Alt = alt;
+        Shift = shift;
     }
 
-    private static readonly Dictionary<UserActions, string> _keyboardShortCutLabels = new();
-
-    private static void InitializeShortcutLabels()
+    public override string ToString()
     {
-        _keyboardShortCutLabels.Clear();
-        foreach (var action in Enum.GetValues<UserActions>())
-        {
-            var bindings = _bindings.FindAll(b => b._action == action);
-            var shortCuts = bindings.Select(binding => binding._combination.ToString()).ToList();
+        var parts = new List<string>();
+        if (Ctrl) parts.Add("Ctrl");
+        if (Alt) parts.Add("Alt");
+        if (Shift) parts.Add("Shift");
+        parts.Add(Key.ToString());
 
-            if (shortCuts.Count == 0)
-                continue;
-
-            _keyboardShortCutLabels[action] = string.Join(" and ", shortCuts);
-        }
+        return string.Join("+", parts);
     }
-
-    internal static string ListKeyboardShortcuts(UserActions action, bool showLabel = true)
-    {
-        if (!_keyboardShortCutLabels.TryGetValue(action, out var shortCuts))
-            return string.Empty;
-
-        return (showLabel
-                    ? (shortCuts.Contains("and")
-                           ? "Short cut: "
-                           : "Short cuts ")
-                    : String.Empty)
-               + string.Join(" and ", shortCuts);
-    }
-
-    private sealed class KeyCombination
-    {
-        public KeyCombination(Key key, bool ctrl = false, bool alt = false, bool shift = false)
-        {
-            Key = key;
-            Ctrl = ctrl;
-            Alt = alt;
-            Shift = shift;
-        }
-
-        public readonly bool Ctrl;
-        public readonly bool Alt;
-        public readonly bool Shift;
-        public readonly Key Key;
-
-        public override string ToString()
-        {
-            return (Ctrl ? "Ctrl+" : "")
-                   + (Alt ? "Alt+" : "")
-                   + (Shift ? "Shift+" : "")
-                   + Key;
-        }
-    }
-
-    private KeyboardBinding(UserActions action, KeyCombination combination, bool needsWindowFocus = false, bool keyPressOnly = false)
-    {
-        _action = action;
-        _combination = combination;
-        _needsWindowFocus = needsWindowFocus;
-        _keyPressOnly = keyPressOnly;
-    }
-
-    private static List<KeyboardBinding> _bindings = new List<KeyboardBinding>();
-
-    private static bool _anyKeysPressed;
 }

@@ -33,13 +33,13 @@ internal static class TimeControls
             BeatTiming.TriggerResyncMeasure();
 
         if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
         if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToStartTime))
             playback.TimeInBars = playback.IsLooping ? playback.LoopRange.Start : 0;
 
         if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
         {
             //const float editFrameRate = 30;
@@ -153,10 +153,10 @@ internal static class TimeControls
         }
 
         if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToNextKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToNextKeyframe);
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToNextKeyframe);
 
         if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
 
     }
@@ -399,7 +399,7 @@ internal static class TimeControls
                                                 : CustomComponents.ButtonStates.Disabled)
                )
             {
-                UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+                UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
             }
 
             CustomComponents.TooltipForLastItem("Jump to previous keyframe",
@@ -477,7 +477,7 @@ internal static class TimeControls
                                                 : CustomComponents.ButtonStates.Disabled)
                )
             {
-                UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToNextKeyframe);
+                UserActionRegistry.QueueAction(UserActions.PlaybackJumpToNextKeyframe);
             }
 
             CustomComponents.TooltipForLastItem("Jump to next keyframe",
