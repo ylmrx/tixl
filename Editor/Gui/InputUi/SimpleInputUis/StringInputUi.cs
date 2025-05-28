@@ -7,6 +7,7 @@ using T3.Core.Operator;
 using T3.Core.Operator.Interfaces;
 using T3.Core.Resource;
 using T3.Core.SystemUi;
+using T3.Core.Utils;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel.InputsAndTypes;
@@ -121,10 +122,15 @@ public sealed class StringInputUi : InputValueUi<string>
         return ImGui.InputText("##textEdit", ref value, MaxStringLength);
     }
 
+
+    
     private static InputEditStateFlags DrawMultilineTextEdit(ref string value)
     {
         ImGui.Dummy(new Vector2(1, 1));
-        var changed = ImGui.InputTextMultiline("##textEdit", ref value, MaxStringLength, new Vector2(-1, 3 * ImGui.GetFrameHeight()));
+        var lineCount = value.LineCount().Clamp(3, 10) + 1;
+        var lineHeight = Fonts.FontNormal.FontSize;
+            
+        var changed = ImGui.InputTextMultiline("##textEdit", ref value, MaxStringLength, new Vector2(-1, lineCount * lineHeight));
         return changed ? InputEditStateFlags.Modified : InputEditStateFlags.Nothing;
     }
 
