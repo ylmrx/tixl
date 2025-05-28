@@ -81,6 +81,7 @@
         "X": 614.013,
         "Y": 854.4491
       },
+      "ExcludedFromPresets": "True",
       "Description": "Uniformly scales the Text",
       "Min": 0.0,
       "Max": 500.0,

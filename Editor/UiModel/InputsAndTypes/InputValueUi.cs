@@ -48,6 +48,8 @@ public abstract class InputValueUi<T> : IInputUi
     public bool AddPadding { get; set; }
 
     public string? Description { get; set; }
+    
+    public bool ExcludedFromPresets { get; set; }
     #endregion
 
     private static float ParameterNameWidth => MathF.Max(ImGui.GetTextLineHeight() * 130.0f / 16, ImGui.GetWindowWidth() * 0.35f);
@@ -542,6 +544,10 @@ public abstract class InputValueUi<T> : IInputUi
         var vec2Writer = TypeValueToJsonConverters.Entries[typeof(Vector2)];
         writer.WritePropertyName("Position");
         vec2Writer(writer, PosOnCanvas);
+        
+        if (ExcludedFromPresets)
+            writer.WriteObject(nameof(ExcludedFromPresets), ExcludedFromPresets);
+        
         if (!string.IsNullOrEmpty(GroupTitle))
             writer.WriteObject(nameof(GroupTitle), GroupTitle);
 
@@ -575,6 +581,7 @@ public abstract class InputValueUi<T> : IInputUi
         Description = inputToken[nameof(Description)]?.Value<string>();
 
         AddPadding = inputToken[nameof(AddPadding)]?.Value<bool>() ?? false;
+        ExcludedFromPresets = inputToken[nameof(ExcludedFromPresets)]?.Value<bool>() ?? false;
     }
 
     public Type Type { get; } = typeof(T);
