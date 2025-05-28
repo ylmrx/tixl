@@ -15,6 +15,8 @@ namespace T3.Editor.Gui.Interaction;
 /// </summary>
 internal enum UserActions
 {
+    TapBeatSync,
+    TapBeatSyncMeasure,
     // General
     Undo,
     Redo,
@@ -45,8 +47,6 @@ internal enum UserActions
     SetEndTime,
     InsertKeyframe,
     InsertKeyframeWithIncrement,
-    TapBeatSync,
-    TapBeatSyncMeasure,
     ToggleAnimationPinning,
 
     // Graph
@@ -417,23 +417,23 @@ internal sealed class KeyboardBinding
         yield return new(UserActions.Redo, new(Key.Z, ctrl: true, shift: true));
 
         // Playback controls
-        yield return new(UserActions.PlaybackForward, new(Key.L));
-        yield return new(UserActions.PlaybackForwardHalfSpeed, new(Key.L, shift: true));
-        yield return new(UserActions.PlaybackBackwards, new(Key.J));
-        yield return new(UserActions.PlaybackStop, new(Key.K));
+        yield return new(UserActions.PlaybackForward, new(Key.L), keyPressOnly: true);
+        yield return new(UserActions.PlaybackForwardHalfSpeed, new(Key.L, shift: true), keyPressOnly: true);
+        yield return new(UserActions.PlaybackBackwards, new(Key.J), keyPressOnly: true);
+        yield return new(UserActions.PlaybackStop, new(Key.K), keyPressOnly: true);
         yield return new(UserActions.PlaybackToggle, new(Key.Space), keyPressOnly: true);
         yield return new(UserActions.PlaybackPreviousFrame, new(Key.CursorLeft, shift: true));
         yield return new(UserActions.PlaybackNextFrame, new(Key.CursorRight, shift: true));
-        yield return new(UserActions.PlaybackJumpToStartTime, new(Key.Home));
+        yield return new(UserActions.PlaybackJumpToStartTime, new(Key.Home), keyPressOnly: true);
         yield return new(UserActions.PlaybackJumpToNextKeyframe, new(Key.Period));
         yield return new(UserActions.PlaybackJumpToPreviousKeyframe, new(Key.Comma));
 
         // Timeline actions
-        yield return new(UserActions.InsertKeyframe, new(Key.C), needsWindowFocus: true);
+        yield return new(UserActions.InsertKeyframe, new(Key.C), needsWindowFocus: true, keyPressOnly: true);
         yield return new(UserActions.InsertKeyframeWithIncrement, new(Key.C, shift: true));
         yield return new(UserActions.ToggleAnimationPinning, new(Key.K, shift: true));
-        yield return new(UserActions.SetStartTime, new(Key.B));
-        yield return new(UserActions.SetEndTime, new(Key.N));
+        yield return new(UserActions.SetStartTime, new(Key.B), keyPressOnly: true);
+        yield return new(UserActions.SetEndTime, new(Key.N), keyPressOnly: true);
         yield return new(UserActions.TapBeatSync, new(Key.Z), keyPressOnly:true);
         yield return new(UserActions.TapBeatSyncMeasure, new(Key.X), keyPressOnly: true);
 

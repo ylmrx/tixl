@@ -26,25 +26,39 @@ internal static class KeyBindingEditor
             _initialized = true;
 
         }*/
-        FormInputs.SetIndent(100);
-        
         var colorFields = typeof(UiColors).GetFields();
         var colorVariationFields = typeof(ColorVariations).GetFields();
 
         var xxx = typeof(ColorVariations);
         var ff = xxx.UnderlyingSystemType;
-        
+
         var xxx2 = ff.GetFields();
-        if(ImGui.Button("load AZERTY KeyBindings"))
-        {
-            KeyboardBinding.LoadCustomBindings("AZERTYKeyboardBindings.json");
-        }
-        if (ImGui.Button("load QWERTY KeyBindings"))
-        {
-            KeyboardBinding.LoadCustomBindings("KeyboardBindings.json");
-        }
 
+        // First, get the available content region size
+        var contentRegion = ImGui.GetContentRegionAvail();
 
+        // Define the height of your fixed header section
+        float headerHeight = ImGui.GetTextLineHeightWithSpacing() * 4; // Adjust as needed
+
+        ImGui.BeginChild("header", new Vector2(0, headerHeight), true, ImGuiWindowFlags.NoScrollbar);
+        {
+            FormInputs.SetIndent(100);
+            if (ImGui.Button("load AZERTY KeyBindings"))
+            {
+                KeyboardBinding.LoadCustomBindings("AZERTYKeyboardBindings.json");
+            }
+            if (ImGui.Button("load QWERTY KeyBindings"))
+            {
+                KeyboardBinding.LoadCustomBindings("KeyboardBindings.json");
+            }
+
+            string currentName = KeyboardBinding.CurrentBindingSetName;
+            string currentAuthor = KeyboardBinding.CurrentBindingSetAuthor;
+            ImGui.TextUnformatted($"Current KeyBinding: {currentName} by {currentAuthor}");
+        }
+        ImGui.EndChild();
+
+        float tableHeight = contentRegion.Y - headerHeight - ImGui.GetStyle().ItemSpacing.Y;
 
 
         //if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName, 
@@ -110,8 +124,9 @@ internal static class KeyBindingEditor
 
     private static void DrawKeybindingEdits()
     {
+        
 
-        if (ImGui.BeginTable("Shortcuts", 2,
+            if (ImGui.BeginTable("Shortcuts", 2,
                                          ImGuiTableFlags.BordersInnerH))
         {
             foreach (var value in Enum.GetValues<UserActions>())
@@ -149,7 +164,7 @@ internal static class KeyBindingEditor
     
     private static bool _somethingChanged;
     private static bool _initialized;
-   /* private static KeyBindingHandling.ColorKeyBinding _currentKeyBinding= new();
-    private static KeyBindingHandling.ColorKeyBinding _currentKeyBindingWithoutChanges = new();*/
+    private static KeyBindingHandling.KeyBinding _currentKeyBinding= new();
+    private static KeyBindingHandling.KeyBinding _currentKeyBindingWithoutChanges = new();
     public static readonly object Dummy = new();
 }
