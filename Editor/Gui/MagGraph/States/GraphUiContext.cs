@@ -77,7 +77,9 @@ internal sealed class GraphUiContext
     internal readonly ProjectView ProjectView;
     internal Instance CompositionInstance => ProjectView.CompositionInstance!;
     internal NodeSelection Selector => ProjectView.NodeSelection;
-    
+
+    /** Used for fading out graph on left edge */
+    internal float GraphOpacity = 1;
     
     internal readonly MagGraphCanvas Canvas;
     internal readonly MagItemMovement ItemMovement;
