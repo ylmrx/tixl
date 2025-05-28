@@ -216,7 +216,7 @@ internal sealed class KeyboardBinding
             return ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false);
 
         // Default behavior (works for both press and hold)
-        return ImGui.IsKeyDown((ImGuiKey)Combination.Key);
+        return ImGui.IsKeyPressed((ImGuiKey)Combination.Key, true);
     }
 
     private bool ModifiersMatch(ImGuiIOPtr io)
@@ -421,7 +421,7 @@ internal sealed class KeyboardBinding
         yield return new(UserActions.PlaybackForwardHalfSpeed, new(Key.L, shift: true));
         yield return new(UserActions.PlaybackBackwards, new(Key.J));
         yield return new(UserActions.PlaybackStop, new(Key.K));
-        yield return new(UserActions.PlaybackToggle, new(Key.Space));
+        yield return new(UserActions.PlaybackToggle, new(Key.Space), keyPressOnly: true);
         yield return new(UserActions.PlaybackPreviousFrame, new(Key.CursorLeft, shift: true));
         yield return new(UserActions.PlaybackNextFrame, new(Key.CursorRight, shift: true));
         yield return new(UserActions.PlaybackJumpToStartTime, new(Key.Home));
@@ -440,7 +440,7 @@ internal sealed class KeyboardBinding
         // Graph window actions
         yield return new(UserActions.ToggleDisabled, new(Key.D, shift: true), needsWindowFocus: true);
         yield return new(UserActions.ToggleBypassed, new(Key.B, shift: true), needsWindowFocus: true);
-        yield return new(UserActions.PinToOutputWindow, new(Key.P), needsWindowFocus: true);
+        yield return new(UserActions.PinToOutputWindow, new(Key.P));//, needsWindowFocus: true);
         yield return new(UserActions.DisplayImageAsBackground, new(Key.P, ctrl: true));
         yield return new(UserActions.ClearBackgroundImage, new(Key.P, ctrl: true, shift: true), needsWindowFocus: true);
         yield return new(UserActions.LayoutSelection, new(Key.G));
