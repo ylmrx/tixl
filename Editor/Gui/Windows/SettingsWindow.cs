@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using ImGuiNET;
 using Operators.Utils;
 using T3.Core.IO;
@@ -342,34 +342,9 @@ internal sealed class SettingsWindow : Window
 
                 case Categories.Keyboard:
                     FormInputs.AddSectionHeader("Keyboard Shortcuts");
-                    CustomComponents.HelpText("The keyboard layout can't be edited yet.");
+                    CustomComponents.HelpText("The keyboard layout can't be edited yet. Working on it");
 
-                    if (ImGui.BeginTable("Shortcuts", 2,
-                                         ImGuiTableFlags.BordersInnerH))
-                    {
-                        foreach (var value in Enum.GetValues<UserActions>())
-                        {
-                            ImGui.TableNextRow();
-                            ImGui.TableSetColumnIndex(0);
-                            var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(value));
-                            var shortcuts = KeyboardBinding.ListKeyboardShortcuts(value, false);
-                            var hasShortcut = !string.IsNullOrEmpty(shortcuts);
-                            ImGui.PushStyleColor(ImGuiCol.Text, hasShortcut ? UiColors.Text : UiColors.TextMuted.Rgba);
-                            ImGui.TextUnformatted(actionName);
-
-                            ImGui.TableSetColumnIndex(1);
-
-                            if (hasShortcut)
-                            {
-                                ImGui.PushFont(Fonts.FontBold);
-                                ImGui.TextUnformatted(shortcuts);
-                                ImGui.PopFont();
-                                ImGui.PopStyleColor();
-                            }
-                        }
-
-                        ImGui.EndTable();
-                    }
+                    KeyBindingEditor.DrawEditor();
 
                     break;
                 case Categories.Profiling:

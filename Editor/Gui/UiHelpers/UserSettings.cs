@@ -137,7 +137,7 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
 
         public string ColorThemeName = string.Empty;
 
-        public string KeyBindingName = "KeyboardBinding.json";
+        public string KeyBindingName = string.Empty;
 
         public bool ExpandSpectrumVisualizerVertically = true;
             

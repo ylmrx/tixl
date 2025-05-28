@@ -79,6 +79,16 @@ internal enum UserActions
     OpenOperator,
     CloseOperator,
 
+    //camera controls
+    CameraLeft,
+    CameraRight,
+    CameraForward,
+    CameraBackward,
+    CameraUp,
+    CameraDown,
+    CameraReset,
+    CameraFocusSelection,
+
     // Layout and window management
     ToggleAllUiElements,
     ToggleVariationsWindow,
@@ -129,15 +139,20 @@ internal sealed class KeyboardBinding
     public bool NeedsWindowFocus { get; }
     public bool NeedsWindowHover { get; }
     public bool KeyPressOnly { get; }
+    public bool KeyHoldOnly { get; }  // 
 
     private KeyboardBinding(UserActions action, KeyCombination combination,
-        bool needsWindowFocus = false, bool needsWindowHover = false, bool keyPressOnly = false)
+        bool needsWindowFocus = false,
+        bool needsWindowHover = false,
+        bool keyPressOnly = false,
+        bool keyHoldOnly = false)
     {
         Action = action;
         Combination = combination;
         NeedsWindowFocus = needsWindowFocus;
         NeedsWindowHover = needsWindowHover;
         KeyPressOnly = keyPressOnly;
+        KeyHoldOnly = keyHoldOnly;
     }
 
     internal static void InitFrame()
@@ -191,12 +206,18 @@ internal sealed class KeyboardBinding
 
     private bool IsTriggered(ImGuiIOPtr io)
     {
-        var isKeyPressed = !KeyPressOnly || ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false);
+        if (!ModifiersMatch(io))
+            return false;
 
-        return ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false)
-               && isKeyPressed
-               && ModifiersMatch(io);
-    }      
+        if (KeyHoldOnly)
+            return ImGui.IsKeyDown((ImGuiKey)Combination.Key);
+
+        if (KeyPressOnly)
+            return ImGui.IsKeyPressed((ImGuiKey)Combination.Key, false);
+
+        // Default behavior (works for both press and hold)
+        return ImGui.IsKeyDown((ImGuiKey)Combination.Key);
+    }
 
     private bool ModifiersMatch(ImGuiIOPtr io)
     {
@@ -281,7 +302,8 @@ internal sealed class KeyboardBinding
                 combination,
                 binding.NeedsWindowFocus ?? false,
                 binding.NeedsWindowHover ?? false,
-                binding.KeyPressOnly ?? false
+                binding.KeyPressOnly ?? false,
+                binding.KeyHoldOnly ?? false
             ));
         }
     }
@@ -353,7 +375,8 @@ internal sealed class KeyboardBinding
                 Shift = b.Combination.Shift ? true : null,
                 NeedsWindowFocus = b.NeedsWindowFocus ? true : null,
                 NeedsWindowHover = b.NeedsWindowHover ? true : null,
-                KeyPressOnly = b.KeyPressOnly ? true : null
+                KeyPressOnly = b.KeyPressOnly ? true : null,
+                KeyHoldOnly = b.KeyHoldOnly ? true : null
             })]
         };
 
@@ -411,8 +434,8 @@ internal sealed class KeyboardBinding
         yield return new(UserActions.ToggleAnimationPinning, new(Key.K, shift: true));
         yield return new(UserActions.SetStartTime, new(Key.B));
         yield return new(UserActions.SetEndTime, new(Key.N));
-        yield return new(UserActions.TapBeatSync, new(Key.Z));
-        yield return new(UserActions.TapBeatSyncMeasure, new(Key.X));
+        yield return new(UserActions.TapBeatSync, new(Key.Z), keyPressOnly:true);
+        yield return new(UserActions.TapBeatSyncMeasure, new(Key.X), keyPressOnly: true);
 
         // Graph window actions
         yield return new(UserActions.ToggleDisabled, new(Key.D, shift: true), needsWindowFocus: true);
@@ -437,6 +460,17 @@ internal sealed class KeyboardBinding
         yield return new(UserActions.SelectToBelow, new(Key.CursorDown), needsWindowFocus: true);
         yield return new(UserActions.SelectToLeft, new(Key.CursorLeft), needsWindowFocus: true);
 
+        // Camera controls
+        yield return new(UserActions.CameraLeft, new(Key.A), needsWindowHover: true, keyHoldOnly: true);
+        yield return new(UserActions.CameraRight, new(Key.D), needsWindowHover: true, keyHoldOnly: true);
+        yield return new(UserActions.CameraForward, new(Key.W), needsWindowHover: true, keyHoldOnly: true);
+        yield return new(UserActions.CameraBackward, new(Key.S), needsWindowHover: true, keyHoldOnly: true);
+        yield return new(UserActions.CameraUp, new(Key.E), needsWindowHover: true, keyHoldOnly: true);
+        yield return new(UserActions.CameraDown, new(Key.Q), needsWindowHover: true, keyHoldOnly: true);
+        // Camera reset and focus
+        yield return new(UserActions.CameraReset, new(Key.F), needsWindowHover: true);
+        yield return new(UserActions.CameraFocusSelection, new(Key.C), needsWindowHover: true);
+
         // Layout and window management
         yield return new(UserActions.ToggleAllUiElements, new(Key.Esc, shift: true));
         yield return new(UserActions.ToggleFullscreen, new(Key.F11));
@@ -444,7 +478,7 @@ internal sealed class KeyboardBinding
 
         // Camera controls
 
-        yield return new(UserActions.ScrollLeft, new(Key.A), needsWindowHover: true);
+       // yield return new(UserActions.ScrollLeft, new(Key.A), needsWindowHover: true);
 
         // Generate bookmark bindings
         foreach (var binding in GenerateNumberedBindings(UserActions.LoadBookmark0, UserActions.SaveBookmark0, true))
@@ -517,6 +551,7 @@ internal sealed class KeyboardBinding
         public bool? NeedsWindowFocus { get; set; }
         public bool? NeedsWindowHover { get; set; }
         public bool? KeyPressOnly { get; set; }
+        public bool? KeyHoldOnly { get; set; }
     }
 
     private class KeyboardBindingsJson

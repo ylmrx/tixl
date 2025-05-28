@@ -35,11 +35,15 @@ internal static class KeyBindingEditor
         var ff = xxx.UnderlyingSystemType;
         
         var xxx2 = ff.GetFields();
-        if(ImGui.Button("load Newemka's KeyBindings"))
+        if(ImGui.Button("load AZERTY KeyBindings"))
         {
-            KeyboardBinding.LoadCustomBindings("NewemkaKeys.json");
+            KeyboardBinding.LoadCustomBindings("AZERTYKeyboardBindings.json");
         }
-        
+        if (ImGui.Button("load QWERTY KeyBindings"))
+        {
+            KeyboardBinding.LoadCustomBindings("KeyboardBindings.json");
+        }
+
 
 
 
