@@ -34,4 +34,7 @@ internal sealed class SetEnvironment : Instance<SetEnvironment>
     [Input(Guid = "46d76d8a-5fb6-4138-a88b-950a2e5b8529")]
     public readonly InputSlot<float> QualityFactor = new InputSlot<float>();
 
+        [Input(Guid = "486f4f09-2e4e-43b8-bfbc-2722e77d5dbd")]
+        public readonly InputSlot<float> Orientation = new InputSlot<float>();
+
 }

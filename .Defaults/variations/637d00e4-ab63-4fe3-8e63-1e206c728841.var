@@ -2,42 +2,6 @@
   "Id": "637d00e4-ab63-4fe3-8e63-1e206c728841",
   "Variations": [
     {
-      "Id": "f42ff5e0-7cbb-4028-931d-fbce16c0d972",
-      "IsPreset": true,
-      "ActivationIndex": 1,
-      "Title": "Default",
-      "PosOnCanvas": {
-        "X": 163.0,
-        "Y": 0.0
-      },
-      "ParameterSetsForChildIds": {
-        "00000000-0000-0000-0000-000000000000": {
-          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "float4 p2 = float4(p, 1.);\nfor(int i = 0; i < 8; i++){\n    p2.xyz = mod(p2.xyz - 1, B) -1;   // B: 2\n    p2*=C / dot(p2.xyz ,p2.xyz);   // C: 1.4\n}\nreturn ( length(p2.xz / p2.w) * A);  // A: 0.25",
-          "3c366d34-c398-410e-972b-d8cc2baffddb": 0.25,
-          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 2.0,
-          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.31
-        }
-      }
-    },
-    {
-      "Id": "f2cf7b32-fed2-4d5a-b773-42947c56899b",
-      "IsPreset": true,
-      "ActivationIndex": 2,
-      "Title": "Strange",
-      "PosOnCanvas": {
-        "X": 326.0,
-        "Y": 0.0
-      },
-      "ParameterSetsForChildIds": {
-        "00000000-0000-0000-0000-000000000000": {
-          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "float4 p2 = float4(p, 1.);\nfor(int i = 0; i < 8; i++){\n    p2.xyz = mod(p2.xyz - 1, B) -1;   // B: 2\n    p2*=C / dot(p2.xyz ,p2.xyz);   // C: 1.4\n}\nreturn ( length(p2.xz / p2.w) * A);  // A: 0.25",
-          "3c366d34-c398-410e-972b-d8cc2baffddb": -0.08,
-          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 2.0,
-          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.9
-        }
-      }
-    },
-    {
       "Id": "726e57b9-063a-47a0-b894-54b1df41b4d5",
       "IsPreset": true,
       "ActivationIndex": 3,
@@ -61,8 +25,8 @@
       "ActivationIndex": 4,
       "Title": "SinBlobs",
       "PosOnCanvas": {
-        "X": 163.0,
-        "Y": 93.0
+        "X": 0.0,
+        "Y": 186.0
       },
       "ParameterSetsForChildIds": {
         "00000000-0000-0000-0000-000000000000": {
@@ -84,8 +48,8 @@
       "ActivationIndex": 5,
       "Title": "SineBlobs/Stretchy",
       "PosOnCanvas": {
-        "X": 326.0,
-        "Y": 93.0
+        "X": 163.00005,
+        "Y": 186.0
       },
       "ParameterSetsForChildIds": {
         "00000000-0000-0000-0000-000000000000": {
@@ -98,6 +62,168 @@
           "3c366d34-c398-410e-972b-d8cc2baffddb": 4.14,
           "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 0.16,
           "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.85
+        }
+      }
+    },
+    {
+      "Id": "863a1c20-78ec-4d85-ae01-bf574ea2a65a",
+      "IsPreset": true,
+      "ActivationIndex": 5,
+      "Title": "BrokenCave",
+      "PosOnCanvas": {
+        "X": 163.0,
+        "Y": 93.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "float4 p2 = float4(p, 1.);\nfor(int i = 0; i < 8; i++){\n    p2.xyz = mod(p2.xyz - 1, B) -1;   // B: 2\n    p2*=C / dot(p2.xyz ,p2.xyz);   // C: 1.4\n}\nreturn ( length(p2.xz / p2.w) * A);  // A: 0.25",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 0.274,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 2.07,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 2.0
+        }
+      }
+    },
+    {
+      "Id": "b1dcf56c-36fa-44f6-b5c9-cb87ed9f54b6",
+      "IsPreset": true,
+      "ActivationIndex": 6,
+      "Title": "SphereCave",
+      "PosOnCanvas": {
+        "X": 0.0,
+        "Y": 279.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// From https://jbaker.graphics/writings/DEC.html\nfloat4 p2 = float4(p.yxz, 1);\nfor(int i = 0; i < 8; i++){\n  p2.xyz = mod(p2.xyz - 1, 2 + C) - 1; // C: 0.0\n  p2*=(B/dot(p2.xyz, p2.xyz));  // B: 1.2\n}\np2/=p2.w;\nreturn abs(p2.x) * A;  // A: 0.25",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 0.22,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.16,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.0
+        }
+      }
+    },
+    {
+      "Id": "2b986d0d-bd85-42e8-9971-1958c5024699",
+      "IsPreset": true,
+      "ActivationIndex": 7,
+      "Title": "SphereCave Broken",
+      "PosOnCanvas": {
+        "X": 163.00005,
+        "Y": 279.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// From https://jbaker.graphics/writings/DEC.html\nfloat4 p2 = float4(p.yxz, 1);\nfor(int i = 0; i < 8; i++){\n  p2.xyz = mod(p2.xyz - 1, 2 + C) - 1; // C: 0.0\n  p2*=(B/dot(p2.xyz, p2.xyz));  // B: 1.2\n}\np2/=p2.w;\nreturn abs(p2.x) * A;  // A: 0.25",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 0.22,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.16,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.03
+        }
+      }
+    },
+    {
+      "Id": "755d2511-b5d7-409a-a854-1ccea9784e62",
+      "IsPreset": true,
+      "ActivationIndex": 8,
+      "Title": "BoxFold",
+      "PosOnCanvas": {
+        "X": 0.0,
+        "Y": 372.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// box fold gaziya5 aka gaz on https://jbaker.graphics/writings/DEC.html\np=abs(p)-15.;\nif(p.x < p.z)p.xz=p.zx;\nif(p.y < p.z)p.yz=p.zy;\nif(p.x < p.y)p.xy=p.yx;\nfloat s=2.;\nfor (int i=0; i<8; i++){\n  p=-sign(p)*(abs(abs(abs(p)-2.)-1.)-1.);\n  float r=-1.55/max(.41,dot(p,p));\n  s*=r; p*=r; p-=.5;\n}\ns=abs(s);\nreturn dot(p,normalize(float3(1,2,3)))/s;",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 0.22,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.16,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.03
+        }
+      }
+    },
+    {
+      "Id": "cba2dc4f-557f-49e5-a639-5f660bda610e",
+      "IsPreset": true,
+      "ActivationIndex": 9,
+      "Title": "BoxFold / 2",
+      "PosOnCanvas": {
+        "X": 163.0,
+        "Y": 372.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// box fold gaziya5 aka gaz on https://jbaker.graphics/writings/DEC.html\np=abs(p)-A * 10; // A: 15\nif(p.x < p.z)p.xz=p.zx;\nif(p.y < p.z)p.yz=p.zy;\nif(p.x < p.y)p.xy=p.yx;\nfloat s=2.;\nfor (int i=0; i<8; i++){\n  p=-sign(p)*(abs(abs(abs(p)-2.)-1.)-1.);\n  float r=-B/max(.41,dot(p,p)); // B: 1.55\n  s*=r; p*=r; p-=.5;\n}\ns=abs(s);\nreturn dot(p,normalize(float3(1,2,3)))/s;",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 1.982,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.391,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.145
+        }
+      }
+    },
+    {
+      "Id": "66fa98d0-e6f2-42e7-b7d3-f4d2ca04d299",
+      "IsPreset": true,
+      "ActivationIndex": 10,
+      "Title": "SpiderCave1",
+      "PosOnCanvas": {
+        "X": 0.0,
+        "Y": 465.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// by gaziya5 aka gaz on https://jbaker.graphics/writings/DEC.html\nfloat s=A;  // A: 3\nfor(int i = 0; i < 4; i++) {\n  p=mod(p-1, 2)-1;   \n  float r=B / dot(p,p); // B: 1.2\n  p*=r; s*=r;\n}\np = abs(p)-C; // C: 0.8\nif (p.x < p.z) p.xz = p.zx;\nif (p.y < p.z) p.yz = p.zy;\nif (p.x < p.y) p.xy = p.yx;\nreturn length(cross(p,normalize(float3(0,1,1))))/s-.001;",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 3.0,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.206,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.8
+        }
+      }
+    },
+    {
+      "Id": "ab216d13-bec8-4bf7-ba17-c51080b5335a",
+      "IsPreset": true,
+      "ActivationIndex": 11,
+      "Title": "SpiderCave / HexField",
+      "PosOnCanvas": {
+        "X": 163.0,
+        "Y": 465.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// by gaziya5 aka gaz on https://jbaker.graphics/writings/DEC.html\nfloat s=A;  // A: 3\nfor(int i = 0; i < 4; i++) {\n  p=mod(p-1, 2)-1;   \n  float r=B / dot(p,p); // B: 1.2\n  p*=r; s*=r;\n}\np = abs(p)-C; // C: 0.8\nif (p.x < p.z) p.xz = p.zx;\nif (p.y < p.z) p.yz = p.zy;\nif (p.x < p.y) p.xy = p.yx;\nreturn length(cross(p,normalize(float3(0,1,1))))/s-.001;",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 1.64,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 0.81,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.984
+        }
+      }
+    },
+    {
+      "Id": "9d5be05c-9f32-4956-b8ac-358306e1907e",
+      "IsPreset": true,
+      "ActivationIndex": 11,
+      "Title": "WireCube",
+      "PosOnCanvas": {
+        "X": 0.0,
+        "Y": 558.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "float s=A, r2; // A: 2\np=abs(p);\nfor(int i=0; i<12;i++) {\n  p=1 - abs(p - 1);\n  r2= B / dot(p, p); // B: 1.2\n  p*=r2; s*=r2;\n}\nreturn length(cross(p,normalize(float3(1,1,1))))/s - C; // C: 0.003",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 2.0,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 1.2,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.005
+        }
+      }
+    },
+    {
+      "Id": "541ee04d-4300-4599-8557-4428af569902",
+      "IsPreset": true,
+      "ActivationIndex": 13,
+      "Title": "WireCube / Balls",
+      "PosOnCanvas": {
+        "X": 163.0,
+        "Y": 558.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "float s=A, r2; // A: 2\np=abs(p);\nfor(int i=0; i<12;i++) {\n  p=1 - abs(p - 1);\n  r2= B / dot(p, p); // B: 1.2\n  p*=r2; s*=r2;\n}\nreturn length(cross(p,normalize(float3(1,1,1))))/s - C; // C: 0.003",
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 2.02,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 2.07,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.005
         }
       }
     }

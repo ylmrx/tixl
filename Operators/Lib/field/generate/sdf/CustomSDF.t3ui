@@ -8,14 +8,20 @@
         "X": -200.0,
         "Y": 0.0
       },
-      "AddPadding": "True"
+      "AddPadding": "True",
+      "Min": -1.0,
+      "Max": 1.0,
+      "Scale": 0.001
     },
     {
       "InputId": "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790"/*C*/,
       "Position": {
         "X": -200.0,
         "Y": 150.0
-      }
+      },
+      "Min": -1.0,
+      "Max": 1.0,
+      "Scale": 0.001
     },
     {
       "InputId": "64f1812f-7ebd-4231-8a6a-0bbc302bfaff"/*Offset*/,
@@ -30,7 +36,9 @@
       "Position": {
         "X": -200.0,
         "Y": 75.0
-      }
+      },
+      "Max": 1.0,
+      "Scale": 0.001
     },
     {
       "InputId": "bde89b93-224c-4a3f-85ab-d85b0401c02a"/*ShaderCode*/,
