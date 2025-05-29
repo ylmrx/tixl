@@ -260,10 +260,11 @@ public abstract class InputValueUi<T> : IInputUi
                                                             ProjectView.Focused?.GraphCanvas.ExtractAsConnectedOperator(typedInputSlot, symbolChildUi, input);
                                                         }
 
-                                                        if (ImGui.MenuItem("Publish as Input"))
+                                                        if (ImGui.MenuItem("Publish as Input", null,false,false))
                                                         {
                                                             InputArea.PublishAsInput(nodeSelection, inputSlot, symbolChildUi, input);
                                                         }
+                                                        CustomComponents.TooltipForLastItem("Publishing as input is not yet implemented. Please create a input of that type and connect manually.");
 
                                                         if (ImGui.MenuItem("Parameters settings"))
                                                             editState = InputEditStateFlags.ShowOptions;
@@ -486,10 +487,12 @@ public abstract class InputValueUi<T> : IInputUi
                          ProjectView.Focused?.GraphCanvas.ExtractAsConnectedOperator(typedInputSlot, symbolChildUi, input);
                      }
                      
-                     if (ImGui.MenuItem("Publish as Input"))
+                     if (ImGui.MenuItem("Publish as Input", null,false,false))
                      {
                          InputArea.PublishAsInput(nodeSelection, inputSlot, symbolChildUi, input);
                      }
+                     CustomComponents.TooltipForLastItem("Publishing as input is not yet implemented. Please create a input of that type and connect manually.");
+                     
                      if (ParameterWindow.IsAnyInstanceVisible() && ImGui.MenuItem("Rename input"))
                      {
                          ParameterWindow.RenameInputDialog.ShowNextFrame(symbolChildUi.SymbolChild.Symbol, input.InputDefinition.Id);
@@ -730,10 +733,14 @@ internal static class InputArea
         if (!InputsAndOutputs.AddInputToSymbol(input.Name, input.IsMultiInput, input.DefaultValue.ValueType, composition.Symbol))
             return;
 
+        // FIXME: Adding the input will trigger a recompile and thus discard the previous composition
+        // This would only be available after reloading with the next frame update. I currently have
+        // no idea how to create the connection line without this.
+        
         var updatedComposition = selection.GetSelectedComposition();
         if (updatedComposition == null)
         {
-            Log.Error("Can't find composition to publish input to");
+            Log.Warning("Sadly, we currently can't create the connection lines and set the default values.");
             return;
         }
 
