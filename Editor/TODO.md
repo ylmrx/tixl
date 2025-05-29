@@ -34,7 +34,7 @@
 - [x] Parameter window in fullscreen
 - [ ] Publish as input does not create connection
 - [ ] Fix split between multi input parameters
-- [ ] Fix background control in mag graph
+- [x] Fix background control in mag graph
 - [x] Allow dragging connection from horizontal input slot
 - [x] Allow clicking vertical input slot
 - [ ] Split Connections

@@ -54,6 +54,52 @@
           "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.3113127
         }
       }
+    },
+    {
+      "Id": "533787be-0b98-41ed-a20a-6dda242ecaaa",
+      "IsPreset": true,
+      "ActivationIndex": 4,
+      "Title": "SinBlobs",
+      "PosOnCanvas": {
+        "X": 163.0,
+        "Y": 93.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "    float scale = A;\n    float thickness = B;\n    float bias = C;\n\n    p *= scale;\n    return (abs(dot(sin(p*.5 + Offset), cos(p.zxy * 1.23)) - bias) / scale - thickness)*0.55;\n",
+          "64f1812f-7ebd-4231-8a6a-0bbc302bfaff": {
+            "X": 2.57,
+            "Y": -2.18,
+            "Z": 0.0
+          },
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 2.91,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 0.03,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.26
+        }
+      }
+    },
+    {
+      "Id": "15174e6b-3869-456a-af72-b048bee8a61e",
+      "IsPreset": true,
+      "ActivationIndex": 5,
+      "Title": "SineBlobs/Stretchy",
+      "PosOnCanvas": {
+        "X": 326.0,
+        "Y": 93.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "    float scale = A;\n    float thickness = B;\n    float bias = C;\n\n    p *= scale;\n    return (abs(dot(sin(p*.5 + Offset), cos(p.zxy * 1.23)) - bias) / scale - thickness)*0.55;\n",
+          "64f1812f-7ebd-4231-8a6a-0bbc302bfaff": {
+            "X": 2.88,
+            "Y": 10.0,
+            "Z": -0.06
+          },
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 4.14,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 0.16,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 1.85
+        }
+      }
     }
   ]
 }
