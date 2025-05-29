@@ -141,7 +141,7 @@ internal sealed partial class MagGraphCanvas
         var isSelected = _context.Selector.IsSelected(item);
         if (isSelected)
         {
-            drawList.AddRect(pMinVisible, pMaxVisible, UiColors.ForegroundFull,
+            drawList.AddRect(pMinVisible, pMaxVisible, UiColors.ForegroundFull.Fade(_context.GraphOpacity),
                              CanvasScale < 0.5 ? 0 : 6 * CanvasScale,
                              imDrawFlags);
         }

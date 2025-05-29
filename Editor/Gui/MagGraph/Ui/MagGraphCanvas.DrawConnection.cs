@@ -32,7 +32,8 @@ internal sealed partial class MagGraphCanvas
         var idleFadeProgress = MathUtils.RemapAndClamp(connection.SourceOutput.DirtyFlag.FramesSinceLastUpdate, 0, 100, 1, 0f);
         
         var color =  typeUiProperties.Color.Fade(_context.GraphOpacity);
-        var wasHoveredLastFrame = ConnectionHovering.IsHovered(connection); 
+        
+        var wasHoveredLastFrame = !_context.PreventInteraction && ConnectionHovering.IsHovered(connection); 
         var selectedColor = isSelected || wasHoveredLastFrame ?  ColorVariations.OperatorLabel.Apply(color)
                                 : ColorVariations.ConnectionLines.Apply(color);
         

@@ -18,7 +18,6 @@ internal sealed partial class MagGraphCanvas
 {
     public void DrawGraph(ImDrawListPtr drawList, float graphOpacity)
     {
-        Log.Debug("### opacity " + graphOpacity);
         _context.GraphOpacity = graphOpacity;
         
         IsFocused = ImGui.IsWindowFocused(ImGuiFocusedFlags.RootAndChildWindows);
@@ -63,7 +62,8 @@ internal sealed partial class MagGraphCanvas
                         editingFlags |= T3Ui.EditingFlags.PreventMouseInteractions;
                 }
         
-                UpdateCanvas(out _, editingFlags);
+                if(!_context.PreventInteraction) 
+                    UpdateCanvas(out _, editingFlags);
 
                 // Prepare UiModel for frame
                 _context.Layout.ComputeLayout(_context);
@@ -83,9 +83,10 @@ internal sealed partial class MagGraphCanvas
                 if(!UserSettings.Config.FocusMode) 
                 {
                     DrawBackgroundGrids(drawList);
-                } 
+                }
 
                 // Selection fence...
+                if(!_context.PreventInteraction)
                 {
                     HandleFenceSelection(_context, _selectionFence);
                 }
@@ -125,7 +126,8 @@ internal sealed partial class MagGraphCanvas
                     _lastHoverId = Guid.Empty;
                 }
 
-                HighlightSplitInsertionPoints(drawList, _context);
+                if(!_context.PreventInteraction)
+                    HighlightSplitInsertionPoints(drawList, _context);
 
                 // Draw connections
                 foreach (var connection in _context.Layout.MagConnections)

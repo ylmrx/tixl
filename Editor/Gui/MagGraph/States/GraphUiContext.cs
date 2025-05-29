@@ -80,6 +80,8 @@ internal sealed class GraphUiContext
 
     /** Used for fading out graph on left edge */
     internal float GraphOpacity = 1;
+
+    internal bool PreventInteraction => ProjectView.GraphImageBackground.HasInteractionFocus;
     
     internal readonly MagGraphCanvas Canvas;
     internal readonly MagItemMovement ItemMovement;

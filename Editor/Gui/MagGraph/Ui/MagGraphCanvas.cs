@@ -94,6 +94,11 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
         //TODO: This should probably be handled by CompositionChangedHandler
         if (_projectView.CompositionInstance != null && _projectView.CompositionInstance != _previousInstance)
         {
+            if (bgHasInteractionFocus && _context.StateMachine.CurrentState != GraphStates.BackgroundContentIsInteractive)
+            {
+                _context.StateMachine.SetState(GraphStates.BackgroundContentIsInteractive, _context);
+            }
+            
             _previousInstance = _projectView.CompositionInstance;
             _context = new GraphUiContext(_projectView, this);
         }
