@@ -211,7 +211,18 @@ internal sealed partial class MagGraphCanvas
             var name = item.ReadableName;
             if (item.Variant == MagGraphItem.Variants.Output)
             {
-                name = "OUT: " + name;
+                var height = pMaxVisible.Y - pMinVisible.Y;
+                var width = pMaxVisible.X - pMinVisible.X;
+
+                _inputIndicatorPoints[0] = pMinVisible;
+                _inputIndicatorPoints[1] = pMinVisible + new Vector2(0.9f* width , 0);
+                _inputIndicatorPoints[2] = pMinVisible + new Vector2(0.9f* width + height/4, height/2);
+                _inputIndicatorPoints[3] = pMinVisible + new Vector2(0.9f* width, height);
+                _inputIndicatorPoints[4] = pMinVisible + new Vector2(0, height);
+                
+                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor).Fade(0.5f));
+                
+                name = name;
             }
             else if (item.Variant == MagGraphItem.Variants.Input)
             {
