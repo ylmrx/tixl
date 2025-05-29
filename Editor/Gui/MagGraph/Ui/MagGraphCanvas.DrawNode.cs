@@ -231,7 +231,8 @@ internal sealed partial class MagGraphCanvas
                 var framesSinceLastUpdate = (item.OutputLines.Length > 0) ? (float)(item.OutputLines[0].Output.DirtyFlag.FramesSinceLastUpdate)
                                             :1000;
                 var fade = framesSinceLastUpdate.RemapAndClamp(0, 120, 1f, 0.4f);
-                //fade  += fade * Blink * 0.4f + 0.1f;
+                if (framesSinceLastUpdate == 0)
+                    fade -= Blink * 0.2f;
                 
                 _inputIndicatorPoints[0] = pMinVisible;
                 _inputIndicatorPoints[1] = pMinVisible + new Vector2(0.2f, 0) * t;
