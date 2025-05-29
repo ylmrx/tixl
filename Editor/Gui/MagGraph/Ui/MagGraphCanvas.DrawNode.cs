@@ -45,13 +45,13 @@ internal sealed partial class MagGraphCanvas
             idleFactor = MathUtils.RemapAndClamp(framesSinceLastUpdate, 0f, 60f, 0f, 1f);
         }
 
-        var hoverProgress = GetHoverTimeForId(item.Id).RemapAndClamp(0, 0.2f, 0, 1);
+        //var hoverProgress = GetHoverTimeForId(item.Id).RemapAndClamp(0, 0.2f, 0, 1);
 
         var smallFontScaleFactor = CanvasScale.Clamp(0.5f, 2);
 
         var typeUiProperties = TypeUiRegistry.GetPropertiesForType(item.PrimaryType);
 
-        var typeColor = typeUiProperties.Color;
+        var typeColor = typeUiProperties.Color.Fade(_context.GraphOpacity);
         var labelColor = ColorVariations.OperatorLabel.Apply(typeColor);
 
         var pMin = TransformPosition(item.DampedPosOnCanvas);
@@ -141,7 +141,7 @@ internal sealed partial class MagGraphCanvas
         var isSelected = _context.Selector.IsSelected(item);
         if (isSelected)
         {
-            drawList.AddRect(pMinVisible, pMaxVisible, UiColors.ForegroundFull,
+            drawList.AddRect(pMinVisible, pMaxVisible, UiColors.ForegroundFull.Fade(_context.GraphOpacity),
                              CanvasScale < 0.5 ? 0 : 6 * CanvasScale,
                              imDrawFlags);
         }
