@@ -32,11 +32,11 @@
 - [x] Snapping connecting start to output not working of ops who's output is already snapped
 - [x] Add annotations
 - [x] Parameter window in fullscreen
-- [ ] Publish as input does not create connection
-- [ ] Fix split between multi input parameters
+- [x] Fix split between multi input parameters
 - [x] Fix background control in mag graph
 - [x] Allow dragging connection from horizontal input slot
 - [x] Allow clicking vertical input slot
+- [ ] Publish as input does not create connection
 - [ ] Split Connections
 - [ ] Rewiring of vertical connection lines
 - [ ] LoadImage has no thumbnail
@@ -52,7 +52,7 @@
 
 ## UI-Scaling Issues (at x1.5):
 
-- [ ] Perlin-Noise graph cut off
+- [x] Perlin-Noise graph cut off
 - [ ] Timeline-Clips too narrow
 - [ ] Full-Screen cuts of timeline ruler units
 - [ ] MagGraph-Labels too small

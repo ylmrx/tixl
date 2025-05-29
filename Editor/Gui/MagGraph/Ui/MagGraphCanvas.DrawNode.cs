@@ -48,7 +48,7 @@ internal sealed partial class MagGraphCanvas
         //var hoverProgress = GetHoverTimeForId(item.Id).RemapAndClamp(0, 0.2f, 0, 1);
 
         var smallFontScaleFactor = CanvasScale.Clamp(0.5f, 2);
-
+        
         var typeUiProperties = TypeUiRegistry.GetPropertiesForType(item.PrimaryType);
 
         var typeColor = typeUiProperties.Color.Fade(_context.GraphOpacity);
@@ -211,17 +211,35 @@ internal sealed partial class MagGraphCanvas
             var name = item.ReadableName;
             if (item.Variant == MagGraphItem.Variants.Output)
             {
-                name = "OUT: " + name;
+                var height = pMaxVisible.Y - pMinVisible.Y;
+                var width = pMaxVisible.X - pMinVisible.X;
+
+                _inputIndicatorPoints[0] = pMinVisible;
+                _inputIndicatorPoints[1] = pMinVisible + new Vector2(0.9f* width , 0);
+                _inputIndicatorPoints[2] = pMinVisible + new Vector2(0.9f* width + height/4, height/2);
+                _inputIndicatorPoints[3] = pMinVisible + new Vector2(0.9f* width, height);
+                _inputIndicatorPoints[4] = pMinVisible + new Vector2(0, height);
+                
+                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor).Fade(0.5f));
+                
+                name = name;
             }
             else if (item.Variant == MagGraphItem.Variants.Input)
             {
                 var t = pMaxVisible.Y - pMinVisible.Y;
+                
+                var framesSinceLastUpdate = (item.OutputLines.Length > 0) ? (float)(item.OutputLines[0].Output.DirtyFlag.FramesSinceLastUpdate)
+                                            :1000;
+                var fade = framesSinceLastUpdate.RemapAndClamp(0, 120, 1f, 0.4f);
+                if (framesSinceLastUpdate == 0)
+                    fade -= Blink * 0.2f;
+                
                 _inputIndicatorPoints[0] = pMinVisible;
                 _inputIndicatorPoints[1] = pMinVisible + new Vector2(0.2f, 0) * t;
                 _inputIndicatorPoints[2] = pMinVisible + new Vector2(0.5f, 0.5f) * t;
                 _inputIndicatorPoints[3] = pMinVisible + new Vector2(0.2f, 1f) * t;
                 _inputIndicatorPoints[4] = pMinVisible + new Vector2(0.0f, 1f) * t;
-                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor));
+                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor).Fade(fade));
                 name = "   " + name;
             }
 
@@ -879,6 +897,18 @@ internal sealed partial class MagGraphCanvas
                         ImGui.PushStyleColor(ImGuiCol.Text, uiProperties.Color.Rgba);
                         ImGui.TextUnformatted(typeName);
                         ImGui.PopStyleColor();
+                        if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.None)
+                        {
+                            if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.Animated)
+                            {
+                                ImGui.TextUnformatted("(Cache invalidating)");
+                            }
+                            else if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.Always)
+                            {
+                                ImGui.TextUnformatted("(always evaluated)");
+                            }
+                            
+                        }
                         ImGui.EndTooltip();
                         ImGui.PopStyleVar();
                     }

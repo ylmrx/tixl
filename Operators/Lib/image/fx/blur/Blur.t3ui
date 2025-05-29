@@ -93,30 +93,6 @@
       }
     },
     {
-      "ChildId": "4c68857a-b51f-4980-a734-e93d082349a5"/*_ImageFxShaderSetup2*/,
-      "Style": "Resizable",
-      "Size": {
-        "X": 110.0,
-        "Y": 166.0
-      },
-      "Position": {
-        "X": 410.55597,
-        "Y": -229.1864
-      }
-    },
-    {
-      "ChildId": "65e8c351-25ad-4205-b589-d154ffa993e7"/*_ImageFxShaderSetup2*/,
-      "Style": "Resizable",
-      "Size": {
-        "X": 116.91156,
-        "Y": 203.54987
-      },
-      "Position": {
-        "X": 769.92786,
-        "Y": -200.39159
-      }
-    },
-    {
       "ChildId": "68b65d39-c6d1-4c23-8b5a-321640ed50ad"/*GetTextureSize*/,
       "Position": {
         "X": -245.48831,

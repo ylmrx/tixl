@@ -126,11 +126,20 @@ public sealed class StringInputUi : InputValueUi<string>
     
     private static InputEditStateFlags DrawMultilineTextEdit(ref string value)
     {
+        // Wrap to next line
         ImGui.Dummy(new Vector2(1, 1));
-        var lineCount = value.LineCount().Clamp(3, 10) + 1;
-        var lineHeight = Fonts.FontNormal.FontSize;
-            
-        var changed = ImGui.InputTextMultiline("##textEdit", ref value, MaxStringLength, new Vector2(-1, lineCount * lineHeight));
+        
+        ImGui.PushFont(Fonts.Code);
+        var lineCount = value.LineCount().Clamp(3, 30) + 1;
+        var lineHeight = Fonts.Code.FontSize;
+        ImGui.PushStyleColor(ImGuiCol.FrameBg, UiColors.BackgroundInputField.Rgba);
+        var requestedContentHeight = lineCount * lineHeight;
+        var clampedToWindowHeight = MathF.Min(requestedContentHeight, ImGui.GetWindowSize().Y * 0.5f);
+        
+        var changed = ImGui.InputTextMultiline("##textEdit", ref value, MaxStringLength, new Vector2(-1, clampedToWindowHeight));
+        ImGui.PopStyleColor();
+        ImGui.PopFont();
+        FormInputs.AddVerticalSpace(3);
         return changed ? InputEditStateFlags.Modified : InputEditStateFlags.Nothing;
     }
 
