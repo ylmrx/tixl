@@ -48,7 +48,7 @@ internal sealed partial class MagGraphCanvas
         //var hoverProgress = GetHoverTimeForId(item.Id).RemapAndClamp(0, 0.2f, 0, 1);
 
         var smallFontScaleFactor = CanvasScale.Clamp(0.5f, 2);
-
+        
         var typeUiProperties = TypeUiRegistry.GetPropertiesForType(item.PrimaryType);
 
         var typeColor = typeUiProperties.Color.Fade(_context.GraphOpacity);
@@ -227,12 +227,18 @@ internal sealed partial class MagGraphCanvas
             else if (item.Variant == MagGraphItem.Variants.Input)
             {
                 var t = pMaxVisible.Y - pMinVisible.Y;
+                
+                var framesSinceLastUpdate = (item.OutputLines.Length > 0) ? (float)(item.OutputLines[0].Output.DirtyFlag.FramesSinceLastUpdate)
+                                            :1000;
+                var fade = framesSinceLastUpdate.RemapAndClamp(0, 120, 1f, 0.4f);
+                //fade  += fade * Blink * 0.4f + 0.1f;
+                
                 _inputIndicatorPoints[0] = pMinVisible;
                 _inputIndicatorPoints[1] = pMinVisible + new Vector2(0.2f, 0) * t;
                 _inputIndicatorPoints[2] = pMinVisible + new Vector2(0.5f, 0.5f) * t;
                 _inputIndicatorPoints[3] = pMinVisible + new Vector2(0.2f, 1f) * t;
                 _inputIndicatorPoints[4] = pMinVisible + new Vector2(0.0f, 1f) * t;
-                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor));
+                drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor).Fade(fade));
                 name = "   " + name;
             }
 
@@ -890,6 +896,18 @@ internal sealed partial class MagGraphCanvas
                         ImGui.PushStyleColor(ImGuiCol.Text, uiProperties.Color.Rgba);
                         ImGui.TextUnformatted(typeName);
                         ImGui.PopStyleColor();
+                        if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.None)
+                        {
+                            if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.Animated)
+                            {
+                                ImGui.TextUnformatted("(Cache invalidating)");
+                            }
+                            else if (outputLine.Output.DirtyFlag.Trigger != DirtyFlagTrigger.Always)
+                            {
+                                ImGui.TextUnformatted("(always evaluated)");
+                            }
+                            
+                        }
                         ImGui.EndTooltip();
                         ImGui.PopStyleVar();
                     }
