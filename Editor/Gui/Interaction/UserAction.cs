@@ -330,28 +330,27 @@ internal sealed class KeyboardBinding
 
     /// <summary>
     /// Loads bindings from a custom file
-    /// </summary>
+    /// </summary> 
+    private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions
+    {
+        PropertyNameCaseInsensitive = true,
+        ReadCommentHandling = JsonCommentHandling.Skip
+    };
+
     public static bool LoadCustomBindings(string fileName)
     {
         try
         {
             var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
             var customPath = Path.Combine(folder, fileName.EndsWith(".json") ? fileName : fileName + ".json");
-
             if (!File.Exists(customPath))
                 return false;
-
             var json = File.ReadAllText(customPath);
-            var options = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true,
-                ReadCommentHandling = JsonCommentHandling.Skip
-            };
 
-            var jsonBindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, options);
+            // Use the cached options
+            var jsonBindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, JsonOptions);
             ParseJsonBindings(jsonBindings);
             InitializeShortcutLabels();
-
             return true;
         }
         catch
