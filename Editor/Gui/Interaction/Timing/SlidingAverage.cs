@@ -1,27 +1,38 @@
-﻿namespace T3.Editor.Gui.Interaction.Timing;
+﻿using T3.Core.Utils;
 
+namespace T3.Editor.Gui.Interaction.Timing;
+
+/// <summary>
+/// A helper that implements a queue to smooth values.
+/// </summary>
 internal sealed class SlidingAverage
 {
-    public SlidingAverage(int maxLength)
+    public SlidingAverage(int maxMaxLength)
     {
-        _length = maxLength;
-        _queue = new Queue<double>(maxLength);
+        _maxLength = maxMaxLength;
+        _queue = new Queue<double>(maxMaxLength);
     }
-        
+
+    public void Clear(int maxLength)
+    {
+        _maxLength = maxLength.Clamp(0,100);
+        _queue.Clear();
+        _currentSum = 0;
+    }
+    
     public  double UpdateAndCompute(double current)
     {
+        if (_maxLength == 0)
+            return current;
+        
         _queue.Enqueue(current);
         _currentSum += current;
 
-        var tailValue = current;
-        
-        if (_queue.Count > _length)
+        if (_queue.Count > _maxLength)
         {
-            tailValue = _queue.Dequeue();
-            _currentSum -= tailValue;
+            var oldestValue = _queue.Dequeue();
+            _currentSum -= oldestValue;
         }
-
-        var delta = (current - tailValue);
 
         var averageStrength = 0.0;
         if (_queue.Count > 0)
@@ -29,10 +40,10 @@ internal sealed class SlidingAverage
             averageStrength = _currentSum / _queue.Count;
         }
 
-        return averageStrength + Math.Max(0,delta /2);
+        return averageStrength;
     }
 
-    private readonly int _length;
+    private int _maxLength;
     private readonly Queue<double> _queue;
     private double _currentSum;
 }
