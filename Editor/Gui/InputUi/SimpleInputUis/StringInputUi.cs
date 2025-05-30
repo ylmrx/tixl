@@ -130,7 +130,7 @@ public sealed class StringInputUi : InputValueUi<string>
         ImGui.Dummy(new Vector2(1, 1));
         
         ImGui.PushFont(Fonts.Code);
-        var lineCount = value.LineCount().Clamp(3, 30) + 1;
+        var lineCount = value.LineCount().Clamp(1, 30) + 1;
         var lineHeight = Fonts.Code.FontSize;
         ImGui.PushStyleColor(ImGuiCol.FrameBg, UiColors.BackgroundInputField.Rgba);
         var requestedContentHeight = lineCount * lineHeight;
