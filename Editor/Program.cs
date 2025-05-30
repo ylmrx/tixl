@@ -139,6 +139,7 @@ internal static class Program
 
         Log.Debug("Initialize User Interface...");
         KeyboardBinding.Initialize();
+        KeyBindingHandling.Initialize();
 
         bool forceRecompileProjects;
             

@@ -24,15 +24,7 @@ internal static class KeyBindingEditor
             _initialized = true;
 
         }
-        var colorFields = typeof(UiColors).GetFields();
-        var colorVariationFields = typeof(ColorVariations).GetFields();
-
-        var xxx = typeof(ColorVariations);
-        var ff = xxx.UnderlyingSystemType;
-
-        var xxx2 = ff.GetFields();
-
-        
+               
             FormInputs.SetIndent(100);
             
             if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName,

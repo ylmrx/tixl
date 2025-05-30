@@ -114,7 +114,7 @@ public static class KeyBindingHandling
         }
     }
 
-    private static void ApplyUserConfigKeyBinding()
+    public static void ApplyUserConfigKeyBinding()
     {
         var userKeyBinding = GetUserOrFactoryKeyBinding();
 
@@ -143,9 +143,7 @@ public static class KeyBindingHandling
 
     private static void InitializeFactoryDefault()
     {
-        FactoryKeyBinding = new KeyBindingHandling.KeyBinding();
-
-        
+        FactoryKeyBinding = new KeyBindingHandling.KeyBinding();  
     }
 
     internal static readonly List<KeyBinding> KeyBindings = [];
