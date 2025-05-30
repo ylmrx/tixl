@@ -175,13 +175,6 @@
       }
     },
     {
-      "ChildId": "e55ab1c9-8323-43c6-aaf7-62916af504b2"/*Modulo*/,
-      "Position": {
-        "X": 939.4806,
-        "Y": 674.36426
-      }
-    },
-    {
       "ChildId": "e5f547e2-1af9-49b4-8ee4-b98129ee229f"/*RunTime*/,
       "Position": {
         "X": 129.38405,
@@ -193,20 +186,6 @@
       "Position": {
         "X": 300.0,
         "Y": 83.0
-      }
-    },
-    {
-      "ChildId": "f329abd4-c9ed-4b27-8294-620b1b0f6f45"/*Time*/,
-      "Position": {
-        "X": 789.4806,
-        "Y": 674.36426
-      }
-    },
-    {
-      "ChildId": "f8c96c1e-6564-40db-9dfb-bd6b7cd9e86b"/*SampleGradient*/,
-      "Position": {
-        "X": 1162.9841,
-        "Y": 473.07764
       }
     },
     {

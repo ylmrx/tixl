@@ -229,7 +229,7 @@
         {
           "Id": "0e255347-08bc-4363-9ffa-ab863a1cea8e"/*Path*/,
           "Type": "System.String",
-          "Value": "C:\\Users\\pixtur\\Videos\\Berlin-Symphony-Of-A-Great-City 1928.Ia-1.mp4"
+          "Value": "C:/Users/pixtur/Videos/Berlin-Symphony-Of-A-Great-City 1928.Ia-1.mp4"
         },
         {
           "Id": "2fecfbb4-f7d9-4c53-95ae-b64ccbb6fbad"/*Volume*/,
@@ -449,12 +449,6 @@
       "Outputs": []
     },
     {
-      "Id": "e55ab1c9-8323-43c6-aaf7-62916af504b2"/*Modulo*/,
-      "SymbolId": "5202d3f6-c970-4006-933d-3c60d6c202dc",
-      "InputValues": [],
-      "Outputs": []
-    },
-    {
       "Id": "e5f547e2-1af9-49b4-8ee4-b98129ee229f"/*RunTime*/,
       "SymbolId": "862de1a8-f630-4823-8860-7afa918bb1bc",
       "InputValues": [],
@@ -468,100 +462,6 @@
           "Id": "031ef11b-f6cc-497e-9528-ed9490e878b5"/*Mode*/,
           "Type": "System.Int32",
           "Value": 1
-        }
-      ],
-      "Outputs": []
-    },
-    {
-      "Id": "f329abd4-c9ed-4b27-8294-620b1b0f6f45"/*Time*/,
-      "SymbolId": "9cb4d49e-135b-400b-a035-2b02c5ea6a72",
-      "InputValues": [],
-      "Outputs": []
-    },
-    {
-      "Id": "f8c96c1e-6564-40db-9dfb-bd6b7cd9e86b"/*SampleGradient*/,
-      "SymbolId": "8211249d-7a26-4ad0-8d84-56da72a5c536",
-      "InputValues": [
-        {
-          "Id": "eff10fad-cf95-4133-91db-efc41258cd1b"/*Gradient*/,
-          "Type": "T3.Core.DataTypes.Gradient",
-          "Value": {
-            "Gradient": {
-              "Interpolation": "Linear",
-              "Steps": [
-                {
-                  "Id": "6426a099-b4d5-432a-a1d2-22b0722b86c0",
-                  "NormalizedPosition": 0.0,
-                  "Color": {
-                    "R": 1.0,
-                    "G": 0.04149252,
-                    "B": 0.0,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "090aab70-bf87-4d58-8885-72ab07f35c19",
-                  "NormalizedPosition": 0.16666667,
-                  "Color": {
-                    "R": 1.0,
-                    "G": 0.9500792,
-                    "B": 0.0,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "b5ce2bd2-4577-4089-a948-515798cb4486",
-                  "NormalizedPosition": 0.33333334,
-                  "Color": {
-                    "R": 0.0,
-                    "G": 1.0,
-                    "B": 0.13341331,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "0627a845-199b-49e1-8e09-da3fc84eb05b",
-                  "NormalizedPosition": 0.5,
-                  "Color": {
-                    "R": 0.10326699,
-                    "G": 0.7896903,
-                    "B": 0.83732057,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "bafe7c08-5336-4c27-b4d7-9f95d4be6b9f",
-                  "NormalizedPosition": 0.6666667,
-                  "Color": {
-                    "R": 0.0,
-                    "G": 0.6253992,
-                    "B": 0.98564595,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "47884b63-b379-4dc5-9522-f962d0260c48",
-                  "NormalizedPosition": 0.8333333,
-                  "Color": {
-                    "R": 0.9081521,
-                    "G": 0.0,
-                    "B": 1.0,
-                    "A": 1.0
-                  }
-                },
-                {
-                  "Id": "8398b39a-f5ca-4053-9158-7502a56dfd40",
-                  "NormalizedPosition": 1.0,
-                  "Color": {
-                    "R": 1.0,
-                    "G": 0.0,
-                    "B": 0.010892391,
-                    "A": 1.0
-                  }
-                }
-              ]
-            }
-          }
         }
       ],
       "Outputs": []
@@ -719,22 +619,10 @@
       "TargetSlotId": "e3550929-8905-4cdf-bc85-c31e97da4baa"
     },
     {
-      "SourceParentOrChildId": "f329abd4-c9ed-4b27-8294-620b1b0f6f45",
-      "SourceSlotId": "b20573fe-7a7e-48e1-9370-744288ca6e32",
-      "TargetParentOrChildId": "e55ab1c9-8323-43c6-aaf7-62916af504b2",
-      "TargetSlotId": "8a401e5d-295d-4403-a3af-1d6b91ce3dba"
-    },
-    {
       "SourceParentOrChildId": "4f58a4ee-26de-4d3c-983b-e6bbcb4748d3",
       "SourceSlotId": "db1073a1-b9d8-4d52-bc5c-7ae8c0ee1ac3",
       "TargetParentOrChildId": "e830aaa5-c6b6-4a50-ad12-70d10fe6469f",
       "TargetSlotId": "7f5fb125-8aca-4344-8b30-e7d4e7873c1c"
-    },
-    {
-      "SourceParentOrChildId": "e55ab1c9-8323-43c6-aaf7-62916af504b2",
-      "SourceSlotId": "4e4ebbcf-6b12-4ce7-9bec-78cd9049e239",
-      "TargetParentOrChildId": "f8c96c1e-6564-40db-9dfb-bd6b7cd9e86b",
-      "TargetSlotId": "a4527e01-f19a-4200-85e5-00144f3ce061"
     }
   ]
 }
