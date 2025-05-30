@@ -56,12 +56,13 @@ public sealed class InstanceChildren : IEnumerable<(Guid, Instance)>
         }
     }
 
-    public bool TryGetChildInstance(Guid childId, [NotNullWhen(true)] out Instance? instance, bool allowCreate = true)
+    public bool TryGetChildInstance(Guid childId, [NotNullWhen(true)] out Instance? instance, bool allowCreate = true, bool ignoreMissingChild = false)
     {
         var symbol = _asChild.Symbol;
         if (!symbol.Children.TryGetValue(childId, out var sourceChild))
         {
-            Log.Error($"{_asChild} failed to find child : {childId}");
+            if(!ignoreMissingChild)
+                Log.Error($"{_asChild} failed to find child : {childId}");
             instance = null;
             return false;
         }

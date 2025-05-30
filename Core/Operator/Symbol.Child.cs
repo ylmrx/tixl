@@ -499,7 +499,7 @@ public partial class Symbol
                 {
                     var instance = instanceKvp.Value;
                     var pathHash = instanceKvp.Key;
-                    if (instance.Children.TryGetChildInstance(idToDestroy, out var childInstance, false))
+                    if (instance.Children.TryGetChildInstance(idToDestroy, out var childInstance, false, true))
                     {
                         childInstance.Dispose(null, pathHash);
                     }

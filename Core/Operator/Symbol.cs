@@ -306,26 +306,20 @@ public sealed partial class Symbol : IDisposable, IResource
         // first remove all connections to or from the child
         Connections.RemoveAll(c => c.SourceParentOrChildId == childId || c.TargetParentOrChildId == childId);
 
-        bool removedFromSymbol;
-        //lock (_creationLock)
+        if (!_children.Remove(childId, out var symbolChild)) 
+            return false;
+        
+        lock (_creationLock)
         {
-            removedFromSymbol = _children.Remove(childId, out var symbolChild);
-
-            if (removedFromSymbol)
+            foreach (var me in _childrenCreatedFromMe.Values)
             {
-                lock (_creationLock)
-                {
-                    foreach (var me in _childrenCreatedFromMe.Values)
-                    {
-                        me.RemoveChildInstancesOf(symbolChild);
-                    }
-                }
-
-                SymbolPackage.RemoveDependencyOn(symbolChild.Symbol);
+                me.RemoveChildInstancesOf(symbolChild);
             }
         }
 
-        return removedFromSymbol;
+        SymbolPackage.RemoveDependencyOn(symbolChild.Symbol);
+
+        return true;
     }
 
     public InputDefinition GetInputMatchingType(Type type)
