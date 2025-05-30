@@ -6,6 +6,10 @@
       "DefaultValue": 1.0
     },
     {
+      "Id": "48a0699d-1207-4e18-ab9b-4da7f77cc7aa"/*AdditionalDefines*/,
+      "DefaultValue": ""
+    },
+    {
       "Id": "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790"/*C*/,
       "DefaultValue": 0.0
     },
@@ -22,7 +26,7 @@
       "DefaultValue": 0.0
     },
     {
-      "Id": "bde89b93-224c-4a3f-85ab-d85b0401c02a"/*ShaderCode*/,
+      "Id": "bde89b93-224c-4a3f-85ab-d85b0401c02a"/*DistanceFunction*/,
       "DefaultValue": "return length(p - Offset)-A;\n"
     }
   ],

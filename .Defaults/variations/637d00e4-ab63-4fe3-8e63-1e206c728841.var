@@ -226,6 +226,51 @@
           "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.005
         }
       }
+    },
+    {
+      "Id": "8550d54b-5897-473b-80b1-69d85d398ab3",
+      "IsPreset": true,
+      "ActivationIndex": 13,
+      "Title": "Pyramid",
+      "PosOnCanvas": {
+        "X": 326.0,
+        "Y": 558.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// by gaziya5 aka gaz on https://jbaker.graphics/writings/DEC.html\np = p.xzy;\n\n// A: 2.2    // B: 0.8   // C: 0.3\nfloat scale = A, off0 = B, off1 = C, off2 = 0.82;\n//float3 off =float3(2, .2, .1);\nfloat3 off = Offset;\nfloat s=1.0;\nfor(int i = 0; ++i < 20; ) {\n  p.xy = abs(p.xy);\n  p.xy = fold45(p.xy);\n  p.y -= off0;\n  p.y = -abs(p.y);\n  p.y += off0;\n  p.x += off1;\n  p.xz = fold45(p.xz);\n  p.x -= off2;\n  p.xz = fold45(p.xz);\n  p.x += off1;\n  p -= off;\n  p *= scale;\n  p += off;\n  s *= scale;\n}\nreturn length(p)/s;",
+          "64f1812f-7ebd-4231-8a6a-0bbc302bfaff": {
+            "X": 1.11,
+            "Y": 0.59,
+            "Z": 0.21
+          },
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 2.2,
+          "874ae9c8-5835-4d0c-9bef-253ac75d19b2": 0.8,
+          "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790": 0.3,
+          "48a0699d-1207-4e18-ab9b-4da7f77cc7aa": "#define fold45(p)(p.y>p.x)?p.yx:p"
+        }
+      }
+    },
+    {
+      "Id": "3db021fa-18d2-46b5-80c7-942e99901e6b",
+      "IsPreset": true,
+      "ActivationIndex": 14,
+      "Title": "PipeMaze",
+      "PosOnCanvas": {
+        "X": 0.0,
+        "Y": 651.0
+      },
+      "ParameterSetsForChildIds": {
+        "00000000-0000-0000-0000-000000000000": {
+          "64f1812f-7ebd-4231-8a6a-0bbc302bfaff": {
+            "X": 1.2,
+            "Y": 0.06,
+            "Z": 1.32
+          },
+          "3c366d34-c398-410e-972b-d8cc2baffddb": 3.143,
+          "bde89b93-224c-4a3f-85ab-d85b0401c02a": "// by yonatan on https://jbaker.graphics/writings/DEC.html\np=frac(p)-.5;\n//float3 O=float3(2.,0, 3.);\nfloat3 O = Offset;\nfor(int j=0;j++<7;){\n  p=abs(p);\n  p=(p.x < p.y?p.zxy:p.zyx)* A - O; // A: 3\n  if(p.z < -.5*O.z)\n  p.z+=O.z;\n}\nreturn length(p.xy)/3e3;"
+        }
+      }
     }
   ]
 }

@@ -4,7 +4,7 @@ namespace Lib.field.generate.sdf;
 
 [Guid("637d00e4-ab63-4fe3-8e63-1e206c728841")]
 internal sealed class CustomSDF : Instance<CustomSDF>
-,IGraphNodeOp
+                                , IGraphNodeOp
 {
     [Output(Guid = "1aaaf637-a2f1-4706-909e-fa4fb102619d")]
     public readonly Slot<ShaderGraphNode> Result = new();
@@ -19,24 +19,29 @@ internal sealed class CustomSDF : Instance<CustomSDF>
     private void Update(EvaluationContext context)
     {
         ShaderNode.Update(context);
-        
-        var code = ShaderCode.GetValue(context);
-        
-        var templateChanged = code != _code;
+
+        var code = DistanceFunction.GetValue(context);
+        var defines = AdditionalDefines.GetValue(context);
+
+        var templateChanged = code != _code || defines != _defines;
         if (!templateChanged)
             return;
 
         _code = code;
-        ShaderNode.FlagCodeChanged();     
+        _defines = defines;
+        ShaderNode.FlagCodeChanged();
     }
 
     public ShaderGraphNode ShaderNode { get; }
 
     void IGraphNodeOp.AddDefinitions(CodeAssembleContext c)
     {
+        c.Definitions.Append(_defines);
+        c.Definitions.AppendLine();
+
         c.Definitions.AppendLine($"float dCustom{ShaderNode}(float3 p, float3 Offset, float A, float B, float C)\n{{");
         c.Definitions.Append(_code);
-        c.Definitions.AppendLine("");
+        c.Definitions.AppendLine();
         c.Definitions.AppendLine("}");
     }
 
@@ -47,10 +52,8 @@ internal sealed class CustomSDF : Instance<CustomSDF>
         //c.AppendCall($"f{c}.xyz = p.w < 0.5 ?  p{c}.xyz : 1;"); // save local space
     }
 
-    private string _code=string.Empty;
-    
-    [Input(Guid = "BDE89B93-224C-4A3F-85AB-D85B0401C02A")]
-    public readonly InputSlot<string> ShaderCode = new();
+    private string _code = string.Empty;
+    private string _defines = string.Empty;
     
     [GraphParam]
     [Input(Guid = "64f1812f-7ebd-4231-8a6a-0bbc302bfaff")]
@@ -67,4 +70,10 @@ internal sealed class CustomSDF : Instance<CustomSDF>
     [GraphParam]
     [Input(Guid = "56e5d5ec-ec59-4ea0-85c1-1eca3dcb5790")]
     public readonly InputSlot<float> C = new();
+
+    [Input(Guid = "BDE89B93-224C-4A3F-85AB-D85B0401C02A")]
+    public readonly InputSlot<string> DistanceFunction = new InputSlot<string>();
+
+    [Input(Guid = "48A0699D-1207-4E18-AB9B-4DA7F77CC7AA")]
+    public readonly InputSlot<string> AdditionalDefines = new InputSlot<string>();
 }
