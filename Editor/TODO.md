@@ -14,7 +14,7 @@
 - [x] In Parameter window bypassable button should be disabled if not available
 - [x] Prevent Keyboard Camera interaction while input field is active 
 - [x] Exit should ask before quit
-
+- [ ] Rearranging parameters with additional annotations (e.g. ShaderParameters) breaks operator 
 
 ## Project handling
 

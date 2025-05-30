@@ -66,6 +66,16 @@ internal sealed class SettingsWindow : Window
                                                           "Value input method",
                                                           "The control that pops up when dragging on a number value"
                                                          );
+
+                    changed |= FormInputs.AddInt("Value input smoothing", 
+                                                 ref UserSettings.Config.ValueEditSmoothing, 
+                                                 0, 20, 0.1f,
+                                                 """
+                                                 Smoothes the result of value edit controllers. 
+                                                 This introduces a delay but might look more conformable to the audience
+                                                 of a live performance.
+                                                 """,
+                                                 UserSettings.Defaults.ValueEditSmoothing);
                     FormInputs.AddVerticalSpace();
                     FormInputs.SetIndentToParameters();
                     FormInputs.AddSectionSubHeader("Graph style");
