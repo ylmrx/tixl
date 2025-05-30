@@ -162,7 +162,12 @@ internal sealed partial class MagGraphCanvas
         SymbolUi.Child.CustomUiResult customUiResult = SymbolUi.Child.CustomUiResult.None;
         if (item.Variant == MagGraphItem.Variants.Operator)
         {
-            customUiResult = DrawCustomUi(item.Instance, drawList, new ImRect(pMinVisible + Vector2.One, pMaxVisible - Vector2.One), Vector2.One * CanvasScale);
+            var additionalRightPadding = item.Instance.Outputs.Count> 1 ? 6 * CanvasScale:0; 
+            customUiResult = DrawCustomUi(item.Instance, 
+                                          drawList, 
+                                          new ImRect(pMinVisible + Vector2.One, 
+                                                     pMaxVisible - Vector2.One - new Vector2(additionalRightPadding,0)), 
+                                          Vector2.One * CanvasScale);
             if ((customUiResult & SymbolUi.Child.CustomUiResult.IsActive) != 0)
             {
                 context.ItemWithActiveCustomUi = item;
@@ -221,8 +226,6 @@ internal sealed partial class MagGraphCanvas
                 _inputIndicatorPoints[4] = pMinVisible + new Vector2(0, height);
                 
                 drawList.AddConvexPolyFilled(ref _inputIndicatorPoints[0], 5, ColorVariations.Highlight.Apply(typeColor).Fade(0.5f));
-                
-                name = name;
             }
             else if (item.Variant == MagGraphItem.Variants.Input)
             {
