@@ -88,14 +88,13 @@ internal sealed class PlaceholderCreation
         PlaceHolderUi.Open(context, PlaceholderItem, inputFilter: inputTypeFilter);
     }
 
-    internal void OpenForItem(GraphUiContext context,
+    internal void OpenForItemOutput(GraphUiContext context,
                               MagGraphItem item,
                               MagGraphItem.OutputLine outputLine,
                               MagGraphItem.Directions direction = MagGraphItem.Directions.Vertical)
     {
         Debug.Assert(item.OutputLines.Length > 0);
         context.StartMacroCommand("Insert Operator");
-
 
         var focusedItemPosOnCanvas = direction == MagGraphItem.Directions.Vertical
                                          ? item.PosOnCanvas + new Vector2(0, item.Size.Y)
@@ -158,7 +157,7 @@ internal sealed class PlaceholderCreation
         {
             if (direction == MagGraphItem.Directions.Vertical)
             {
-                if(c.Style == MagGraphConnection.ConnectionStyles.MainOutToMainInSnappedVertical)
+                if (c.Style == MagGraphConnection.ConnectionStyles.MainOutToMainInSnappedVertical)
                     return c.SourceOutput.ValueType;
             }
             else
@@ -176,24 +175,39 @@ internal sealed class PlaceholderCreation
 
     internal void OpenForItemInput(GraphUiContext context,
                                    MagGraphItem targetItem,
-                                   Guid selectedInputId)
+                                   Guid selectedInputId,
+                                   MagGraphItem.Directions direction)
     {
         Debug.Assert(targetItem.Instance != null);
 
-        context.StartMacroCommand("Insert Operator");
-        
         var input = targetItem.Instance.Inputs.FirstOrDefault(i => i.Id == selectedInputId);
         if (input == null)
             return;
-        
-        // Find insertion index
-        var visibleInputLines = targetItem.InputLines;
-        var allInputSlots = targetItem.Instance.Inputs;
-        
-        var insertionLineIndex = InputPicking.GetInsertionLineIndex(allInputSlots, visibleInputLines, selectedInputId, out var shouldPushDown);
-        
-        var focusedItemPosOnCanvas = targetItem.PosOnCanvas + new Vector2(-targetItem.Size.X, MagGraphItem.GridSize.Y * insertionLineIndex);
 
+        context.StartMacroCommand("Insert Operator");
+
+
+        int insertionLineIndex;
+        Vector2 focusedItemPosOnCanvas;
+
+        var shouldPushDown = false;
+        
+        if (direction == MagGraphItem.Directions.Horizontal)
+        {
+            // Find insertion index
+            var visibleInputLines = targetItem.InputLines;
+            var allInputSlots = targetItem.Instance.Inputs;
+
+            insertionLineIndex = InputPicking.GetInsertionLineIndex(allInputSlots, visibleInputLines, selectedInputId, out  shouldPushDown);
+            focusedItemPosOnCanvas = targetItem.PosOnCanvas + new Vector2(-targetItem.Size.X, MagGraphItem.GridSize.Y * insertionLineIndex);
+        }
+        else
+        {
+            insertionLineIndex = 0;
+            focusedItemPosOnCanvas = targetItem.PosOnCanvas + new Vector2(0, -MagGraphItem.GridSize.Y);
+        }
+
+        
         PlaceholderItem = new MagGraphItem
                               {
                                   Selectable = _placeHolderSelectable,
@@ -204,53 +218,53 @@ internal sealed class PlaceholderCreation
                               };
 
         _snappedTargetItem = targetItem;
-        _snappedTargetInputId = selectedInputId; 
-        
+        _snappedTargetInputId = selectedInputId;
+
         // Keep for after creation because inserted node might exceed unit height and further pushing is required... 
         _snappedItems = MagItemMovement.CollectSnappedItems(targetItem, includeRoot: false);
 
         if (shouldPushDown)
         {
             MagItemMovement
-              .MoveSnappedItemsVertically(context,
-                                          _snappedItems,
-                                          targetItem.PosOnCanvas.Y + (insertionLineIndex - 0.5f) * MagGraphItem.GridSize.Y,
-                                          MagGraphItem.GridSize.Y);            
+               .MoveSnappedItemsVertically(context,
+                                           _snappedItems,
+                                           targetItem.PosOnCanvas.Y + (insertionLineIndex - 0.5f) * MagGraphItem.GridSize.Y,
+                                           MagGraphItem.GridSize.Y);
         }
 
         context.Selector.Selection.Clear();
         context.Layout.Items[PlaceHolderId] = PlaceholderItem;
-        
-        var tempConnectionOut = new MagGraphConnection
-                                    {
-                                        Style = MagGraphConnection.ConnectionStyles.Unknown,
-                                        SourcePos = default,
-                                        SourceOutput = null,
-                                        SourceItem = PlaceholderItem,
-                                        TargetPos = default,
-                                        TargetItem =targetItem,
-                                        InputLineIndex = insertionLineIndex,
-                                        MultiInputIndex = 0,
-                                        OutputLineIndex = 0,
-                                        VisibleOutputIndex = 0,
-                                        ConnectionHash = 0,
-                                        IsTemporary = true,
-                                    };
-        
-        context.TempConnections.Add(tempConnectionOut);
-        
-        context.DisconnectedInputHashes.Add(MagGraphConnection.GetItemInputHash(targetItem.Id, selectedInputId, 0)); // keep input visible until state is complete
+
+        context.TempConnections.Add(new MagGraphConnection
+                                        {
+                                            Style = direction == MagGraphItem.Directions.Vertical ? MagGraphConnection.ConnectionStyles.MainOutToMainInSnappedVertical :  MagGraphConnection.ConnectionStyles.Unknown,
+                                            SourcePos = default,
+                                            SourceOutput = null,
+                                            SourceItem = PlaceholderItem,
+                                            TargetPos = default,
+                                            TargetItem = targetItem,
+                                            InputLineIndex = insertionLineIndex,
+                                            MultiInputIndex = 0,
+                                            OutputLineIndex = 0,
+                                            VisibleOutputIndex = 0,
+                                            ConnectionHash = 0,
+                                            IsTemporary = true,
+                                        });
+
+        context.DisconnectedInputHashes.Add(MagGraphConnection.GetItemInputHash(targetItem.Id, selectedInputId,
+                                                                                0)); // keep input visible until state is complete
         context.Layout.FlagStructureAsChanged();
 
         PlaceHolderUi.Open(context,
                            PlaceholderItem,
-                           MagGraphItem.Directions.Horizontal,
+                           direction,
                            null,
                            input.ValueType);
 
         //_snappedSourceOutputLine = null;//outputLine;
         //_snappedSourceItem = null;
-        _connectionOrientation = MagGraphItem.Directions.Horizontal;
+        _connectionOrientation = direction;
+
     }
 
     internal void Cancel(GraphUiContext context)
@@ -296,7 +310,7 @@ internal sealed class PlaceholderCreation
     internal void Update(GraphUiContext context)
     {
         var uiResult = PlaceHolderUi.Draw(context, out var selectedUi);
-        if (uiResult.HasFlag(PlaceHolderUi.UiResults.Create) && selectedUi != null) 
+        if (uiResult.HasFlag(PlaceHolderUi.UiResults.Create) && selectedUi != null)
         {
             CreateInstance(context, selectedUi.Symbol);
         }
@@ -349,7 +363,7 @@ internal sealed class PlaceholderCreation
                             Log.Warning("Skipping mismatched connection type");
                             continue;
                         }
-                            
+
                         var splitVertically = _connectionOrientation == MagGraphItem.Directions.Vertical
                                               && mc.Style == MagGraphConnection.ConnectionStyles.BottomToTop;
 
@@ -418,14 +432,14 @@ internal sealed class PlaceholderCreation
         else if (_snappedTargetItem != null)
         {
             var inputLine = _snappedTargetItem.InputLines.FirstOrDefault(i => i.Id == _snappedTargetInputId);
-            
+
             var getMatchingOutput = newInstance.Outputs.FirstOrDefault(o2 => o2.ValueType == inputLine.Type);
             if (getMatchingOutput == null)
             {
                 Log.Warning("Can't find input?");
                 return;
             }
-            
+
             //var newItemOutput = newInstance.Outputs[0];
             context.MacroCommand
                    .AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
@@ -443,7 +457,7 @@ internal sealed class PlaceholderCreation
                                                _snappedItems,
                                                newChildUi.PosOnCanvas.Y + MagGraphItem.GridSize.Y / 2,
                                                MagGraphItem.GridSize.Y * (newHeight - 1));
-            }            
+            }
         }
         else if (context.TryGetActiveOutputLine(out _))
         {
@@ -462,7 +476,7 @@ internal sealed class PlaceholderCreation
             }
         }
         // Wire connect temp connections
-        else if(context.TempConnections.Count > 0 || context.ConnectionHovering.ConnectionHoversWhenClicked.Count > 0)
+        else if (context.TempConnections.Count > 0 || context.ConnectionHovering.ConnectionHoversWhenClicked.Count > 0)
         {
             foreach (var h in context.ConnectionHovering.ConnectionHoversWhenClicked)
             {
@@ -579,6 +593,7 @@ internal sealed class PlaceholderCreation
 
     /** Used when extracting inputs from parameter window */
     private MagGraphItem? _snappedTargetItem;
+
     private Guid _snappedTargetInputId;
 
     private static MagGraphItem.Directions _connectionOrientation = MagGraphItem.Directions.Horizontal;

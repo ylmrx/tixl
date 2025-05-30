@@ -18,7 +18,8 @@ namespace T3.Editor.Gui.MagGraph.Interaction;
 
 internal static class PlaceHolderUi
 {
-    internal static void Open(GraphUiContext context, MagGraphItem placeholderItem, MagGraphItem.Directions orientation = MagGraphItem.Directions.Horizontal,
+    internal static void Open(GraphUiContext context, MagGraphItem placeholderItem, 
+                              MagGraphItem.Directions connectionOrientation = MagGraphItem.Directions.Horizontal,
                               Type? inputFilter = null, Type? outputFilter = null)
     {
         _selectedSymbolUi = null;
@@ -29,7 +30,7 @@ internal static class PlaceHolderUi
         Filter.SearchString = string.Empty;
         Filter.UpdateIfNecessary(context.Selector, forceUpdate: true);
         _placeholderItem = placeholderItem;
-        _connectionOrientation = orientation;
+        _connectionOrientation = connectionOrientation;
         WindowContentExtend.GetLastAndReset();
         SymbolBrowsing.Reset();
     }

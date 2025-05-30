@@ -21,7 +21,7 @@ internal static class GraphStates
                          context.ActiveSourceItem = null;
                          context.ActiveTargetItem = null;
                          context.ActiveTargetInputId = Guid.Empty;
-                         
+
                          context.DraggedPrimaryOutputType = null;
 
                          // ReSharper disable once ConstantConditionalAccessQualifier
@@ -53,7 +53,7 @@ internal static class GraphStates
                                   {
                                       if (focusedItem.OutputLines.Length > 0)
                                       {
-                                          context.Placeholder.OpenForItem(context, focusedItem, focusedItem.OutputLines[0]);
+                                          context.Placeholder.OpenForItemOutput(context, focusedItem, focusedItem.OutputLines[0]);
                                       }
                                   }
                                   else
@@ -113,36 +113,36 @@ internal static class GraphStates
                                       //ProjectView.Focused?.GraphCanvas?.SetTargetScope(context.Canvas.GetTargetScope());
 
                                       if (context.ActiveItem.Instance.Children.Count > 0)
-                                      { 
+                                      {
                                           ProjectView.Focused.TrySetCompositionOpToChild(context.ActiveItem.Instance.SymbolChildId);
                                       }
-                                      
+
                                       //ImGui.CloseCurrentPopup(); // ?? 
                                       //}
                                   }
                               }
                           }
 
-                          if (context.ActiveItem == null)
+                          // Outputs and inputs are handled first, because they might
+                          // overlap with other items that got activated on click.
+                          
+                          if (context.ActiveSourceItem != null)
                           {
-                              context.StateMachine.SetState(HoldBackground, context);
+                              context.StateMachine.SetState(HoldOutput, context);
+                              context.ActiveItem = context.ActiveSourceItem;
                           }
+                          else if (context.ActiveTargetItem != null)
+                          {
+                              context.StateMachine.SetState(HoldInput, context);
+                          }
+                          else if (context.ActiveItem != null)
+                          {
+                              context.StateMachine.SetState(HoldItem, context);
+                          }
+                          // Mouse is pressed but nothing is active -> background 
                           else
                           {
-                              if (context.ActiveSourceOutputId != Guid.Empty)
-                              {
-                                  context.StateMachine.SetState(HoldOutput, context);
-                                  context.ActiveSourceItem = context.ActiveItem;
-                              }
-                              else if(context.ActiveTargetInputId != Guid.Empty)
-                              {
-                                  context.StateMachine.SetState(HoldInput, context);
-                                  context.ActiveTargetItem = context.ActiveItem;
-                              }
-                              else
-                              {
-                                  context.StateMachine.SetState(HoldItem, context);
-                              }
+                              context.StateMachine.SetState(HoldBackground, context);
                           }
                       },
               Exit:
@@ -307,7 +307,7 @@ internal static class GraphStates
                           {
                               if (context.TryGetActiveOutputLine(out var outputLine))
                               {
-                                  context.Placeholder.OpenForItem(context, sourceItem, outputLine, context.ActiveOutputDirection);
+                                  context.Placeholder.OpenForItemOutput(context, sourceItem, outputLine, context.ActiveOutputDirection);
                                   context.StateMachine.SetState(Placeholder, context);
                               }
                               else
@@ -355,9 +355,6 @@ internal static class GraphStates
               Exit: _ => { }
              );
 
-    /// <summary>
-    /// Active while long tapping on background for insertion
-    /// </summary>
     internal static State HoldInput
         = new(
               Enter: _ => { },
@@ -375,13 +372,14 @@ internal static class GraphStates
                               if (context.TryGetActiveInputLine(out var inputLine))
                               {
                                   //context.Placeholder.OpenForItem(context, sourceItem, inputLine, context.ActiveOutputDirection);
-                                  context.Placeholder.OpenForItemInput(context, context.ActiveTargetItem, inputLine.Id);
+                                  context.Placeholder.OpenForItemInput(context, context.ActiveTargetItem, inputLine.Id, context.ActiveInputDirection);
                                   context.StateMachine.SetState(Placeholder, context);
                               }
                               else
                               {
-                                context.StateMachine.SetState(Default, context);
+                                  context.StateMachine.SetState(Default, context);
                               }
+
                               Log.Debug("Click");
                               return;
                           }
@@ -421,8 +419,8 @@ internal static class GraphStates
                           // }
                       },
               Exit: _ => { }
-             );    
-    
+             );
+
     internal static State DragConnectionEnd
         = new(
               Enter: _ => { },
@@ -437,7 +435,7 @@ internal static class GraphStates
                           var posOnCanvas = context.Canvas.InverseTransformPositionFloat(ImGui.GetMousePos());
                           context.PeekAnchorInCanvas = posOnCanvas;
 
-                          var mouseReleased =  context.StateMachine.StateTime > 0 && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
+                          var mouseReleased = context.StateMachine.StateTime > 0 && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
                           if (!mouseReleased)
                               return;
 
@@ -475,18 +473,18 @@ internal static class GraphStates
 
     internal static State PickInput
         = new(
-              Enter:  InputPicking.Init,
+              Enter: InputPicking.Init,
               Update: InputPicking.DrawHiddenInputSelector,
               Exit: InputPicking.Reset
              );
 
     internal static State PickOutput
         = new(
-              Enter:  OutputPicking.Init,
-              Update=> {},//OutputPicking.DrawHiddenOutputSelector,
+              Enter: OutputPicking.Init,
+              Update => { }, //OutputPicking.DrawHiddenOutputSelector,
               Exit: OutputPicking.Reset
              );
-    
+
     internal static State HoldingConnectionEnd
         = new(
               Enter: _ => { },
@@ -505,7 +503,7 @@ internal static class GraphStates
 
                               var connection = context.ConnectionHovering.ConnectionHoversWhenClicked[0].Connection;
                               context.ActiveSourceOutputId = connection.SourceOutput.Id;
-                              
+
                               // Remove existing connection
                               context.StartMacroCommand("Reconnect from input")
                                      .AddAndExecCommand(new DeleteConnectionCommand(context.CompositionInstance.Symbol,
@@ -518,7 +516,8 @@ internal static class GraphStates
                                   collectSnappedItems.Remove(connection.TargetItem);
                                   MagItemMovement.MoveSnappedItemsVertically(context,
                                                                              collectSnappedItems,
-                                                                             connection.TargetItem.PosOnCanvas.Y + MagGraphItem.GridSize.Y * (connection.InputLineIndex + 0.5f),
+                                                                             connection.TargetItem.PosOnCanvas.Y +
+                                                                             MagGraphItem.GridSize.Y * (connection.InputLineIndex + 0.5f),
                                                                              -MagGraphItem.GridSize.Y);
                               }
                               // var deletedLineIndex = 0;
@@ -527,8 +526,7 @@ internal static class GraphStates
                               // {
                               //     deletedLineIndex++;
                               // }                              
-                              
-                              
+
                               var tempConnection = new MagGraphConnection
                                                        {
                                                            Style = MagGraphConnection.ConnectionStyles.Unknown,
@@ -644,31 +642,28 @@ internal static class GraphStates
                           }
                       },
               Exit: _ => { });
-    
+
     internal static State RenameChild
         = new(
               Enter: _ => { },
               Update: _ => { },
               Exit: _ => { }
              );
-    
+
     internal static State RenameAnnotation
         = new(
               Enter: _ => { },
               Update: _ => { },
               Exit: _ => { }
              );
-    
+
     internal static State DragAnnotation
         = new(
-            Enter: _ => { },
-            Update: _ =>
-                    {
-                        
-                    },
-            Exit: _ => { }
-        );
-    
+              Enter: _ => { },
+              Update: _ => { },
+              Exit: _ => { }
+             );
+
     internal static State ResizeAnnotation
         = new(
               Enter: _ => { },

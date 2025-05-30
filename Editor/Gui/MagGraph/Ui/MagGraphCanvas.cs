@@ -117,7 +117,7 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
 
         if (_context.Layout.Items.TryGetValue(symbolChildUi.Id, out var item))
         {
-            _context.Placeholder.OpenForItemInput(_context, item, inputInputDefinition.Id);
+            _context.Placeholder.OpenForItemInput(_context, item, inputInputDefinition.Id, _context.ActiveInputDirection);
         }
     }
 

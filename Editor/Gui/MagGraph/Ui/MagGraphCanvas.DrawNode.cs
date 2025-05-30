@@ -366,6 +366,7 @@ internal sealed partial class MagGraphCanvas
                         var inputSlot = item.Instance.GetInput(inputLine.Input.Id);
                         var isMultiInput = inputLine.InputUi.InputDefinition.IsMultiInput;
 
+
                         // Start new multiInputGroup
                         if (isMultiInput && inputLine.MultiInputIndex == 0)
                         {
@@ -373,7 +374,10 @@ internal sealed partial class MagGraphCanvas
                                                   ? multiInput.GetCollectedInputs() 
                                                   : null;
 
-                            var slotCount =  multiInputSlots?.Count ?? 1;
+                            var slotCount =  multiInputSlots?.Count ?? 0;
+                            if (slotCount == 0)
+                                slotCount = 1;
+                            
                             var y2 = pMin.Y + GridSizeOnScreen.Y * (inputIndex);
                             var rMin = new Vector2(pMin.X + (isSelected ? 1 : 0), y2 + 0.2f * GridSizeOnScreen.Y);
                             var size = new Vector2(pMin.X + itemWidth * 0.04f, y2 + (slotCount - 0.2f) * GridSizeOnScreen.Y) - rMin;
@@ -568,7 +572,7 @@ internal sealed partial class MagGraphCanvas
             item.GetInputAnchorAtIndex(inputIndex, ref inputAnchor);
 
             var isMultiInput = inputAnchor.InputLine.InputUi != null && inputAnchor.InputLine.InputUi.InputDefinition.IsMultiInput;
-            var isAlreadyUsed = inputAnchor.SnappedConnectionHash != MagGraphItem.FreeAnchor;
+            //var isAlreadyUsed = inputAnchor.SnappedConnectionHash != MagGraphItem.FreeAnchor;
 
             var type2UiProperties = TypeUiRegistry.GetPropertiesForType(inputAnchor.ConnectionType);
             var center = TransformPosition(inputAnchor.PositionOnCanvas);
@@ -584,11 +588,70 @@ internal sealed partial class MagGraphCanvas
 
             if (inputAnchor.Direction == MagGraphItem.Directions.Vertical)
             {
+                
                 var pp = new Vector2(center.X, pMinVisible.Y);
-                drawList.AddTriangleFilled(pp + new Vector2(-anchorWidth, 0) * CanvasScale,
-                                           pp + new Vector2(anchorWidth, 0) * CanvasScale,
-                                           pp + new Vector2(0, anchorHeight) * CanvasScale,
-                                           fillColor);
+                if (isInputHovered)
+                {
+                    //var showTriangleAnchor = true;
+                    var hoverOutputFactor = isInputHovered ? 1.3f : 1;
+
+                    drawList.AddCircleFilled(center, (1 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
+                    drawList.AddCircle(center, (1 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
+                    //showTriangleAnchor = false;
+
+                    var e = MathF.Round(2 * CanvasScale);
+                    drawList.AddRectFilled(center + new Vector2(-e, 0),
+                                           center + new Vector2(e + 1, 1),
+                                           anchorOutlineColor);
+
+                    drawList.AddRectFilled(center + new Vector2(0, -e),
+                                           center + new Vector2(1, e + 1),
+                                           anchorOutlineColor);
+
+                    // This will later be used for by DefaultState to create a connection
+                    
+                    var hasSnappedConnection = inputAnchor.InputLine.ConnectionIn is { IsSnapped: true };
+                    if (hasSnappedConnection)
+                    {
+                        // Snapped connections are handled by outputs
+                    }
+                    else
+                    {
+                        _context.ActiveItem = item;
+                        _context.ActiveInputDirection = inputAnchor.Direction;
+                        _context.ActiveTargetInputId = inputAnchor.SlotId;
+                        _context.ActiveTargetItem = item;
+
+                        // Show tooltip with output name and type
+                        if (item.Variant == MagGraphItem.Variants.Operator)
+                        {
+                            var inputLine = inputAnchor.InputLine;
+                            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(5, 5));
+                            ImGui.BeginTooltip();
+                            ImGui.TextUnformatted(inputLine.InputUi.InputDefinition.Name);
+                            var type = inputLine.InputUi.InputDefinition.ValueType;
+                            var typeName = type.Name;
+                            if (typeName == "Single")
+                                typeName = "Float";
+
+                            var uiProperties = TypeUiRegistry.GetPropertiesForType(type);
+                            ImGui.PushStyleColor(ImGuiCol.Text, uiProperties.Color.Rgba);
+                            ImGui.TextUnformatted(typeName);
+                            ImGui.PopStyleColor();
+                            CustomComponents.HelpText("Click or drag to add");
+                            ImGui.EndTooltip();
+                            ImGui.PopStyleVar();
+                        }
+                    }
+                    
+                }
+                else
+                {
+                    drawList.AddTriangleFilled(pp + new Vector2(-anchorWidth, 0) * CanvasScale,
+                                               pp + new Vector2(anchorWidth, 0) * CanvasScale,
+                                               pp + new Vector2(0, anchorHeight) * CanvasScale,
+                                               fillColor);
+                }
             }
             else
             {
@@ -614,7 +677,9 @@ internal sealed partial class MagGraphCanvas
 
                     // This will later be used for by DefaultState to create a connection
                     //var contextActiveSourceOutputId = inputAnchor.SlotId;
+                    // TODO: Only do this if not snapped. Otherwise output is preferred.
                     _context.ActiveTargetInputId = inputAnchor.SlotId;
+                    _context.ActiveInputDirection = MagGraphItem.Directions.Horizontal;
                     _context.ActiveTargetItem = item;
                     _context.ActiveItem = item;
 
@@ -736,7 +801,7 @@ internal sealed partial class MagGraphCanvas
             }
 
             var hasSnappedConnection = false;
-
+            
             foreach (var c in item.OutputLines[outputAnchor.OutputLineIndex].ConnectionsOut)
             {
                 if (!c.IsSnapped)
@@ -752,10 +817,11 @@ internal sealed partial class MagGraphCanvas
                 }
             }
 
-            var isOutputHovered = isItemHovered
-                                  && Vector2.Distance(ImGui.GetMousePos(), center) < 7 * CanvasScale
+            var isOutputHovered = //isItemHovered
+                                  //&& 
+                                  Vector2.Distance(ImGui.GetMousePos(), center) < 7 * CanvasScale
                                   && context.StateMachine.CurrentState == GraphStates.Default;
-
+            
             var anchorOutlineColor = ColorVariations.OperatorOutline.Apply(type2UiProperties.Color);
 
             var fillColor = ColorVariations.OperatorBackground.Apply(type2UiProperties.Color);
@@ -769,8 +835,6 @@ internal sealed partial class MagGraphCanvas
             }
 
             var hoverOutputFactor = isOutputHovered ? 1.3f : 1;
-
-            //var hasSnappedConnection = outputAnchor.
 
             if (!hasSnappedConnection
                 || isItemHovered
@@ -793,6 +857,7 @@ internal sealed partial class MagGraphCanvas
 
                 // This will later be used for by DefaultState to create a connection
                 var contextActiveSourceOutputId = outputAnchor.SlotId;
+                _context.ActiveSourceItem = item;
                 _context.ActiveSourceOutputId = contextActiveSourceOutputId;
                 _context.ActiveOutputDirection = outputAnchor.Direction;
 
