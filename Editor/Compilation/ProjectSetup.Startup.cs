@@ -41,7 +41,7 @@ internal static partial class ProjectSetup
             
         #if DEBUG
         isDebugBuild = true;
-        Stopwatch totalStopwatch = new();
+        System.Diagnostics.Stopwatch totalStopwatch = new();
         totalStopwatch.Start();
         #endif
 
