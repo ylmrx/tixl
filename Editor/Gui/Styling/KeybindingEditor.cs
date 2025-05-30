@@ -1,7 +1,5 @@
 #nullable enable
-using System.Reflection;
 using ImGuiNET;
-using T3.Core.DataTypes.Vector;
 using T3.Core.UserData;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.UiHelpers;
@@ -10,22 +8,22 @@ using T3.Editor.UiModel.InputsAndTypes;
 namespace T3.Editor.Gui.Styling;
 
 /// <summary>
-/// User interface switching and adjusting color KeyBindings...
+/// User interface switching and adjusting KeyBindings...
 /// </summary>
-/// 
 
 
 internal static class KeyBindingEditor
 {
     public static void DrawEditor()
     {
-        /*if (!_initialized)
+        KeyBindingHandling.Initialize();
+        if (!_initialized)
         {
             _currentKeyBinding = KeyBindingHandling.GetUserOrFactoryKeyBinding();
-            _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();
+           // _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();
             _initialized = true;
 
-        }*/
+        }
         var colorFields = typeof(UiColors).GetFields();
         var colorVariationFields = typeof(ColorVariations).GetFields();
 
@@ -34,57 +32,35 @@ internal static class KeyBindingEditor
 
         var xxx2 = ff.GetFields();
 
-        // First, get the available content region size
-        var contentRegion = ImGui.GetContentRegionAvail();
-
-        // Define the height of your fixed header section
-        float headerHeight = ImGui.GetTextLineHeightWithSpacing() * 4; // Adjust as needed
-
-        ImGui.BeginChild("header", new Vector2(0, headerHeight), true, ImGuiWindowFlags.NoScrollbar);
-        {
+        
             FormInputs.SetIndent(100);
-            if (ImGui.Button("load AZERTY KeyBindings"))
+            
+            if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName,
+                                   KeyBindingHandling.KeyBindings.Select(t => t.Name),
+                                   "KeyBinding",
+                                   $"""
+                                   Edit the shortcuts as you wish you'll find the  {FileLocations.SettingsPath}.
+                                   """))
             {
-                KeyboardBinding.LoadCustomBindings("AZERTYKeyboardBindings.json");
-            }
-            if (ImGui.Button("load QWERTY KeyBindings"))
-            {
-                KeyboardBinding.LoadCustomBindings("KeyboardBindings.json");
+                var selectedKeyBinding = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
+                if (selectedKeyBinding != null)
+                {
+                    KeyBindingHandling.SetKeyBindingAsUserKeyBinding(selectedKeyBinding);
+                    _currentKeyBinding = selectedKeyBinding;
+                    // _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();
+                }
             }
 
             string currentName = KeyboardBinding.CurrentBindingSetName;
             string currentAuthor = KeyboardBinding.CurrentBindingSetAuthor;
+            
+            FormInputs.AddVerticalSpace();
+            FormInputs.AddStringInput("Name", ref _currentKeyBinding.Name!);
+            FormInputs.AddStringInput("Author", ref _currentKeyBinding.Author!);
+            _somethingChanged |= _currentKeyBinding.Name != _currentKeyBindingWithoutChanges.Name;
+            _somethingChanged |= _currentKeyBinding.Author != _currentKeyBindingWithoutChanges.Author;
             ImGui.TextUnformatted($"Current KeyBinding: {currentName} by {currentAuthor}");
-        }
-        ImGui.EndChild();
-
-        float tableHeight = contentRegion.Y - headerHeight - ImGui.GetStyle().ItemSpacing.Y;
-
-
-        //if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName, 
-        //                           KeyBindingHandling.KeyBindings.Select(t => t.Name), 
-        //                           "KeyBinding",
-        //                           $"""
-        //                           Choose a color KeyBinding for editing, then apply your modifications and save them. 
-        //                           You have the option to create new KeyBindings by altering the name and save. 
-        //                           KeyBindings are saved as files in {FileLocations.SettingsPath}.
-        //                           """))
-        //{
-        //    var selectedKeyBinding = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
-        //    if (selectedKeyBinding != null)
-        //    {
-        //       /* KeyBindingHandling.SetKeyBindingAsUserKeyBinding(selectedKeyBinding);
-        //        _currentKeyBinding = selectedKeyBinding;
-        //        _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();*/
-        //    }
-        //}
-
-        FormInputs.AddVerticalSpace();
-        /*FormInputs.AddStringInput("Name", ref _currentKeyBinding.Name!);
-        FormInputs.AddStringInput("Author", ref _currentKeyBinding.Author!);*/
-       /* _somethingChanged |= _currentKeyBinding.Name != _currentKeyBindingWithoutChanges.Name;
-        _somethingChanged |= _currentKeyBinding.Author != _currentKeyBindingWithoutChanges.Author;*/
-        
+   
         
         FormInputs.AddVerticalSpace();
         FormInputs.ApplyIndent();
@@ -135,6 +111,7 @@ internal static class KeyBindingEditor
                 ImGui.TableSetColumnIndex(0);
                 var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(value));
                 var shortcuts = KeyboardBinding.ListKeyboardShortcuts(value, false);
+               // var triggerkind 
                 var hasShortcut = !string.IsNullOrEmpty(shortcuts);
                 ImGui.PushStyleColor(ImGuiCol.Text, hasShortcut ? UiColors.Text : UiColors.TextMuted.Rgba);
                 ImGui.TextUnformatted(actionName);
@@ -146,22 +123,16 @@ internal static class KeyBindingEditor
                     ImGui.PushFont(Fonts.FontBold);
                     ImGui.TextUnformatted(shortcuts);
                     ImGui.PopFont();
-                    ImGui.PopStyleColor();
-                }
-            }
 
+                }
+                
+            }
+            
+            ImGui.PopStyleColor();
             ImGui.EndTable();
         }
     }
-    
 
-    
-    
-   
-    
-    
-    
-    
     private static bool _somethingChanged;
     private static bool _initialized;
     private static KeyBindingHandling.KeyBinding _currentKeyBinding= new();

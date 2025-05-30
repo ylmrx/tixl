@@ -89,7 +89,7 @@ public static class T3Ui
         
         FitViewToSelectionHandling.ProcessNewFrame();
         SrvManager.RemoveForDisposedTextures();
-        KeyboardBinding.InitFrame();
+        
         
         CompatibleMidiDeviceHandling.UpdateConnectedDevices();
 

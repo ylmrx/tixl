@@ -1,8 +1,8 @@
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using T3.Core.DataTypes.Vector;
 using T3.Core.UserData;
+using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.UiHelpers;
 using T3.Serialization;
 
@@ -24,9 +24,9 @@ public static class KeyBindingHandling
     {
         UserSettings.Config.KeyBindingName = KeyBinding.Name;
         UserSettings.Save();
-        ApplyKeyBinding(KeyBinding);
-
-        T3Style.Apply();
+       // ApplyKeyBinding(KeyBinding);
+        KeyboardBinding.LoadCustomBindings(KeyBinding.Name +".json");
+        // T3Style.Apply();
     }
 
     internal static void SaveKeyBinding(KeyBinding KeyBinding)
@@ -41,8 +41,6 @@ public static class KeyBindingHandling
 
         var combine = GetKeyBindingFilepath(KeyBinding);
         var filepath = combine;
-
-        StoreAllColors(KeyBinding);
 
         JsonUtils.TrySaveJson(KeyBinding, filepath);
         LoadKeyBindings();
@@ -131,32 +129,8 @@ public static class KeyBindingHandling
     /// <param name="KeyBinding"></param>
     private static void ApplyKeyBinding(KeyBinding KeyBinding)
     {
-        var colorFields = typeof(UiColors).GetFields();
-        foreach (var colorField in colorFields)
-        {
-            if (colorField.GetValue(KeyBindingEditor.Dummy) is not Color)
-                continue;
-
-            if (!KeyBinding.Colors.TryGetValue(colorField.Name, out var colorValue))
-                continue;
-
-            colorField.SetValue(KeyBindingEditor.Dummy, new Color(colorValue));
-        }
-
-        var variationFields = typeof(ColorVariations).GetFields();
-        foreach (var varField in variationFields)
-        {
-            if (varField.GetValue(KeyBindingEditor.Dummy) is not ColorVariation)
-                continue;
-
-            if (!KeyBinding.Variations.TryGetValue(varField.Name, out var variation))
-                continue;
-
-            varField.SetValue(KeyBindingEditor.Dummy, variation.Clone());
-        }
-
-        FrameStats.Current.UiColorsChanged = true;
-        T3Style.Apply();
+        KeyboardBinding.LoadCustomBindings(KeyBinding.Name + ".json");
+        
     }
 
     private static string GetKeyBindingFilepath(KeyBinding KeyBinding)
@@ -164,49 +138,14 @@ public static class KeyBindingHandling
         return Path.Combine(KeyBindingFolder, KeyBinding.Name + ".json");
     }
 
-    private static void StoreAllColors(KeyBinding KeyBinding)
-    {
-        var colorFields = typeof(UiColors).GetFields();
-        foreach (var colorField in colorFields)
-        {
-            if (colorField.GetValue(KeyBindingEditor.Dummy) is not Color color)
-                continue;
-
-            KeyBinding.Colors[colorField.Name] = color;
-        }
-
-        var variationFields = typeof(ColorVariations).GetFields();
-        foreach (var varField in variationFields)
-        {
-            if (varField.GetValue(KeyBindingEditor.Dummy) is not ColorVariation variation)
-                continue;
-
-            KeyBinding.Variations[varField.Name] = variation;
-        }
-    }
+  
 
 
     private static void InitializeFactoryDefault()
     {
         FactoryKeyBinding = new KeyBindingHandling.KeyBinding();
 
-        var colorFields = typeof(UiColors).GetFields();
-        foreach (var f in colorFields)
-        {
-            if (f.GetValue(KeyBindingEditor.Dummy) is not Color color)
-                continue;
-
-            FactoryKeyBinding.Colors[f.Name] = color;
-        }
-
-        var variationFields = typeof(ColorVariations).GetFields();
-        foreach (var v in variationFields)
-        {
-            if (v.GetValue(KeyBindingEditor.Dummy) is not ColorVariation variation)
-                continue;
-
-            FactoryKeyBinding.Variations[v.Name] = variation;
-        }
+        
     }
 
     internal static readonly List<KeyBinding> KeyBindings = [];
@@ -221,20 +160,6 @@ public static class KeyBindingHandling
     {
         public string Name = "untitled";
         public string Author = "unknown";
-        public Dictionary<string, Vector4> Colors = new();
-        public Dictionary<string, ColorVariation> Variations = new();
-
-        public KeyBinding Clone()
-        {
-            return new KeyBinding()
-                       {
-                           Name = Name,
-                           Author = Author,
-                           Colors = Colors.ToDictionary(entry => entry.Key,
-                                                        entry => entry.Value),
-                           Variations = Variations.ToDictionary(entry => entry.Key,
-                                                                entry => entry.Value),
-                       };
-        }
+       
     }
 }
