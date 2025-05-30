@@ -62,7 +62,7 @@ internal sealed partial class MagGraphCanvas
                         editingFlags |= T3Ui.EditingFlags.PreventMouseInteractions;
                 }
         
-                if(!_context.PreventInteraction) 
+                if(!_context.PreventInteraction && !FrameStats.Last.OpenedPopupCapturedMouse) 
                     UpdateCanvas(out _, editingFlags);
 
                 // Prepare UiModel for frame
