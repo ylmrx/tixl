@@ -24,8 +24,8 @@ internal static class KeyBindingEditor
             _initialized = true;
 
         }
-               
-            FormInputs.SetIndent(100);
+       
+        FormInputs.SetIndent(100);
             
             if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName,
                                    KeyBindingHandling.KeyBindings.Select(t => t.Name),
@@ -51,7 +51,7 @@ internal static class KeyBindingEditor
             FormInputs.AddStringInput("Author", ref _currentKeyBinding.Author!);
             _somethingChanged |= _currentKeyBinding.Name != _currentKeyBindingWithoutChanges.Name;
             _somethingChanged |= _currentKeyBinding.Author != _currentKeyBindingWithoutChanges.Author;
-            ImGui.TextUnformatted($"Current KeyBinding: {currentName} by {currentAuthor}");
+            //ImGui.TextUnformatted($"Current KeyBinding: {currentName} by {currentAuthor}");
    
         
         FormInputs.AddVerticalSpace();
@@ -82,45 +82,94 @@ internal static class KeyBindingEditor
         FormInputs.AddVerticalSpace();
         ImGui.Separator();
         FormInputs.AddVerticalSpace();
-        
+       
         _somethingChanged = false;
         DrawKeybindingEdits();
         
     }
 
-
-
     private static void DrawKeybindingEdits()
     {
-        
+        // Calculate available width for centering
+        var availableWidth = ImGui.GetContentRegionAvail().X;
 
-            if (ImGui.BeginTable("Shortcuts", 2,
-                                         ImGuiTableFlags.BordersInnerH))
+        // Draw editing controls (centered) if an action is selected
+        if (_selectedAction.HasValue)
         {
+            ImGui.BeginChild("EditingControls", new System.Numerics.Vector2(availableWidth, ImGui.GetTextLineHeight() * 5), true);
+
+            ImGui.TextUnformatted($"Editing: {CustomComponents.HumanReadablePascalCase(Enum.GetName(_selectedAction.Value))}");
+
+            // Input field for the shortcut
+            
+            ImGui.SetNextItemWidth(242);
+            ImGui.InputText("##ShortcutInput", ref _editingShortcut, 256);
+
+            // Save and cancel buttons
+            
+            if (ImGui.Button("Save", new System.Numerics.Vector2(80, 0)))
+            {
+              //  KeyboardBinding.SetKeyboardShortcut(_selectedAction.Value, _editingShortcut);
+              //  _selectedAction = null;
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Cancel", new System.Numerics.Vector2(80, 0)))
+            {
+             //   _selectedAction = null;
+            }
+
+            ImGui.SameLine();
+            if (ImGui.Button("Clear", new System.Numerics.Vector2(80, 0)))
+            {
+              //  KeyboardBinding.ClearKeyboardShortcut(_selectedAction.Value);
+               // _selectedAction = null;
+            }
+
+            ImGui.EndChild();
+            ImGui.Spacing();
+        }
+
+        // Draw the table of shortcuts
+        if (ImGui.BeginTable("Shortcuts", 2, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.ScrollY))
+        {
+            // Make the table fill remaining vertical space
+            ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 0.5f);
+            ImGui.TableSetupColumn("Shortcut", ImGuiTableColumnFlags.WidthStretch, 0.5f);
+
             foreach (var value in Enum.GetValues<UserActions>())
             {
                 ImGui.TableNextRow();
+
+                // Set row background color if selected
+                if (_selectedAction == value)
+                {
+                    ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0,
+                        ImGui.GetColorU32(ImGuiCol.Header));
+                }
+
                 ImGui.TableSetColumnIndex(0);
                 var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(value));
                 var shortcuts = KeyboardBinding.ListKeyboardShortcuts(value, false);
-               // var triggerkind 
-                var hasShortcut = !string.IsNullOrEmpty(shortcuts);
-                ImGui.PushStyleColor(ImGuiCol.Text, hasShortcut ? UiColors.Text : UiColors.TextMuted.Rgba);
-                ImGui.TextUnformatted(actionName);
+
+                // Make the first column selectable
+                if (ImGui.Selectable(actionName, _selectedAction == value,
+                    ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
+                {
+                    _selectedAction = value;
+                    _editingShortcut = shortcuts ?? "";
+                }
 
                 ImGui.TableSetColumnIndex(1);
 
-                if (hasShortcut)
+                if (!string.IsNullOrEmpty(shortcuts))
                 {
                     ImGui.PushFont(Fonts.FontBold);
                     ImGui.TextUnformatted(shortcuts);
                     ImGui.PopFont();
-
                 }
-                
             }
-            
-            ImGui.PopStyleColor();
+
             ImGui.EndTable();
         }
     }
@@ -130,4 +179,7 @@ internal static class KeyBindingEditor
     private static KeyBindingHandling.KeyBinding _currentKeyBinding= new();
     private static KeyBindingHandling.KeyBinding _currentKeyBindingWithoutChanges = new();
     public static readonly object Dummy = new();
+
+    private static UserActions? _selectedAction = null;
+    private static string _editingShortcut = "";
 }
