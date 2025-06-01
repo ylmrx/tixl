@@ -436,17 +436,102 @@ internal sealed class KeyboardBinding
     }
     #endregion
 
-    private static void SetKeyboardShortcut(UserActions action, string shortcut, string name)
+    public static void SetKeyboardShortcut(UserActions action, string shortcut, string bindingName)
     {
-        if (!_bindings.Any(b => b.Action == action))
-            return;
-        var binding = _bindings.First(b => b.Action == action);
-       // var newCombination = KeyCombination.Parse(shortcut);
-      //  if (newCombination != null)
-      //  {
-     //       binding.Combination = newCombination;
-            SaveBindingsToFile(Path.Combine(FileLocations.ReadOnlySettingsPath, FileLocations.KeyBindingSubFolder, name + ".json"));
-       // }
+        try
+        {
+            var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
+            var filePath = Path.Combine(folder, bindingName + ".json");
+
+            if (!File.Exists(filePath))
+            {
+                // Create a new binding file if it doesn't exist
+                var newBindings = new KeyboardBindingsJson
+                {
+                    Name = bindingName,
+                    Author = "User",
+                    KeyboardBindings = _bindings.Select(b => new KeyboardBindingJson
+                    {
+                        Action = b.Action.ToString(),
+                        Key = b.Combination.Key.ToString(),
+                        Ctrl = b.Combination.Ctrl,
+                        Alt = b.Combination.Alt,
+                        Shift = b.Combination.Shift,
+                        NeedsWindowFocus = b.NeedsWindowFocus,
+                        NeedsWindowHover = b.NeedsWindowHover,
+                        KeyPressOnly = b.KeyPressOnly,
+                        KeyHoldOnly = b.KeyHoldOnly
+                    }).ToList()
+                };
+
+                File.WriteAllText(filePath, JsonSerializer.Serialize(newBindings, JsonOptions));
+            }
+
+            // Load the existing bindings
+            var json = File.ReadAllText(filePath);
+            var bindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, JsonOptions);
+
+            // Update the specific action's shortcut
+            if (!string.IsNullOrEmpty(shortcut))
+            {
+                var combination = ParseShortcutString(shortcut);
+                if (combination != null)
+                {
+                    var existing = bindings.KeyboardBindings.FirstOrDefault(b => b.Action == action.ToString());
+                    if (existing != null)
+                    {
+                        existing.Key = combination.Key.ToString();
+                        existing.Ctrl = combination.Ctrl;
+                        existing.Alt = combination.Alt;
+                        existing.Shift = combination.Shift;
+                    }
+                    else
+                    {
+                        bindings.KeyboardBindings.Add(new KeyboardBindingJson
+                        {
+                            Action = action.ToString(),
+                            Key = combination.Key.ToString(),
+                            Ctrl = combination.Ctrl,
+                            Alt = combination.Alt,
+                            Shift = combination.Shift
+                        });
+                    }
+                }
+            }
+            else
+            {
+                // Remove the binding if shortcut is empty
+                bindings.KeyboardBindings.RemoveAll(b => b.Action == action.ToString());
+            }
+
+            // Save the changes
+            File.WriteAllText(filePath, JsonSerializer.Serialize(bindings, JsonOptions));
+
+            // Reload the bindings
+            LoadCustomBindings(bindingName + ".json");
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to update shortcut: {e.Message}");
+        }
+    }
+
+    private static KeyCombination? ParseShortcutString(string shortcut)
+    {
+        try
+        {
+            var parts = shortcut.Split('+');
+            var key = Enum.Parse<Key>(parts.Last());
+            var ctrl = parts.Contains("Ctrl");
+            var alt = parts.Contains("Alt");
+            var shift = parts.Contains("Shift");
+
+            return new KeyCombination(key, ctrl, alt, shift);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 

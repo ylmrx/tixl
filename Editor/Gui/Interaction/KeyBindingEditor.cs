@@ -20,30 +20,27 @@ internal static class KeyBindingEditor
         if (!_initialized)
         {
             _currentKeyBinding = KeyBindingHandling.GetUserOrFactoryKeyBinding();
-          //  _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();
             _initialized = true;
-
         }
-       
-        FormInputs.SetIndent(100);
-            
-            if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName,
-                                   KeyBindingHandling.KeyBindings.Select(t => t.Name),
-                                   "KeyBinding",
-                                   $"""
-                                   Edit the shortcuts as you wish you'll find the  {FileLocations.SettingsPath}.
-                                   """))
-            {
-                var selectedKeyBinding = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
-                if (selectedKeyBinding != null)
-                {
-                    KeyBindingHandling.SetKeyBindingAsUserKeyBinding(selectedKeyBinding);
-                    _currentKeyBinding = selectedKeyBinding;
-                    // _currentKeyBindingWithoutChanges = _currentKeyBinding.Clone();
-                }
-            }
 
-            var currentName = KeyboardBinding.CurrentBindingSetName;
+        FormInputs.SetIndent(100);
+           
+        if (FormInputs.AddDropdown(ref UserSettings.Config.KeyBindingName,
+        KeyBindingHandling.KeyBindings.Select(t => t.Name),
+        "KeyBinding",
+        $"""
+        Edit the shortcuts as you wish you'll find the {FileLocations.SettingsPath}.
+        """))
+        {
+            var selectedKeyBinding = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
+            if (selectedKeyBinding != null)
+            {
+                KeyBindingHandling.SetKeyBindingAsUserKeyBinding(selectedKeyBinding);
+                _currentKeyBinding = selectedKeyBinding;
+            }
+        }
+
+        var currentName = KeyboardBinding.CurrentBindingSetName;
             var currentAuthor = KeyboardBinding.CurrentBindingSetAuthor;
             
             FormInputs.AddVerticalSpace();
@@ -54,6 +51,18 @@ internal static class KeyBindingEditor
         
         FormInputs.AddVerticalSpace();
         FormInputs.ApplyIndent();
+
+        // Add "Create New" button
+        if (ImGui.Button("Create New"))
+        {
+            _currentKeyBinding = new KeyBindingHandling.KeyBinding
+            {
+                Name = UserSettings.Config.KeyBindingName + "Custom",
+                Author = UserSettings.Config.UserName
+            };
+            _somethingChanged = true;
+        }
+        /*
         if (CustomComponents.DisablableButton("Save", _somethingChanged))
         {
             KeyBindingHandling.SaveKeyBinding(_currentKeyBinding);
@@ -72,11 +81,15 @@ internal static class KeyBindingEditor
         ImGui.SameLine();
         if (ImGui.Button("Delete"))
         {
-           /* KeyBindingHandling.DeleteKeyBinding(_currentKeyBinding);
-            _currentKeyBinding = KeyBindingHandling.FactoryKeyBinding.Clone();
-            _currentKeyBindingWithoutChanges = KeyBindingHandling.FactoryKeyBinding.Clone();*/
-        }
-        
+            if (_currentKeyBinding != null && _currentKeyBinding.Name != KeyBindingHandling.FactoryKeyBinding.Name)
+            {
+                KeyBindingHandling.DeleteKeyBinding(_currentKeyBinding);
+                _currentKeyBinding = KeyBindingHandling.FactoryKeyBinding;
+                UserSettings.Config.KeyBindingName = KeyBindingHandling.FactoryKeyBinding.Name;
+                UserSettings.Save();
+                _somethingChanged = false;
+            }
+        }*/
         FormInputs.AddVerticalSpace();
         ImGui.Separator();
         FormInputs.AddVerticalSpace();
@@ -106,11 +119,11 @@ internal static class KeyBindingEditor
             ImGui.InputText("##ShortcutInput", ref _editingShortcut, 256);
 
             // Action buttons
-            //ImGui.SameLine();
             if (ImGui.Button("Save", new Vector2(80, 0)))
             {
-                //KeyboardBinding.SetKeyboardShortcut(_selectedAction.Value, _editingShortcut);
+                KeyboardBinding.SetKeyboardShortcut(_selectedAction.Value, _editingShortcut, _currentKeyBinding.Name);
                 _selectedAction = null;
+                _somethingChanged = true;
             }
 
             ImGui.SameLine();
@@ -122,8 +135,10 @@ internal static class KeyBindingEditor
             ImGui.SameLine();
             if (ImGui.Button("Clear", new Vector2(80, 0)))
             {
-               // KeyboardBinding.ClearKeyboardShortcut(_selectedAction.Value);
+                _editingShortcut = string.Empty;
+                KeyboardBinding.SetKeyboardShortcut(_selectedAction.Value, string.Empty, _currentKeyBinding.Name);
                 _selectedAction = null;
+                _somethingChanged = true;
             }
         }
         else
@@ -156,8 +171,8 @@ internal static class KeyBindingEditor
         // Draw the table of shortcuts (same as before)
         if (ImGui.BeginTable("Shortcuts", 2, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.ScrollY))
         {
-            ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 0.5f);
-            ImGui.TableSetupColumn("Shortcut", ImGuiTableColumnFlags.WidthStretch, 0.5f);
+            ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 0.65f);
+            ImGui.TableSetupColumn("Shortcut", ImGuiTableColumnFlags.WidthStretch, 0.35f);
 
             foreach (var value in Enum.GetValues<UserActions>())
             {
