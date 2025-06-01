@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using ImGuiNET;
 using T3.Core.Animation;
+using T3.Core.DataTypes.Vector;
 using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Interaction.TransformGizmos;
@@ -187,9 +188,13 @@ internal sealed class GraphWindow : Windows.Window
                          | ImGuiWindowFlags.NoDecoration
                          | ImGuiWindowFlags.NoTitleBar
                          | ImGuiWindowFlags.NoBackground
-                         | ImGuiWindowFlags.ChildWindow);
+                         | ImGuiWindowFlags.ChildWindow
+                         );
         {
+            // For some reason, the BeginChild does not correctly set the clipping leading to spill over. So we set it explicitely
+            drawList.PushClipRect(ImGui.GetWindowPos(), ImGui.GetWindowPos() + ImGui.GetWindowSize(), false);
             DrawGraphContent(drawList);
+            drawList.PopClipRect();
         }
         ImGui.EndChild();
 
