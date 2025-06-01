@@ -354,10 +354,6 @@ internal sealed class KeyboardBinding
         yield return new(UserActions.ToggleFullscreen, new(Key.F11));
         yield return new(UserActions.ToggleFocusMode, new(Key.F12));
 
-        // Camera controls
-
-       // yield return new(UserActions.ScrollLeft, new(Key.A), needsWindowHover: true);
-
         // Generate bookmark bindings
         foreach (var binding in GenerateNumberedBindings(UserActions.LoadBookmark0, UserActions.SaveBookmark0, true))
             yield return binding;
@@ -439,5 +435,18 @@ internal sealed class KeyboardBinding
         public List<KeyboardBindingJson> KeyboardBindings { get; set; } = new();
     }
     #endregion
+
+    private static void SetKeyboardShortcut(UserActions action, string shortcut, string name)
+    {
+        if (!_bindings.Any(b => b.Action == action))
+            return;
+        var binding = _bindings.First(b => b.Action == action);
+       // var newCombination = KeyCombination.Parse(shortcut);
+      //  if (newCombination != null)
+      //  {
+     //       binding.Combination = newCombination;
+            SaveBindingsToFile(Path.Combine(FileLocations.ReadOnlySettingsPath, FileLocations.KeyBindingSubFolder, name + ".json"));
+       // }
+    }
 }
 

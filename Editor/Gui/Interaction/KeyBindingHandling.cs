@@ -1,12 +1,14 @@
 #nullable enable
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Xml.Linq;
 using T3.Core.UserData;
-using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Variations.Model;
 using T3.Editor.Gui.UiHelpers;
 using T3.Serialization;
+using static T3.Editor.Gui.Styling.ThemeHandling;
 
-namespace T3.Editor.Gui.Styling;
+namespace T3.Editor.Gui.Interaction;
 
 public static class KeyBindingHandling
 {
@@ -24,9 +26,9 @@ public static class KeyBindingHandling
     {
         UserSettings.Config.KeyBindingName = KeyBinding.Name;
         UserSettings.Save();
-       // ApplyKeyBinding(KeyBinding);
+        ApplyKeyBinding(KeyBinding);
         KeyboardBinding.LoadCustomBindings(KeyBinding.Name +".json");
-        // T3Style.Apply();
+        
     }
 
     internal static void SaveKeyBinding(KeyBinding KeyBinding)
@@ -124,7 +126,7 @@ public static class KeyBindingHandling
 
 
     /// <summary>
-    /// Applies the colors to T3StyleColors
+    /// Applies the slected keybinding
     /// </summary>
     /// <param name="KeyBinding"></param>
     private static void ApplyKeyBinding(KeyBinding KeyBinding)
@@ -138,12 +140,9 @@ public static class KeyBindingHandling
         return Path.Combine(KeyBindingFolder, KeyBinding.Name + ".json");
     }
 
-  
-
-
     private static void InitializeFactoryDefault()
     {
-        FactoryKeyBinding = new KeyBindingHandling.KeyBinding();  
+        FactoryKeyBinding = new KeyBinding();  
     }
 
     internal static readonly List<KeyBinding> KeyBindings = [];
@@ -160,4 +159,5 @@ public static class KeyBindingHandling
         public string Author = "unknown";
        
     }
+
 }
