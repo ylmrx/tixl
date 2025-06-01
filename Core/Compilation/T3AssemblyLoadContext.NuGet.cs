@@ -29,7 +29,7 @@ internal sealed partial class T3AssemblyLoadContext
         NuGetFramework IFrameworkSpecific.TargetFramework => Framework;
     }
 
-    static bool TrySearchNugetAssemblies(AssemblyName asmName, NuGetFramework[] myTargets, string name, string? debugName,
+    private static bool TrySearchNugetAssemblies(AssemblyName asmName, NuGetFramework[] myTargets, string name, string? debugName,
                                          [NotNullWhen(true)] out AssemblyTreeNode? node)
     {
         var basePath = _nugetDirectory;
@@ -152,7 +152,8 @@ internal sealed partial class T3AssemblyLoadContext
             if (packageFrameworkDir is null || packageFrameworkDir == default(NugetFrameworkDirectory))
             {
                 Log.Warning($"{debugName!}: Could not find compatible framework for assembly {name} in nuget package {packageDirName} version {versionString}. checking .net framework");
-                // check for .NET Framework directories
+                
+                // check for .NET Framework directories in an ugly and stupid way
                 var netFrameworkDirs = rawSubDirs
                                       .Where(x => x.Name.StartsWith("net4", StringComparison.OrdinalIgnoreCase) || x.Name.StartsWith("net3"))
                                       .OrderBy(x => x.Name)
@@ -171,7 +172,7 @@ internal sealed partial class T3AssemblyLoadContext
         {
             node = null;
             return false;
-            // todo: re: below - should we...
+            // should we...
             // check "runtime" folder
             // switch to runtimes folder, where we need to filter by RID
             // next we need to enter into the correct framework directory
@@ -274,7 +275,7 @@ internal sealed partial class T3AssemblyLoadContext
 
             if (TryGetNearest(versionsToSearch: versionDirectories,
                               version: version,
-                              selector: v => v.Major == version.Major && v.Minor == version.Minor,
+                              filter: v => v.Major == version.Major && v.Minor == version.Minor,
                               getNumber: x => x.Build == -1 ? x.Revision : x.Build,
                               versionDirectory: out var dir))
             {
@@ -286,7 +287,7 @@ internal sealed partial class T3AssemblyLoadContext
             // if we have no non-breaking versions, we need to find the nearest breaking version
             if (TryGetNearest(versionsToSearch: versionDirectories,
                               version: version,
-                              selector: v => v.Major == version.Major,
+                              filter: v => v.Major == version.Major,
                               getNumber: x => x.Minor,
                               versionDirectory: out dir))
             {
@@ -298,7 +299,7 @@ internal sealed partial class T3AssemblyLoadContext
             // if we have none with the same major version, time to go nuclear
             if (TryGetNearest(versionsToSearch: versionDirectories,
                               version: version,
-                              selector: v => true, // any version
+                              filter: v => true, // any version
                               getNumber: x => x.Major,
                               versionDirectory: out dir))
             {
@@ -311,28 +312,28 @@ internal sealed partial class T3AssemblyLoadContext
             reason = $"No suitable version directory found for {version} in {baseDir.FullName}, using {versionDirectory.Name} instead";
             return true;
 
-            static bool TryGetNearest((DirectoryInfo dir, Version version)[] versionsToSearch, Version version, Func<Version, bool> selector,
+            static bool TryGetNearest((DirectoryInfo dir, Version version)[] versionsToSearch, Version version, Func<Version, bool> filter,
                                       Func<Version, int> getNumber, [NotNullWhen(true)] out DirectoryInfo? versionDirectory)
             {
                 var selected = versionsToSearch
-                              .Where(x => selector(x.version))
+                              .Where(x => filter(x.version))
                               .ToArray();
-                switch (versionsToSearch.Length)
+                switch (selected.Length)
                 {
                     case 0:
                         versionDirectory = null;
                         return false;
                     case 1:
-                        versionDirectory = versionsToSearch[0].dir;
+                        versionDirectory = selected[0].dir;
                         return true;
                 }
 
                 var versionNumber = getNumber(version);
 
                 // order by preference - higher versions preferred,
-                Array.Sort(versionsToSearch,
+                Array.Sort(selected,
                            comparison: (x, y) => (versionNumber - getNumber(x.version)).CompareTo(versionNumber - getNumber(y.version)));
-                versionDirectory = versionsToSearch[0].dir;
+                versionDirectory = selected[0].dir;
                 return true;
             }
         }
