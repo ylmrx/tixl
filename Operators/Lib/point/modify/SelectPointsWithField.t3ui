@@ -39,7 +39,8 @@
       "Position": {
         "X": 760.7295,
         "Y": 1560.1677
-      }
+      },
+      "UseVec2Control": "Range"
     },
     {
       "InputId": "74bc9dbf-015e-4182-95ef-cfca4be09f32"/*StrengthFactor*/,
