@@ -123,7 +123,7 @@ internal sealed partial class T3AssemblyLoadContext
 
             if (packageFrameworkDir is null || packageFrameworkDir == default(NugetFrameworkDirectory))
             {
-                // check for any non-matching but compatible frameworks (e.g. netstandard)wmv
+                // check for any non-matching but compatible frameworks (e.g. netstandard)
                 NugetFrameworkDirectory? highestStandard = null;
                 foreach (var subDir in subDirectories)
                 {
@@ -154,6 +154,8 @@ internal sealed partial class T3AssemblyLoadContext
                 Log.Warning($"{debugName!}: Could not find compatible framework for assembly {name} in nuget package {packageDirName} version {versionString}. checking .net framework");
                 
                 // check for .NET Framework directories in an ugly and stupid way
+                // we do this because for some reason, some packages (like opengl.net) have their assemblies solely in the .NET Framework directories,
+                // though they claim compatibility with .net standard and .netcore3 (and it does work when actually loaded.........)
                 var netFrameworkDirs = rawSubDirs
                                       .Where(x => x.Name.StartsWith("net4", StringComparison.OrdinalIgnoreCase) || x.Name.StartsWith("net3"))
                                       .OrderBy(x => x.Name)
