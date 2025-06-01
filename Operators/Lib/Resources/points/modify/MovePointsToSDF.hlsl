@@ -6,7 +6,6 @@
 cbuffer Params : register(b0)
 {
     float Amount;
-    float ClampDistance;
     float MinDistance;
     float StepDistanceFactor;
 
@@ -23,6 +22,8 @@ cbuffer Params : register(b2)
     int MaxSteps;
     int WriteDistanceMode;
     int SetOrientation;
+    int SetColor;
+    int AmountFactor;
 }
 
 StructuredBuffer<Point> SourcePoints : t0;
@@ -85,10 +86,15 @@ static const float NoisePhase = 0;
 
     float3 pos = p.Position;
 
+    float sumD = 0;
     float3 pp = pos;
+    float4 field = 1;
     for (int stepIndex = 0; stepIndex < MaxSteps; stepIndex++)
     {
         float d = GetDistance(pp);
+
+        sumD += d;
+
         if (abs(d) < MinDistance)
             break;
 
@@ -96,7 +102,13 @@ static const float NoisePhase = 0;
         pp -= n * d * StepDistanceFactor;
     }
 
+    float amount = Amount * (AmountFactor == 0
+                                 ? 1
+                             : (AmountFactor == 1) ? p.FX1
+                                                   : p.FX2);
+
     float3 total = pos - pp;
+
     if (WriteDistanceMode > 0)
     {
         float totalDistance = length(total);
@@ -109,11 +121,18 @@ static const float NoisePhase = 0;
             p.FX2 = totalDistance;
         }
     }
-    p.Position = lerp(p.Position, pp, Amount);
+    p.Position = lerp(p.Position, pp, amount);
 
     if (SetOrientation)
     {
-        p.Rotation = qSlerp(p.Rotation, normalize(qLookAt(total, float3(0, 1, 0))), Amount);
+        float flip = sumD < 0 ? -1 : 1;
+        p.Rotation = qSlerp(p.Rotation, normalize(qLookAt(total * flip, float3(0, 1, 0))), amount);
+    }
+
+    if (SetColor)
+    {
+        float3 color = GetField(float4(pp, 1)).rgb;
+        p.Color.rgb = lerp(p.Color.rgb, color, amount);
     }
 
     ResultPoints[i.x] = p;

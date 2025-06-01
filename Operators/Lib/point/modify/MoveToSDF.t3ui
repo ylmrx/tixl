@@ -7,14 +7,16 @@
       "Position": {
         "X": 976.5911,
         "Y": 1673.2859
-      }
+      },
+      "Description": "Allows to store the distance to the SDF in one of the FX attributes. This might be useful in combinations with [RepeatAtPoints]."
     },
     {
       "InputId": "03bdab33-35a1-410b-b032-61efa1dffb9c"/*SetOrientation*/,
       "Position": {
         "X": 836.591,
         "Y": 1708.2859
-      }
+      },
+      "Description": "Apply the SDF normal direction as new point orientation.\nThis uses an up vector and might be prone to instabilities."
     },
     {
       "InputId": "11c1db02-0897-4a87-85c5-c9aced73ed54"/*Points*/,
@@ -22,6 +24,14 @@
       "Position": {
         "X": 679.0911,
         "Y": 1136.442
+      },
+      "Description": "The original points."
+    },
+    {
+      "InputId": "168d56f3-fbe2-40a6-b9a1-f85f37a16b79"/*AmountFactor*/,
+      "Position": {
+        "X": 976.591,
+        "Y": 1778.2859
       }
     },
     {
@@ -29,35 +39,36 @@
       "Position": {
         "X": 973.82806,
         "Y": 1579.262
-      }
-    },
-    {
-      "InputId": "4c607ff8-6452-4163-aa4a-6686d0b511b4"/*ClampDistance*/,
-      "Position": {
-        "X": 973.82806,
-        "Y": 1474.262
-      }
+      },
+      "Description": "We have to rely on the field's gradient to estimate step direction.\nDepending on the provided field, increasing this distance \"blurs\" the field and thus helps with local inconsistencies."
     },
     {
       "InputId": "cc76145b-dc10-4c36-b45b-2549c026cb12"/*MinDistance*/,
       "Position": {
         "X": 973.82806,
         "Y": 1509.262
-      }
+      },
+      "Description": "The distance at which the raymarching is stopped.",
+      "Min": 0.0
     },
     {
       "InputId": "d48504a4-9826-4166-86a3-528290796a03"/*StepDistanceFactor*/,
       "Position": {
         "X": 973.82806,
         "Y": 1544.262
-      }
+      },
+      "Description": "We have to rely on the field's gradient to estimate the marching directions.\nThis factor is applied on the distance field steps and can help with fields that don't have a constant Lipschitz property.",
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
     },
     {
       "InputId": "e024f44c-3ebd-4972-ae4f-43b5305df425"/*Amount*/,
       "Position": {
-        "X": 973.82806,
-        "Y": 1439.262
-      }
+        "X": 973.8282,
+        "Y": 1474.262
+      },
+      "Description": "The factor how much the of the effect is applied.\nThis can also be negative to move points away from the surface."
     },
     {
       "InputId": "e153cc10-a554-4e18-bece-691956df573f"/*Field*/,
@@ -65,13 +76,22 @@
       "Position": {
         "X": 537.42883,
         "Y": 972.1018
-      }
+      },
+      "Description": "The SDF field providing the distance."
     },
     {
       "InputId": "f7861f70-9eeb-42aa-93b5-230f03f645be"/*MaxSteps*/,
       "Position": {
         "X": 836.5911,
         "Y": 1638.2859
+      },
+      "Description": "The maximum number of steps for marching the field.\nThe max is clamped internally to 100."
+    },
+    {
+      "InputId": "f8f3e984-421b-4e1e-abb1-8d75afb5b64d"/*SetColor*/,
+      "Position": {
+        "X": 836.59094,
+        "Y": 1743.2859
       }
     }
   ],
@@ -121,8 +141,8 @@
     {
       "ChildId": "7d20e551-f950-4239-913f-10562bce2567"/*FloatsToBuffer*/,
       "Position": {
-        "X": 1113.828,
-        "Y": 1404.262
+        "X": 1113.8281,
+        "Y": 1439.262
       }
     },
     {
@@ -151,6 +171,13 @@
       "Position": {
         "X": 976.591,
         "Y": 1708.2859
+      }
+    },
+    {
+      "ChildId": "9e927a6d-8006-4104-9710-222b04cf102f"/*BoolToInt*/,
+      "Position": {
+        "X": 976.591,
+        "Y": 1743.2859
       }
     },
     {
