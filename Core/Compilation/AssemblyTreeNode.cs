@@ -5,9 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
+using NuGet.Common;
+using NuGet.Frameworks;
 using T3.Core.Logging;
 
 namespace T3.Core.Compilation;
@@ -23,74 +26,17 @@ internal sealed class AssemblyTreeNode
     public readonly AssemblyLoadContext LoadContext;
 
     private readonly Lock _assemblyLock = new();
-    
+
     internal readonly record struct DllReference(string Path, string Name, AssemblyName AssemblyName);
 
     private readonly List<DllReference> _unreferencedDlls = [];
-    private bool _collectedUnreferencedDlls = false;
-    
+    private bool _collectedUnreferencedDlls;
+
     private readonly Lock _unreferencedLock = new();
     private readonly DllImportResolver? _nativeResolver;
 
-    private List<DllReference> UnreferencedDlls
-    {
-        get
-        {
-            lock (_unreferencedLock)
-            {
-                if (_collectedUnreferencedDlls)
-                    return _unreferencedDlls;
+    private static readonly string[] _supportedRuntimeIdentifiers = ["win-x64", "linux-x64", "linux-arm64", "osx-x64", "osx-arm64"];
 
-                FindUnreferencedDllFiles();
-
-                return _unreferencedDlls;
-            }
-        }
-    }
-
-    private void FindUnreferencedDllFiles()
-    {
-        _collectedUnreferencedDlls = true;
-                
-        // locate "not used" dlls in the directory without loading them
-        var directory = Path.GetDirectoryName(Assembly.Location);
-        var searchOption = _searchNestedFolders ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly;
-        foreach (var file in Directory.GetFiles(directory!, "*.dll", searchOption))
-        {
-            bool skip = false;
-            foreach (var dep in _references)
-            {
-                try
-                {
-                    if (file == dep.Assembly.Location)
-                    {
-                        skip = true;
-                        break;
-                    }
-                }
-                catch (Exception e)
-                {
-                    Log.Error($"{_parentName}: Exception getting assembly location: {e}");
-                }
-            }
-
-            if (skip)
-                continue;
-
-            AssemblyName assemblyName;
-            try
-            {
-                assemblyName = AssemblyName.GetAssemblyName(file);
-            }
-            catch
-            {
-                continue;
-            }
-
-            var reference = new DllReference(file, assemblyName.GetNameSafe(), assemblyName);
-            _unreferencedDlls.Add(reference);
-        }
-    }
 
     private readonly string _parentName;
     private readonly bool _searchNestedFolders;
@@ -99,8 +45,9 @@ internal sealed class AssemblyTreeNode
     public AssemblyTreeNode(Assembly assembly, AssemblyLoadContext parent, bool searchNestedFolders, bool canSearchDlls, DllImportResolver? nativeResolver)
     {
         Assembly = assembly;
-        if(nativeResolver != null)
+        if (nativeResolver != null)
             NativeLibrary.SetDllImportResolver(assembly, nativeResolver);
+
         _nativeResolver = nativeResolver;
         Name = assembly.GetName();
         NameStr = Name.GetNameSafe();
@@ -139,9 +86,12 @@ internal sealed class AssemblyTreeNode
 
             lock (_unreferencedLock)
             {
-                _ = UnreferencedDlls.Remove(child.Reference);
+                if (_collectedUnreferencedDlls)
+                {
+                    _ = _unreferencedDlls.Remove(child.Reference);
+                }
             }
-            
+
             _references.Add(child);
         }
 
@@ -155,9 +105,16 @@ internal sealed class AssemblyTreeNode
         {
             lock (_unreferencedLock)
             {
-                for (var index = UnreferencedDlls.Count - 1; index >= 0; index--)
+                if (!_collectedUnreferencedDlls)
                 {
-                    var dll = UnreferencedDlls[index];
+                    FindUnreferencedDllFiles();
+                    _collectedUnreferencedDlls = true;
+                }
+
+                var unreferencedDlls = _unreferencedDlls;
+                for (var index = unreferencedDlls.Count - 1; index >= 0; index--)
+                {
+                    var dll = unreferencedDlls[index];
                     if (dll.Name != nameToSearchFor)
                         continue;
 
@@ -219,5 +176,104 @@ internal sealed class AssemblyTreeNode
 
         assembly = null;
         return false;
+    }
+
+    void FindUnreferencedDllFiles()
+    {
+        if(_collectedUnreferencedDlls)
+            throw new InvalidOperationException($"{_parentName}: Unreferenced DLLs already collected, cannot collect again.");
+        
+        // locate "not used" dlls in the directory without loading them
+        var directory = Path.GetDirectoryName(Assembly.Location);
+        var directoryInfo = new DirectoryInfo(directory!);
+        if (!directoryInfo.Exists)
+        {
+            Log.Error($"{_parentName}: Directory does not exist: {directory}");
+            return;
+        }
+
+        if (!_searchNestedFolders)
+        {
+            // if we don't search nested folders, we can just check the current directory
+            foreach (var file in directoryInfo.EnumerateFiles("*.dll", SearchOption.TopDirectoryOnly))
+            {
+                CheckAssemblyFileAndAdd(file);
+            }
+        }
+        else
+        {
+            // if we do search nested folders, we need to enumerate directories
+            foreach (var info in directoryInfo.EnumerateFileSystemInfos("*", SearchOption.TopDirectoryOnly))
+            {
+                if (info is DirectoryInfo dir)
+                {
+                    var dirName = dir.Name;
+                    if (_supportedRuntimeIdentifiers.Any(x => x == dirName))
+                    {
+                        // check for supported runtime
+                        if (RuntimeInformation.RuntimeIdentifier != dirName)
+                        {
+                            // incompatible RID, skip
+                            continue;
+                        }
+                    }
+
+                    // get all files recursively
+                    foreach (var file in dir.EnumerateFiles("*.dll", SearchOption.AllDirectories))
+                    {
+                        CheckAssemblyFileAndAdd(file);
+                    }
+                }
+                else
+                {
+                    if (info.Extension != ".dll")
+                        continue;
+                    CheckAssemblyFileAndAdd((FileInfo)info);
+                }
+            }
+        }
+
+        return;
+
+        void CheckAssemblyFileAndAdd(FileInfo file)
+        {
+            try
+            {
+                if (file.FullName == Assembly.Location)
+                    return;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"{_parentName}: Exception getting assembly location: {e}");
+            }
+
+            foreach (var dep in _references)
+            {
+                try
+                {
+                    if (file.FullName == dep.Assembly.Location)
+                    {
+                        return;
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"{_parentName}: Exception getting assembly location: {e}");
+                }
+            }
+
+            AssemblyName assemblyName;
+            try
+            {
+                assemblyName = AssemblyName.GetAssemblyName(file.FullName);
+            }
+            catch
+            {
+                return;
+            }
+
+            var reference = new DllReference(file.FullName, assemblyName.GetNameSafe(), assemblyName);
+            _unreferencedDlls.Add(reference);
+        }
     }
 }

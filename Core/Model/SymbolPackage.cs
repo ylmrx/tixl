@@ -424,31 +424,6 @@ public abstract partial class SymbolPackage : IResourcePackage
                || AssemblyInformation.Namespaces.Contains(namespaceName)
                || AssemblyInformation.Namespaces.Any(x => namespaceName.StartsWith(x));
     }
-
-    public bool TryLoadNativeDependencies(params string[] assemblyNames)
-    {
-        if (AssemblyInformation.LoadContext == null)
-            return false;
-        
-        foreach (var assemblyName in assemblyNames)
-        {
-            try
-            {
-                if (!AssemblyInformation.LoadContext.TryLoadNativeDll(assemblyName))
-                {
-                    Log.Error($"Failed to load native dependency {assemblyName} for package {DisplayName}");
-                    return false;
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to load native dependency {assemblyName} for package {DisplayName}: {e.Message}");
-                return false;
-            }
-        }
-
-        return true;
-    }
 }
 
 public sealed record DependencyCounter

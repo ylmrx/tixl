@@ -1,15 +1,22 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design.Serialization;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using System.Runtime.Versioning;
 using System.Threading;
 using T3.Core.IO;
 using T3.Core.Logging;
 using NuGet.Configuration;
+using NuGet.Frameworks;
+// memory extensions
+using static System.MemoryExtensions;
 
 namespace T3.Core.Compilation;
 
@@ -38,60 +45,22 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
     private readonly List<AssemblyLoadContext> _dependencyContexts = [];
     private static readonly List<AssemblyTreeNode> _coreNodes = [];
 
-    private static readonly AssemblyNameAndPath[] _availableNugetAssemblies;
     private static readonly Lock _nugetLock = new();
     private static readonly AssemblyLoadContext _nugetContext = new("NuGet", true);
     private static readonly List<AssemblyTreeNode> _loadedNuGetAssemblies = [];
+
+    private static readonly List<T3AssemblyLoadContext> _loadContexts = [];
+    private static readonly Lock _loadContextLock = new();
+    private static readonly DllImportResolver _dllImportResolver = NativeDllResolver; // todo - this likely violates the encapsulation of assembly load contexts
     private bool _unloaded;
+    private static readonly string FrameworkDescription = RuntimeInformation.FrameworkDescription;
+    private static readonly string RuntimeIdentifier = System.Runtime.InteropServices.RuntimeInformation.RuntimeIdentifier.Split('-')[0].Trim();
+
+    // todo - per-project directory, since this walks up the directory provided to find nuget config files
+    private static readonly string _nugetDirectory = SettingsUtility.GetGlobalPackagesFolder(Settings.LoadDefaultSettings(null, null, null));
 
     static T3AssemblyLoadContext()
     {
-        // prepare nuget assembly loading (without actually loading them)
-        var settings = Settings.LoadDefaultSettings(null, null, null);
-        var nuGetDirectory = SettingsUtility.GetGlobalPackagesFolder(settings);
-
-        var directoryInfo = new DirectoryInfo(nuGetDirectory);
-        if (directoryInfo.Exists)
-        {
-            // get all dlls in the nuget directory
-            // todo - this should be invalidated at runtime
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            _availableNugetAssemblies = directoryInfo.EnumerateFiles("*", SearchOption.AllDirectories)
-                                                     .AsParallel()
-                                                     .Select(x =>
-                                                             {
-                                                                 const string extension = ".dll";
-                                                                 const int extensionLength = 4;
-                                                                 if (!x.Name.EndsWith(extension, StringComparison.Ordinal))
-                                                                     return null;
-
-                                                                 try
-                                                                 {
-                                                                     return new AssemblyNameAndPath(x.FullName, x.Name[..^extensionLength]);
-                                                                 }
-                                                                 catch
-                                                                 {
-                                                                     return null;
-                                                                 }
-                                                             })
-                                                      // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
-                                                     .Where(x => x != null)
-                                                     .ToArray()!;
-
-            stopwatch.Stop();
-            Log.Debug($"Found {_availableNugetAssemblies.Length} nuget assemblies in {stopwatch.ElapsedMilliseconds}ms");
-
-            if (_availableNugetAssemblies.Length > 10_000)
-            {
-                Log.Warning("You have a lot of nuget packages installed - consider clearing your cache for faster load times.");
-            }
-        }
-        else
-        {
-            Log.Error($"NuGet directory {nuGetDirectory} does not exist");
-            _availableNugetAssemblies = [];
-        }
-
         (AssemblyLoadContext Context, (Assembly Assembly, AssemblyName name)[] assemblies)[]? allAssemblies = All
            .Select(ctx => (
                               ctx: ctx,
@@ -121,7 +90,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                     continue;
 
                 directories.Add(directory);
-                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false, true, null);
+                var node = new AssemblyTreeNode(assemblyDef.Assembly, ctxGroup.Context, false, true, null); // no native resolver bc they already have one
                 _coreNodes.Add(node);
             }
         }
@@ -148,7 +117,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                                 break;
                         }
 
-                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false, null);
+                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false, _dllImportResolver);
 
                         node.AddReferenceTo(depNode);
                     }
@@ -158,11 +127,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
     }
 
     private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
-
-    private static readonly List<T3AssemblyLoadContext> _loadContexts = [];
-    private static readonly Lock _loadContextLock = new();
     private readonly string _nativeDllDirectory;
-    private readonly DllImportResolver _dllImportResolver; 
 
     internal T3AssemblyLoadContext(string assemblyName, string directory) :
         base(assemblyName, true)
@@ -201,11 +166,10 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         {
             _loadContexts.Add(this);
         }
-        
+
         _nativeDllDirectory = directory;
 
         var path = Path.Combine(directory, Name!) + ".dll";
-        _dllImportResolver = NativeDllResolver;
 
         try
         {
@@ -217,22 +181,20 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         {
             Log.Error($"{Name!}: Failed to load root assembly {Name}: {e}");
         }
-        
-        
     }
 
     // called if Load method returns null - searches other contexts and nuget packages
     private Assembly? OnResolving(AssemblyName asmName)
     {
         var name = asmName.GetNameSafe();
-        
+
         #if DEBUG
-        if(_unloaded)
+        if (_unloaded)
         {
             Log.Error($"{Name!}: Attempted to resolve assembly {name} after unload");
             return null;
         }
-        
+
         #endif
 
         // try other assembly contexts
@@ -297,49 +259,368 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
                 }
             }
 
-            foreach (var package in _availableNugetAssemblies)
+            var rootFrameworks = Root!.Assembly.GetCustomAttributes<TargetFrameworkAttribute>()
+                                      .Select(x => AsNuGetFramework(x.FrameworkName))
+                                      .ToArray();
+            if (TrySearchNugetAssemblies(asmName, rootFrameworks, name, Name, out var nugetNode))
             {
-                if (package.Claimed || package.FileBasedName != name)
-                    continue;
+                AddDependency(nugetNode);
+                _loadedNuGetAssemblies.Add(nugetNode);
+                return nugetNode.Assembly;
+            }
 
-                var potentialAssemblyName = package.AssemblyName;
-                if (potentialAssemblyName == null)
-                    continue;
+            return null;
+        }
 
-                if (potentialAssemblyName.FullName != asmName.FullName)
-                    continue;
+        static bool TrySearchNugetAssemblies(AssemblyName asmName, NuGetFramework[] myTargets, string name, string? debugName,
+                                             [NotNullWhen(true)] out AssemblyTreeNode? node)
+        {
+            var basePath = _nugetDirectory;
+            var packageDirName = (asmName.Name ?? asmName.FullName.Split(',')[0]).ToLower();
+            var version = asmName.Version;
+            var hasVersion = version != null;
+            var versionString = hasVersion ? $"{version!.Major}.{version.Minor}.{version.Build}" : "0.0.0";
+            var baseDirectory = new DirectoryInfo(Path.Combine(basePath, packageDirName));
+            if (!baseDirectory.Exists)
+            {
+                // ffs.... we will enter here if an assembly reference is named differently from its package name
+                // which is very annoying. currently this is only an issue with unsplasharp, so I will handle this in the stupidest way possible.
+                // literally just by grabbing the first folder whose name starts with the requested dll name
+                // if none are found, itll be an issue
+                var potentialSubdirs = Directory.GetDirectories(basePath, packageDirName + "*", SearchOption.TopDirectoryOnly);
+                bool success = false;
+                foreach(var dir in potentialSubdirs)
+                {
+                    var dirInfo = new DirectoryInfo(dir);
+                    if (dirInfo.Exists)
+                    {
+                        baseDirectory = dirInfo;
+                        success = true;
+                        break;
+                    }
+                }
 
+                if (!success)
+                {
+                    Log.Error($"{debugName!}: NuGet package directory {baseDirectory} does not exist - is the package installed? " +
+                              $"is its dll named according to the package it comes from?");
+                    node = null;
+                    return false;
+                }
+            }
+
+            DirectoryInfo? versionDirectory = null;
+            if (hasVersion)
+            {
+                versionDirectory = new DirectoryInfo(Path.Combine(baseDirectory.FullName, versionString));
+                if (!versionDirectory.Exists)
+                {
+                    Log.Warning($"{debugName!}: NuGet package version directory {versionDirectory} does not exist");
+                    if (!TryGetNearestVersionDirectory(baseDirectory, version!, out versionDirectory, out var reason))
+                    {
+                        Log.Error($"{debugName!}: Could not find nearest version directory for {versionString} in {baseDirectory.FullName}: {reason}");
+                        node = null;
+                        return false;
+                    }
+                }
+            }
+            else
+            {
+                // get the latest version directory
+                var versionDirectories = baseDirectory.GetDirectories();
+                Array.Sort(versionDirectories, (a, b) => string.Compare(a.Name, b.Name, StringComparison.Ordinal));
+                versionDirectory = versionDirectories.LastOrDefault();
+            }
+
+            if (versionDirectory is not { Exists: true })
+            {
+                Log.Error($"{debugName!}: NuGet package version directory {versionString} could not be resolved");
+                node = null;
+                return false;
+            }
+
+            NugetFrameworkDirectory? packageFrameworkDir = null;
+
+            // now we have the version directory, search for the assembly in the lib directory
+            var libDirectory = new DirectoryInfo(Path.Combine(versionDirectory.FullName, "lib"));
+            if (libDirectory.Exists)
+            {
+                // search the lib directory
+                // collect framework subdirectories and order by preference
+                var rawSubDirs = libDirectory.GetDirectories();
+                var subDirectories = rawSubDirs
+                                    .Select(x => new NugetFrameworkDirectory(Directory: x, Framework: NuGetFramework.ParseFolder(x.Name)))
+                                    .Where(x => x.Framework != NuGetFramework.UnsupportedFramework)
+                                    .ToArray();
+
+                foreach (var f in myTargets)
+                {
+                    // find the subdirectory that matches the target framework
+                    packageFrameworkDir = NuGetFrameworkUtility.GetNearest(subDirectories, f);
+
+                    if (packageFrameworkDir is not null && packageFrameworkDir != default(NugetFrameworkDirectory))
+                    {
+                        break;
+                    }
+                }
+
+                if (packageFrameworkDir is null || packageFrameworkDir == default(NugetFrameworkDirectory))
+                {
+                    // check for any non-matching but compatible frameworks (e.g. netstandard)
+                    NugetFrameworkDirectory? highestStandard = null;
+                    foreach (var subDir in subDirectories)
+                    {
+                        if (!subDir.Framework.Framework.StartsWith(".NETStandard")) continue;
+
+                        if (highestStandard == null)
+                        {
+                            highestStandard = subDir;
+                            continue;
+                        }
+
+                        var netStandardVersion = subDir.Framework.Version;
+                        var currentVersion = highestStandard.Value.Framework.Version;
+                        if (netStandardVersion > currentVersion)
+                        {
+                            highestStandard = subDir;
+                        }
+
+                        Log.Warning($"{debugName!}: Using compatible framework {subDir.Framework} for assembly {name} from nuget package {packageDirName} version {versionString}");
+                        break;
+                    }
+
+                    packageFrameworkDir = highestStandard;
+                }
+                
+                if(packageFrameworkDir is null || packageFrameworkDir == default(NugetFrameworkDirectory))
+                {
+                    Log.Warning($"{debugName!}: Could not find compatible framework for assembly {name} in nuget package {packageDirName} version {versionString}. checking .net framework");
+                    // check for .NET Framework directories
+                    var netFrameworkDirs = rawSubDirs
+                                          .Where(x => x.Name.StartsWith("net4", StringComparison.OrdinalIgnoreCase) || x.Name.StartsWith("net3"))
+                                          .OrderBy(x => x.Name)
+                                          .Select(x => new NugetFrameworkDirectory(Directory: x, Framework: NuGetFramework.ParseFolder(x.Name)))
+                                          .ToArray();
+                    packageFrameworkDir = netFrameworkDirs.LastOrDefault();
+                    if (packageFrameworkDir is not null && packageFrameworkDir != default(NugetFrameworkDirectory))
+                    {
+                        Log.Warning($"{debugName!}: Using .NET Framework directory {packageFrameworkDir.Value.Framework} for assembly {name} from" +
+                                    $" nuget package {packageDirName} version {versionString}");
+                    }
+                }
+            }
+
+            if (packageFrameworkDir is null || packageFrameworkDir == default(NugetFrameworkDirectory))
+            {
+                node = null;
+                return false;
+                // todo: re: below - should we...
+                // check "runtime" folder
+                // switch to runtimes folder, where we need to filter by RID
+                // next we need to enter into the correct framework directory
+
+                // now we need to filter by platform RID if such folders exist
+                // var rid = RuntimeIdentifier;
+            }
+
+            // now we have the package framework directory, search for the assembly in it
+            var directory = packageFrameworkDir.Value.Directory;
+            var assemblyFile = Path.Combine(directory.FullName, $"{name}.dll");
+            if (!File.Exists(assemblyFile))
+            {
+                Log.Error($"{debugName!}: NuGet package assembly {assemblyFile} does not exist");
+                node = null;
+                return false;
+            }
+
+            try
+            {
+                var assembly = _nugetContext.LoadFromAssemblyPath(assemblyFile);
+                node = new AssemblyTreeNode(assembly, _nugetContext, true, true, _dllImportResolver);
+                Log.Debug($"{debugName!}: Loaded assembly {asmName.FullName} from nuget package {packageDirName} version {versionString}");
+                return true;
+            }
+            catch (Exception e)
+            {
+                Log.Error($"{debugName!}: Failed to load assembly {asmName.FullName} from nuget package: {e}");
+                node = null;
+                return false;
+            }
+
+            static bool TryGetNearestVersionDirectory(DirectoryInfo baseDir, Version version, [NotNullWhen(true)] out DirectoryInfo? versionDirectory,
+                                                      [NotNullWhen(false)] out string? reason)
+            {
+                // get nearest version
+                // if the version directory does not exist, we need to find the nearest version, with a preference towards newer
+                (DirectoryInfo dir, Version version)[] versionDirectories;
+                
                 try
                 {
-                    package.Claimed = true;
-                    var assembly = _nugetContext.LoadFromAssemblyPath(package.Path);
-                    var node = new AssemblyTreeNode(assembly, _nugetContext, true, true, null);
-                    AddDependency(node);
-                    _loadedNuGetAssemblies.Add(node);
-                    Log.Debug($"{Name!}: Loaded assembly {asmName.FullName} from nuget package");
-                    return assembly;
+                    versionDirectories = baseDir.EnumerateDirectories()
+                                                .Where(x => !char.IsLetter(x.Name[0]))
+                                                .Select(x =>
+                                                        {
+                                                            // construct version from the directories
+                                                            var versionSplit = x.Name.Split('-'); // ignore postfixes like -alpha000147
+                                                            var basicVersion = versionSplit[0];
+                                                            if (versionSplit.Length <= 1) 
+                                                                return (dir: x, version: new Version(basicVersion));
+                                                            
+                                                            // grab the numeric part of the postfix as a revision number
+                                                            int startNumberIndex = -1;
+                                                            var postfix = versionSplit[1];
+                                                            for(int i = 0; i < postfix.Length; i++)
+                                                            {
+                                                                if (char.IsDigit(postfix[i]))
+                                                                {
+                                                                    startNumberIndex = i;
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            if (startNumberIndex == -1) 
+                                                                return (dir: x, version: new Version(basicVersion));
+                                                                
+                                                            int endNumberIndexExclusive = startNumberIndex + 1;
+                                                            for (; endNumberIndexExclusive < postfix.Length; endNumberIndexExclusive++)
+                                                            {
+                                                                if (!char.IsDigit(postfix[endNumberIndexExclusive]))
+                                                                {
+                                                                    break;
+                                                                }
+                                                            }
+
+                                                            var numberSpan = postfix.AsSpan(startNumberIndex, endNumberIndexExclusive - startNumberIndex);
+                                                            if (int.TryParse(numberSpan, out var revision))
+                                                            {
+                                                                versionSplit[0] += $".{revision}";
+                                                            }
+                                                            return (dir: x, version: new Version(basicVersion));
+                                                        })
+                                                .OrderBy(x => x.version)
+                                                .ToArray();
                 }
-                catch (Exception e)
+                catch (Exception e) // error parsing a version - dont really wanna deal with this right now lol
                 {
-                    Log.Error($"{Name!}: Failed to load assembly {asmName.FullName} from nuget package: {e}");
+                    reason = $"Error parsing version directories in {baseDir.FullName}: {e.Message}";
+                    versionDirectory = null;
+                    return false;
+                }
+
+                if (versionDirectories.Length == 0)
+                {
+                    reason = "No nuget version directories found";
+                    versionDirectory = null;
+                    return false;
+                }
+
+                if (TryGetNearest(versionsToSearch: versionDirectories,
+                                  version: version,
+                                  selector: v => v.Major == version.Major && v.Minor == version.Minor,
+                                  getNumber: x => x.Build == -1 ? x.Revision : x.Build,
+                                  versionDirectory: out var dir))
+                {
+                    versionDirectory = dir;
+                    reason = null;
+                    return true;
+                }
+
+                // if we have no non-breaking versions, we need to find the nearest breaking version
+                if (TryGetNearest(versionsToSearch: versionDirectories,
+                                  version: version,
+                                  selector: v => v.Major == version.Major,
+                                  getNumber: x => x.Minor,
+                                  versionDirectory: out dir))
+                {
+                    versionDirectory = dir;
+                    reason = null;
+                    return true;
+                }
+
+                // if we have none with the same major version, time to go nuclear
+                if (TryGetNearest(versionsToSearch: versionDirectories,
+                                  version: version,
+                                  selector: v => true, // any version
+                                  getNumber: x => x.Major,
+                                  versionDirectory: out dir))
+                {
+                    versionDirectory = dir;
+                    reason = null;
+                    return true;
+                }
+
+                versionDirectory = versionDirectories[0].dir; // fallback to the first version directory
+                reason = $"No suitable version directory found for {version} in {baseDir.FullName}, using {versionDirectory.Name} instead";
+                return true;
+
+                static bool TryGetNearest((DirectoryInfo dir, Version version)[] versionsToSearch, Version version, Func<Version, bool> selector,
+                                          Func<Version, int> getNumber, [NotNullWhen(true)] out DirectoryInfo? versionDirectory)
+                {
+                    var selected = versionsToSearch
+                                   .Where(x => selector(x.version))
+                                   .ToArray();
+                    switch (versionsToSearch.Length)
+                    {
+                        case 0:
+                            versionDirectory = null;
+                            return false;
+                        case 1:
+                            versionDirectory = versionsToSearch[0].dir;
+                            return true;
+                    }
+
+                    var versionNumber = getNumber(version);
+
+                    // order by preference - higher versions preferred,
+                    Array.Sort(versionsToSearch,
+                               comparison: (x, y) => (versionNumber - getNumber(x.version)).CompareTo(versionNumber - getNumber(y.version)));
+                    versionDirectory = versionsToSearch[0].dir;
+                    return true;
                 }
             }
         }
 
-        // guess we didn't find it :(
-        return null;
+        static NuGetFramework AsNuGetFramework(string rawName)
+        {
+            var frameworkParts = rawName.Split(',');
+            if (frameworkParts.Length == 1)
+                return new NuGetFramework(frameworkParts[0]);
+
+            try
+            {
+                var versionPart = frameworkParts[1];
+                const string versionPrefix = "Version=v";
+                if (versionPart.StartsWith(versionPrefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    versionPart = versionPart[versionPrefix.Length..];
+                }
+
+                var version = new Version(versionPart);
+                return new NuGetFramework(frameworkParts[0], version);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"Failed to parse version from framework name '{rawName}': {e}");
+                return new NuGetFramework(frameworkParts[0]);
+            }
+        }
+    }
+
+    private readonly record struct NugetFrameworkDirectory(DirectoryInfo Directory, NuGetFramework Framework) : IFrameworkSpecific
+    {
+        NuGetFramework IFrameworkSpecific.TargetFramework => Framework;
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
     {
         #if DEBUG
-        if(_unloaded)
+        if (_unloaded)
         {
             Log.Error($"{Name!}: Attempted to load assembly {assemblyName} after unload");
             return null;
         }
         #endif
-        
+
         var name = assemblyName.GetNameSafe();
 
         foreach (var coreRef in CoreNodes)
@@ -378,52 +659,78 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         return OnResolving(assemblyName);
     }
 
-    public bool TryLoadNativeDll(string name)
+    private static IntPtr NativeDllResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
-        var rootAssembly = Root?.Assembly;
-        if(rootAssembly == null)
-        {
-            Log.Error($"{Name!}: Root assembly is null, cannot load native dll {name}");
-            return false;
-        }
+        //Log.Debug($"{assembly.FullName}: Resolving native dll {libraryName} for assembly {assembly.FullName}");
+        const DllImportSearchPath defaultSearchPath = DllImportSearchPath.AssemblyDirectory
+                                                      | DllImportSearchPath.UseDllDirectoryForDependencies
+                                                      | DllImportSearchPath.ApplicationDirectory;
 
-        const DllImportSearchPath searchPath = DllImportSearchPath.AssemblyDirectory | 
-                                               DllImportSearchPath.UseDllDirectoryForDependencies |
-                                               DllImportSearchPath.ApplicationDirectory;
-        if(NativeLibrary.TryLoad(name, rootAssembly, searchPath, out var handle))
+        if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? defaultSearchPath, out var handle))
         {
-            Log.Debug($"{Name!}: Successfully loaded native dll {name}");
-            return true;
-        }
-        
-        Log.Error($"{Name!}: Failed to load native dll {name}");
-        return false;
-    }
-    
-    private IntPtr NativeDllResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
-    {
-        Log.Debug($"{Name!}: Resolving native dll {libraryName} for assembly {assembly.FullName}");
-        if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? DllImportSearchPath.AssemblyDirectory, out var handle))
-        {
-            Log.Debug($"{Name!}: Successfully resolved native dll {libraryName}");
+            //Log.Debug($"{assembly.FullName!}: Successfully resolved native dll {libraryName}");
             return handle;
         }
 
-        Log.Error($"{Name!}: Failed to resolve native dll {libraryName}");
+        Log.Error($"{assembly.FullName!}: Failed to resolve native dll {libraryName} relative to assembly '{assembly.Location}'");
         return IntPtr.Zero;
     }
 
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
-        Log.Info($"{Name!}: Attempting to load unmanaged dll: {unmanagedDllName}");
-        if (!unmanagedDllName.EndsWith(".dll"))
+        // manual dll resolution with the potential of having nothing but the name of the dll sans the extension
+        string fullPath;
+        bool pathFullyQualified = false;
+        if (Path.IsPathFullyQualified(unmanagedDllName))
         {
-            unmanagedDllName += ".dll";
+            fullPath = unmanagedDllName;
+            pathFullyQualified = true;
         }
-        
-        
-        var fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName);
-        return LoadUnmanagedDllFromPath(fullPath);
+        else if (!unmanagedDllName.EndsWith(".dll"))
+        {
+            fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName + ".dll");
+        }
+        else
+        {
+            fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName);
+        }
+
+        if (File.Exists(fullPath))
+        {
+            try
+            {
+                return LoadUnmanagedDllFromPath(fullPath);
+            }
+            catch (Exception e)
+            {
+                Log.Error($"{Name!}: Failed to load unmanaged dll {unmanagedDllName} from path {fullPath}: {e}");
+                return IntPtr.Zero;
+            }
+        }
+
+        // check for the .so extension on linux/mac
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
+            RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+        {
+            var unixPath = pathFullyQualified
+                               ? Path.ChangeExtension(fullPath, ".so")
+                               : Path.Combine(_nativeDllDirectory, unmanagedDllName + ".so");
+
+            if (File.Exists(unixPath))
+            {
+                try
+                {
+                    return LoadUnmanagedDllFromPath(unixPath);
+                }
+                catch (Exception e)
+                {
+                    Log.Error($"{Name!}: Failed to load unmanaged dll {unmanagedDllName} from unix path {unixPath}: {e}");
+                    return IntPtr.Zero;
+                }
+            }
+        }
+
+        return IntPtr.Zero;
     }
 
     private void AddDependency(AssemblyTreeNode node)
@@ -478,7 +785,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
 
     internal void BeginUnload()
     {
-        if(_unloaded)
+        if (_unloaded)
             throw new InvalidOperationException($"Assembly context {Name} already unloaded");
         _unloaded = true;
 
@@ -505,7 +812,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         {
             _loadContexts.Remove(this);
         }
-        
+
         Root = null; // dereference our assembly as we will need to reload it 
 
         try
@@ -516,7 +823,7 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
         {
             Log.Error($"{Name!}: Exception thrown on assembly unload (internal): {e}");
         }
-        
+
         try
         {
             UnloadBegan?.Invoke(this, EventArgs.Empty);
@@ -528,7 +835,6 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
 
         Unload();
     }
-
 
     private sealed class AssemblyNameAndPath(string path, string fileBasedName)
     {
@@ -564,4 +870,11 @@ internal sealed class T3AssemblyLoadContext : AssemblyLoadContext
 internal static class AssemblyNameExtensions
 {
     public static string GetNameSafe(this AssemblyName asmName) => asmName.Name ?? asmName.FullName;
+
+    // extension method
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool ContainsAll(this ReadOnlySpan<char> span, ReadOnlySpan<char> other)
+    {
+        return span.IndexOf(other) != -1;
+    }
 }
