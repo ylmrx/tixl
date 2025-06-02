@@ -7,7 +7,6 @@ namespace T3.Core.Compilation;
 
 /// <summary>
 /// This is a common info container for package loading and versioning purposes.
-/// It also sets an important environment variable for linking external projects with the installed T3 editor assemblies.
 /// </summary>
 public static class RuntimeAssemblies
 {

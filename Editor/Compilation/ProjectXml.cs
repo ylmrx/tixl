@@ -299,7 +299,7 @@ internal static partial class ProjectXml
                 }
            .ToFrozenDictionary(keySelector: x => x.Type, elementSelector: x => x.Value);
 
-    private static readonly TagValue[] _defaultReferenceTags = [new TagValue(Tag: MetadataTagType.Private, Value: "true", AddAsAttribute: true)];
+    private static readonly TagValue[] _defaultReferenceTags = [new TagValue(Tag: MetadataTagType.Private, Value: "false", AddAsAttribute: true)];
 
     private static readonly Reference[] _defaultReferences =
         [

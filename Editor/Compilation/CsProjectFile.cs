@@ -82,6 +82,7 @@ internal sealed class CsProjectFile
         public readonly CsProjectFile? CsProjectFile;
         public readonly bool NeedsUpgrade;
         public readonly bool NeedsRecompile;
+        public readonly List<string> Warnings = new();
 
         internal CsProjectLoadInfo(CsProjectFile? file, string? error)
         {
@@ -102,6 +103,40 @@ internal sealed class CsProjectFile
             var needsUpgrade = !targetFramework.Contains(currentFramework);
             NeedsUpgrade = needsUpgrade;
             NeedsRecompile = needsUpgrade;
+            
+            #region Hotfix 6-2-2025
+            // This will correct an issue with earlier project files that had an attribute set that would copy unnecessary dlls to the output directory.
+            // That would cause issues with custom Uis and whatnot.
+            // This is just an automated way to revert the issue in pre-existing projects.
+            // This can be safely removed at some point in the future when we all forget this ever happened :)
+            
+            var changed = false;
+            foreach(var group in file._projectRootElement.ItemGroups)
+            {
+                foreach(var item in group.Items)
+                {
+                    if (item.ItemType != "Reference" || !item.Include.Contains(ProjectSetup.EnvironmentVariableName)) continue;
+                    foreach (var metadata in item.Metadata)
+                    {
+                        if (!metadata.ExpressedAsAttribute || metadata.Name != "Private") continue;
+                        
+                        metadata.Value = "false"; // ensure that the T3 assemblies are not copied to the output directory
+                        var warning = $"Modified {item} ({item.Include}) to set {metadata.Name} to {metadata.Value}";
+                        Warnings.Add(warning);
+                        Log.Warning(warning);
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed)
+            {
+                Log.Debug($"Saving corrections to {file.FullPath}");
+                file._projectRootElement.Save();
+                NeedsRecompile = true;
+            }
+            
+            #endregion
         }
     }
 
