@@ -4,15 +4,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using System.Runtime.Versioning;
 using System.Threading;
 using T3.Core.IO;
 using T3.Core.Logging;
-using NuGet.Configuration;
-using NuGet.Frameworks;
 
 namespace T3.Core.Compilation;
 

@@ -285,7 +285,7 @@ public sealed partial class AssemblyInformation
 
     private static bool TryLoadReleaseInfo(string directory, [NotNullWhen(true)] out ReleaseInfo? releaseInfo)
     {
-        var filePath = Path.Combine(directory, RuntimeAssemblies.PackageInfoFileName);
+        var filePath = Path.Combine(directory, ReleaseInfo.FileName);
         if (!JsonUtils.TryLoadingJson<ReleaseInfoSerialized>(filePath, out var releaseInfoSerialized))
         {
             Log.Warning($"Could not load package info from path {filePath}");

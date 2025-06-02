@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using T3.Core.Compilation;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Resource;
@@ -16,6 +17,30 @@ namespace T3.Editor.Compilation;
 /// </summary>
 internal static partial class ProjectSetup
 {
+    public const string EnvironmentVariableName = "T3_ASSEMBLY_PATH";
+    static ProjectSetup()
+    {
+        
+        SetEnvironmentVariable(EnvironmentVariableName, RuntimeAssemblies.CoreDirectory);
+    }
+
+
+    public static string ToBasicVersionString(this Version versionPrefix)
+    {
+        return $"{versionPrefix.Major}.{versionPrefix.Minor}.{versionPrefix.Build}";
+    }
+    
+    private static void SetEnvironmentVariable(string envVar, string envValue)
+    {
+        Environment.SetEnvironmentVariable(envVar, envValue, EnvironmentVariableTarget.Process);
+
+        // todo - this will not work on linux
+        var existing = Environment.GetEnvironmentVariable(envVar, EnvironmentVariableTarget.User);
+        if (existing == envValue)
+            return;
+
+        Environment.SetEnvironmentVariable(envVar, envValue, EnvironmentVariableTarget.User);
+    }
     public static bool TryCreateProject(string nameSpace, bool shareResources, [NotNullWhen(true)] out EditableSymbolProject? newProject)
     {
         var name = nameSpace.Split('.').Last();

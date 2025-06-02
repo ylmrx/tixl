@@ -223,7 +223,7 @@ internal static partial class ProjectXml
         const string outputPathVariable = "OutputPath"; // built-in variable to get the output path of the project
 
         var task = target.AddTask("WriteLinesToFile");
-        task.SetParameter("File", UnevaluatedVariable(outputPathVariable) + '/' + RuntimeAssemblies.PackageInfoFileName);
+        task.SetParameter("File", UnevaluatedVariable(outputPathVariable) + '/' + ReleaseInfo.FileName);
         task.SetParameter("Lines", UnevaluatedVariable(fullJsonTagName));
         task.SetParameter("Overwrite", "True");
         task.SetParameter("Encoding", "UTF-8");
@@ -473,7 +473,7 @@ internal readonly struct Reference(ItemType type, string include, params TagValu
     public readonly ItemType Type = type;
 
     public readonly string Include = type == ItemType.EditorReference
-                                         ? Path.Combine(ProjectXml.UnevaluatedVariable(RuntimeAssemblies.EnvironmentVariableName), include)
+                                         ? Path.Combine(ProjectXml.UnevaluatedVariable(ProjectSetup.EnvironmentVariableName), include)
                                          : include;
 
     public readonly TagValue[] Tags = tags ?? Array.Empty<TagValue>();
