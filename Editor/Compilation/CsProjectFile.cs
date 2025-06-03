@@ -119,6 +119,8 @@ internal sealed class CsProjectFile
                     foreach (var metadata in item.Metadata)
                     {
                         if (!metadata.ExpressedAsAttribute || metadata.Name != "Private") continue;
+                        if (metadata.Value == "false")
+                            continue;
                         
                         metadata.Value = "false"; // ensure that the T3 assemblies are not copied to the output directory
                         var warning = $"Modified {item} ({item.Include}) to set {metadata.Name} to {metadata.Value}";
