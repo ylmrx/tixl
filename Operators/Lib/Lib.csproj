@@ -101,7 +101,7 @@
     <PackageReference Include="Rug.Osc" Version="1.2.5">
       <NoWarn>NU1701</NoWarn>
     </PackageReference>
-    <PackageReference Include="SharpGLTF.Core" Version="1.0.0-alpha0030" />
+    <PackageReference Include="SharpGLTF.Core" Version="1.0.4" />
     <PackageReference Include="Svg" Version="3.3.0" />
   </ItemGroup>
   <!-- Include Resources/** into output/Resources -->
