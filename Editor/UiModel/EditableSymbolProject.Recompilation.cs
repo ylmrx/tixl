@@ -240,6 +240,7 @@ internal partial class EditableSymbolProject
         }
         
         UnmarkAsSaving();
+        _lastRecompilationTimeUtc = DateTime.UtcNow;
 
         if (updatePackage)
         {

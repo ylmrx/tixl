@@ -95,7 +95,7 @@ internal sealed partial class ProjectView
                     return instance;
                 }
                 
-                throw new Exception($"Could not find instance with id {_symbolId} and child id {SymbolChildId}");
+                throw new Exception($"Could not find instance with id {_symbolId} and child id {SymbolChildId}. Symbol type: \"{Symbol.InstanceType}\"");
             }
         }
 

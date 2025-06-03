@@ -5,7 +5,6 @@ using System.Threading;
 using Newtonsoft.Json;
 using T3.Core.Model;
 using T3.Core.Operator;
-using T3.Core.SystemUi;
 
 namespace T3.Editor.UiModel;
 
@@ -24,6 +23,31 @@ internal sealed partial class EditableSymbolProject
         MarkAsSaving();
         WriteAllSymbolFilesOf(SymbolUiDict.Values);
         UnmarkAsSaving();
+    }
+
+    internal void Update(out bool needsUpdating)
+    {
+        if(CodeExternallyModified)
+        {
+            CodeExternallyModified = false;
+            if (_lastRecompilationTimeUtc.HasValue && (_lastRecompilationTimeUtc.Value - DateTime.UtcNow).TotalSeconds < 5f)
+            {
+                Log.Info($"{DisplayName}: Skipping recompilation due to a presumed-misfired file change event");
+                needsUpdating = false;
+                return;
+            }
+            
+            Log.Info($"{DisplayName}: Recompiling project due to external code change...");
+            needsUpdating = true;
+            if(!TryRecompile(false))
+            {
+                Log.Error($"{DisplayName}: Recompilation failed.");
+            }
+        }
+        else
+        {
+            needsUpdating = false;
+        }
     }
 
     internal void SaveModifiedSymbols()
@@ -186,16 +210,21 @@ internal sealed partial class EditableSymbolProject
         sw.Write(sourceCode);
     }
 
-    private void MarkAsSaving()
-    {
-        Interlocked.Increment(ref _savingCount);
-        _csFileWatcher.EnableRaisingEvents = false;
-    }
+    public bool CodeExternallyModified { get; private set; }
+    private DateTime? _lastRecompilationTimeUtc;
+
+    private void MarkAsSaving() => _csFileWatcher.EnableRaisingEvents = Interlocked.Increment(ref _savingCount) <= 0;
 
     private void UnmarkAsSaving()
     {
-        Interlocked.Decrement(ref _savingCount);
-        _csFileWatcher.EnableRaisingEvents = true;
+        var count = Interlocked.Decrement(ref _savingCount);
+        if (count < 0)
+        {
+            Log.Error($"Saving count is negative: {count}. This should not happen.");
+            _savingCount = count = 0;
+        }
+        
+        _csFileWatcher.EnableRaisingEvents = count <= 0;
     }
 
     private void OnFileChanged(object sender, FileSystemEventArgs args)
@@ -208,13 +237,15 @@ internal sealed partial class EditableSymbolProject
         if(name.EndsWith("AssemblyInfo.cs"))
             return;
 
-        TryRecompile(true);
+        CodeExternallyModified = true;
+        //TryRecompile(true); // don't recompile here - we need to make sure this happens on the main thread
     }
 
     private void OnCodeFileRenamed(object sender, RenamedEventArgs args)
     {
-        BlockingWindow.Instance.ShowMessageBox($"File {args.OldFullPath} renamed to {args.FullPath}. Please do not do this while the editor is running.");
-        TryRecompile(true);
+        Log.Error($"File {args.OldFullPath} renamed to {args.FullPath}. Please do not do this while the editor is running.");
+        CodeExternallyModified = true;
+        //TryRecompile(true); // don't recompile here - we need to make sure this happens on the main thread
     }
 
     public override void LocateSourceCodeFiles()
