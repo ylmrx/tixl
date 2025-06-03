@@ -321,21 +321,49 @@ internal partial class EditableSymbolProject
         }
 
         bool success = true;
-        if(!newDestinationProject.TryRecompile(false) || !(newDestinationProject != this && !TryRecompile(false)))
+        if (newDestinationProject != this)
         {
-            // revert 
-            if(newDestinationProject != this)
+            newDestinationProject.MarkAsSaving(); // prevent unnecessary alerts while moving symbol files during save
+            if (!TryRecompile(false))
             {
-                newDestinationProject.GiveSymbolToPackage(id, this);
-                newDestinationProject.SaveModifiedSymbols();
+                newDestinationProject.UnmarkAsSaving();
+                Revert();
+            }
+            else
+            {
+                newDestinationProject.UnmarkAsSaving();
+                if (!newDestinationProject.TryRecompile(false))
+                {
+                    Revert();
+                }
             }
             
-            _pendingSource[id] = originalCode;
-            SaveModifiedSymbols();
-            success = false;
+            ProjectSetup.UpdateSymbolPackages(this, newDestinationProject);
+
+            void Revert()
+            {
+                // revert 
+                success = false;
+                newDestinationProject.GiveSymbolToPackage(id, this);
+                newDestinationProject.SaveModifiedSymbols();
+                _pendingSource[id] = originalCode;
+                SaveModifiedSymbols();
+            }
+        }
+        else
+        {
+            if (!TryRecompile(false))
+            {
+                success = false;
+
+                // revert changes
+                _pendingSource[id] = originalCode;
+                SaveModifiedSymbols();
+            }
+            
+            ProjectSetup.UpdateSymbolPackages(this);
         }
         
-        ProjectSetup.UpdateSymbolPackages(this, newDestinationProject);
         return success;
     }
 
