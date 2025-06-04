@@ -1,3 +1,4 @@
+#nullable enable
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using Lib.Utils;
@@ -5,21 +6,22 @@ using Svg;
 using Svg.Pathing;
 using Svg.Transforms;
 using T3.Core.Utils;
+// ReSharper disable MemberCanBePrivate.Global
 
 // ReSharper disable TooWideLocalVariableScope
 // ReSharper disable CheckNamespace
 
 namespace Lib.point.io;
 
-[Guid("3d862455-6a7b-4bf6-a159-e4f7cdba6062")]
 /**
  * This operator is a compromise: Please also review the additional documentation
  * on the wiki: https://github.com/tixl3d/tixl/wiki/SvgLineFonts
  */
+[Guid("3d862455-6a7b-4bf6-a159-e4f7cdba6062")]
 internal sealed class LineTextPoints : Instance<LineTextPoints>
 {
     [Output(Guid = "618e9151-cd91-4aa6-9d91-4bb51610cc8b")]
-    public readonly Slot<StructuredList> ResultList = new();
+    public readonly Slot<StructuredList?> ResultList = new();
 
     public LineTextPoints()
     {
@@ -66,15 +68,23 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
 
         var horizontalAlign = HorizontalAlign.GetEnumValue<HorizontalAligns>(context);
         var verticalAlign = VerticalAlign.GetEnumValue<VerticalAligns>(context);
-
+        
         var characterSpacing = Spacing.GetValue(context);
         var lineHeightFactor = LineHeight.GetValue(context);
-
+        
         var verticalFlip = _lineFont.UnitsPerEm < 0 ? 1 : -1;
         var cursorLineHeight = MathF.Abs(_lineFont.LineHeight) * verticalFlip * lineHeightFactor;
 
+        var color = Color.GetValue(context);
+        var lineWidth = LineWidth.GetValue(context);
+        
         var position = Position.GetValue(context);
 
+        var entitySetter = SetFx1To.GetEnumValue<Entities>(context);
+
+        if (_lineFont == null)
+            return;
+        
         float cursorX = 0;
         float cursorY = 0;
 
@@ -115,6 +125,8 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
 
         var horizontalLineOffset = 0f;
         var needUpdateCurrentLineWidth = needComputeLineWidths;
+        var wordIndex = 0;
+        var lineIndex = 0;
 
         for (var index = 0; index < text.Length; index++)
         {
@@ -132,10 +144,17 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
                 cursorX = 0;
                 lastCharForKerning = 0;
                 needUpdateCurrentLineWidth = true;
+                wordIndex++;
+                lineIndex++;
                 continue;
             }
 
-            var glyph = _lineFont.GetGlyphForCharacter(c);
+            if (c == ' ')
+            {
+                wordIndex++;
+            }
+
+            var glyph = _lineFont?.GetGlyphForCharacter(c);
             if (glyph == null)
             {
                 lastCharForKerning = 0;
@@ -145,13 +164,22 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
             if (lastCharForKerning != 0)
             {
                 int key = lastCharForKerning | c;
-                if (_lineFont.KerningForPairs.TryGetValue(key, out var kerning2))
+                if (_lineFont!.KerningForPairs.TryGetValue(key, out var kerning2))
                 {
                     cursorX += kerning2;
                 }
             }
 
             var numPoints = glyph.Points.Length;
+            var entityFloat = entitySetter switch
+                                  {
+                                      Entities.None       => 0,
+                                      Entities.Characters => index,
+                                      Entities.Words      => wordIndex,
+                                      Entities.Lines      => lineIndex,
+                                      _                   => throw new ArgumentOutOfRangeException()
+                                  };
+            
             for (var pointIndex = 0; pointIndex < numPoints; pointIndex++)
             {
                 var p = glyph.Points[pointIndex];
@@ -160,6 +188,10 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
                                          (cursorX - glyph.VertOriginX + pointPos.X + horizontalLineOffset) * size,
                                          (cursorY - glyph.VertOriginY + pointPos.Y) * size * verticalFlip,
                                          0) + position;
+                p.Color = color;
+                p.Scale  *= lineWidth;// keep NaN
+                p.F1 = entityFloat;
+                p.F2 = 1;
                 _points.Add(p);
             }
 
@@ -193,6 +225,9 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
 
     private float GetHorizontalLineOffset(string text, int indexAtLineStart, HorizontalAligns horizontalAligns, float characterSpacing)
     {
+        if (_lineFont == null)
+            return 0;
+        
         var widthSum = 0f;
 
         for (var index = indexAtLineStart; index < text.Length; index++)
@@ -203,11 +238,11 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
                 break;
             }
 
-            var glyph = _lineFont.GetGlyphForCharacter(c);
+            var glyph = _lineFont?.GetGlyphForCharacter(c);
             if (glyph == null)
                 continue;
 
-            widthSum += glyph.AdvanceX + characterSpacing * MathF.Abs(_lineFont.UnitsPerEm) * 0.01f;
+            widthSum += glyph.AdvanceX + characterSpacing * MathF.Abs(_lineFont!.UnitsPerEm) * 0.01f;
         }
 
         if (horizontalAligns == HorizontalAligns.Center)
@@ -266,7 +301,26 @@ internal sealed class LineTextPoints : Instance<LineTextPoints>
     [Input(Guid = "96F345D9-2E38-4AF6-937D-EE14528727E4")]
     public readonly InputSlot<float> CornerWeightBalance = new();
 
-    private LineFont _lineFont;
+    [Input(Guid = "D0B12D48-75A6-4DC5-A634-4D969EC20A29")]
+    public readonly InputSlot<Vector4> Color = new();
+
+    [Input(Guid = "72324D06-1A8E-44F1-A946-9B0E7987908E")]
+    public readonly InputSlot<float> LineWidth = new();
+
+    [Input(Guid = "585A1124-1505-49BB-8E42-9F3E9B51845C", MappedType = typeof(Entities))]
+    public readonly InputSlot<int> SetFx1To = new();
+
+    private enum Entities
+    {
+        None,
+        Characters,
+        Words,
+        Lines,
+    }
+    
+    
+    
+    private LineFont? _lineFont;
     private readonly Resource<SvgDocument> _svgResource;
     private LineFontDefinition? _lineFontKey;
 }
@@ -276,10 +330,10 @@ internal record struct LineFontDefinition(string Key, float ReduceCurveThreshold
 internal sealed class LineFont
 {
     private const int GlyphTableLength = 256;
-    private Glyph[] _glyphTable; // Lookup table for fast lookup
+    private Glyph[] _glyphTable = []; // Lookup table for fast lookup
     private readonly Dictionary<char, Glyph> _glyphsForCharacters = new(); // Fallback dictionary
 
-    public Glyph GetGlyphForCharacter(char c)
+    public Glyph? GetGlyphForCharacter(char c)
     {
         var value = (int)c;
         if (value < GlyphTableLength)
@@ -303,6 +357,7 @@ internal sealed class LineFont
         }
     }
 
+    // ReSharper disable once CollectionNeverUpdated.Global
     public readonly Dictionary<int, float> KerningForPairs = new();
     public float UnitsPerEm = 1000;
     public float Ascent = 800;
@@ -324,11 +379,11 @@ internal sealed class LineFont
             return _definitionsForFilePaths[previousKey.Value];
         }
 
-        if (previousKey.HasValue)
+        if (previousKey.HasValue && _users.TryGetValue(previousKey.Value, out var previousUsers))
         {
-            var users = _users[previousKey.Value];
-            users.Remove(user);
-            if (users.Count == 0)
+            previousUsers.Remove(user);
+            
+            if (previousUsers.Count == 0)
             {
                 _users.Remove(previousKey.Value);
                 _definitionsForFilePaths.Remove(previousKey.Value);
@@ -398,9 +453,9 @@ internal sealed class LineFont
         {
             if (svgFontChild is not SvgGlyph svgGlyph)
                 continue;
-
+            
             var points = GetPointsFromSvgGroup(font, svgGlyph);
-            if (points == null)
+            if (points.Length == 0)
                 continue;
 
             if (string.IsNullOrEmpty(svgGlyph.Unicode) || svgGlyph.Unicode.Length != 1)
@@ -414,7 +469,7 @@ internal sealed class LineFont
 
             // There are some exporters that automatically assign a "icon" range to the Id.
             // If that's the case we fall back to the GlyphName.
-            if (glyphValue > 1000 && svgGlyph?.GlyphName?.Length == 1)
+            if (glyphValue > 1000 && svgGlyph.GlyphName?.Length == 1)
             {
                 uniCode = svgGlyph.GlyphName[0];
             }
@@ -423,7 +478,7 @@ internal sealed class LineFont
                                                      {
                                                          Points = points,
                                                          UniCode = "" + uniCode,
-                                                         Name = svgGlyph.GlyphName,
+                                                         Name = svgGlyph.GlyphName!,
                                                          AdvanceX = svgGlyph.HorizAdvX,
                                                          VertOriginX = svgGlyph.VertOriginX,
                                                          VertOriginY = svgGlyph.VertOriginY,
@@ -435,7 +490,7 @@ internal sealed class LineFont
 
     private static Point[] GetPointsFromSvgGroup(LineFont font, SvgElement svgGlyph)
     {
-        var svgElements = new List<SvgElement>() { svgGlyph };
+        var svgElements = new List<SvgElement> { svgGlyph };
         var pathElements = GraphicsPathEntry.CreateFromSvgElements(svgElements, true);
 
         // Flatten and sum total point count including separators 
@@ -446,8 +501,8 @@ internal sealed class LineFont
         {
             try
             {
-                pathElement.GraphicsPath.Flatten(null, font.ReduceCurveThreshold);
-                _ = pathElement.GraphicsPath.PathPoints.Length; // Access path points to see if result is valid. 
+                pathElement.GraphicsPath?.Flatten(null, font.ReduceCurveThreshold);
+                _ = pathElement.GraphicsPath?.PathPoints.Length; // Access path points to see if result is valid. 
             }
             catch (Exception e)
             {
@@ -456,6 +511,8 @@ internal sealed class LineFont
             }
 
             var path = pathElement.GraphicsPath;
+            if (path == null)
+                continue;
 
             var pathPointCount = path.PathPoints.Length;
 
@@ -557,9 +614,9 @@ internal sealed class LineFont
     {
         //public char Char;
         public float AdvanceX = 10;
-        public Point[] Points;
-        public string UniCode;
-        public string Name;
+        public Point[] Points = [];
+        public string UniCode = string.Empty;
+        public string Name = string.Empty;
         public float VertOriginX;
         public float VertOriginY;
         public Vector2 BoundsMin;
@@ -569,7 +626,7 @@ internal sealed class LineFont
 
 internal sealed class GraphicsPathEntry
 {
-    public GraphicsPath GraphicsPath;
+    public GraphicsPath? GraphicsPath;
     public bool NeedsClosing;
 
     public static List<GraphicsPathEntry> CreateFromSvgElements(IEnumerable<SvgElement> nodes, bool importAsLines)
@@ -580,7 +637,7 @@ internal sealed class GraphicsPathEntry
 
         foreach (var node in nodes)
         {
-            GraphicsPath newPath = null;
+            GraphicsPath? newPath = null;
             switch (node)
             {
                 case SvgPath svgPath:
@@ -600,7 +657,7 @@ internal sealed class GraphicsPathEntry
 
                 case SvgPathBasedElement element:
                 {
-                    if (element is SvgRectangle { Transforms: { } } rect)
+                    if (element is SvgRectangle { Transforms: not null } rect)
                     {
                         foreach (var t in rect.Transforms)
                         {
@@ -629,7 +686,7 @@ internal sealed class GraphicsPathEntry
         return paths;
     }
 
-    private static void ConvertPathDataElements(SvgPathSegmentList svgPathSegmentList, GraphicsPath newPath, List<GraphicsPathEntry> paths)
+    private static void ConvertPathDataElements(SvgPathSegmentList? svgPathSegmentList, GraphicsPath? newPath, List<GraphicsPathEntry> paths)
     {
         if (svgPathSegmentList == null)
             return;
@@ -666,5 +723,5 @@ internal sealed class GraphicsPathEntry
         }
     }
 
-    private static ISvgRenderer _svgRenderer;
+    private static ISvgRenderer? _svgRenderer;
 }
