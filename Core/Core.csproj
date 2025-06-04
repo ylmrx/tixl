@@ -11,6 +11,7 @@
         <Platforms>AnyCPU</Platforms>
         <VersionPrefix>$(TixlVersion)</VersionPrefix>
         <Version>$(TixlVersion)</Version>
+        <Nullable>enable</Nullable>
     </PropertyGroup>
 
     <ItemGroup>
