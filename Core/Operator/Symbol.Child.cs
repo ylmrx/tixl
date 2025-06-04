@@ -166,7 +166,7 @@ public partial class Symbol
             public bool IsMultiInput => InputDefinition.IsMultiInput;
             public InputValue DefaultValue => InputDefinition.DefaultValue;
 
-            public string Name => InputDefinition.Name.SpaceCamelCap();
+            public string Name => InputDefinition.Name;
 
             /// <summary>The input value used for this symbol child</summary>
             public InputValue Value { get; }

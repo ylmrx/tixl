@@ -82,6 +82,8 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
         public float ScrollSmoothing = 0.075f;
         public float MaxCurveRadius = 350;
 
+        public bool AddSpacesToParameterNames = true;
+
         public float ClickThreshold = 5; // Increase for high-res display and pen tablets
         public bool AdjustCameraSpeedWithMouseWheel = false;
         public float CameraSpeed = 1;

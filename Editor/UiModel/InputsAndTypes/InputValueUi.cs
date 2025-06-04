@@ -9,6 +9,7 @@ using T3.Core.DataTypes.Vector;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using T3.Editor.Gui;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Graph.Legacy.Interaction.Connections;
@@ -119,7 +120,6 @@ public abstract class InputValueUi<T> : IInputUi
         if (inputSlot.Input == null)
             return InputEditStateFlags.Nothing;
 
-        var name = inputSlot.Input.Name;
         var typeColor = TypeUiRegistry.GetPropertiesForType(Type).Color;
         var compositionSymbol = compositionUi.Symbol;
         var animator = compositionSymbol.Animator;
@@ -146,6 +146,9 @@ public abstract class InputValueUi<T> : IInputUi
         var nodeSelection = components.NodeSelection;
         IReadOnlyList<ConnectionMaker.TempConnection> tempConnections = ConnectionMaker.GetTempConnectionsFor(components.GraphCanvas);
 
+        var name = inputSlot.Input.Name;
+
+        
         if (inputSlot.HasInputConnections)
         {
             editState = DrawConnectedParameter();
@@ -167,6 +170,7 @@ public abstract class InputValueUi<T> : IInputUi
             if (inputSlot.IsMultiInput)
             {
                 // Just show actual values
+
                 InputArea.DrawConnectedMultiInputHeader(name, ParameterNameWidth);
 
                 if (ImGui.BeginPopupContextItem("##parameterOptions", 0))
@@ -429,7 +433,7 @@ public abstract class InputValueUi<T> : IInputUi
                 hasStyleCount = 2;
             }
 
-            var isClicked = ImGui.Button(input.Name + "##ParamName", new Vector2(ParameterNameWidth, 0.0f));
+            var isClicked = ImGui.Button($"{input.Name.AddSpacesForImGuiOutput()}##ParamName", new Vector2(ParameterNameWidth, 0.0f));
 
             if (hasStyleCount > 0)
             {
@@ -815,7 +819,8 @@ internal static class InputArea
         ImGui.PushFont(Fonts.FontBold);
         CustomComponents.RoundedButton("##paramName", ConnectionAreaWidth, ImDrawFlags.RoundCornersTopLeft);
         ImGui.SameLine();
-        var wasClicked = ImGui.Button(name + "...##paramName", new Vector2(parameterNameWidth, 0));
+        
+        var wasClicked = ImGui.Button($"{name.AddSpacesForImGuiOutput()}...##paramName", new Vector2(parameterNameWidth, 0));
         ImGui.PopFont();
         ImGui.PopStyleColor();
         ImGui.PopStyleVar();

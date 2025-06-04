@@ -66,7 +66,8 @@ internal sealed class SettingsWindow : Window
                                                           "Value input method",
                                                           "The control that pops up when dragging on a number value"
                                                          );
-
+                    
+                    
                     changed |= FormInputs.AddInt("Value input smoothing", 
                                                  ref UserSettings.Config.ValueEditSmoothing, 
                                                  0, 20, 0.1f,
@@ -85,10 +86,7 @@ internal sealed class SettingsWindow : Window
                                                           "Allows to switch between different graphical representations.\nThis also will affect usability and performance"
                                                           );
                     
-                    changed |= FormInputs.AddCheckBox("Enable keyboard shortcut",
-                                                      ref UserSettings.Config.EnableKeyboardShortCuts,
-                                                      "This option might prevent unintended user interactions while live performing with [KeyInput] operators.",
-                                                      UserSettings.Defaults.EnableKeyboardShortCuts);
+
                     
                     if (UserSettings.Config.GraphStyle == UserSettings.GraphStyles.Magnetic)
                     {
@@ -142,6 +140,20 @@ internal sealed class SettingsWindow : Window
                                                    0.0f, 200f, 0.01f, true, "Size of the transform gizmo in 3d views",
                                                    UserSettings.Defaults.GizmoSize);
 
+                    
+                    changed |= FormInputs.AddCheckBox("Enable keyboard shortcut",
+                                                      ref UserSettings.Config.EnableKeyboardShortCuts,
+                                                      "This might prevent unintended user interactions while live performing with [KeyInput] operators.",
+                                                      UserSettings.Defaults.EnableKeyboardShortCuts);
+                    
+                    changed |= FormInputs.AddCheckBox("Readable parameter names",
+                                                      ref UserSettings.Config.AddSpacesToParameterNames,
+                                                      """
+                                                      Insert spaces to parameters names. E.g. prints "XAxisValue" becomes "X Axis Value".
+                                                      This is purely for output formatting. If you're developing, and used to PascalCase you might not need it.
+                                                      """,
+                                                      UserSettings.Defaults.AddSpacesToParameterNames);                    
+                    
                     FormInputs.AddVerticalSpace();
                     FormInputs.AddSectionSubHeader("Timeline");
 
