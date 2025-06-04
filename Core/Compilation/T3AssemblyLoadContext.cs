@@ -401,7 +401,19 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
     internal void BeginUnload()
     {
         if (_unloaded)
+        {
+            var stackTrace = new System.Diagnostics.StackTrace();
+            var frames = stackTrace.GetFrames();
+
+            if (frames != null && frames.Any(f =>
+                                                 f.GetMethod()?.DeclaringType?.FullName == "System.Runtime.Loader.AssemblyLoadContext"
+                                                 && f.GetMethod()?.Name == "OnProcessExit"))
+            {
+                return; // Suppress exception during shutdown
+            }
+            
             throw new InvalidOperationException($"Assembly context {Name} already unloaded");
+        }
         _unloaded = true;
 
         lock (_dependencyLock)
