@@ -168,7 +168,7 @@ public static class BeatSynchronizer
         // -0.3   ****  faster but jittery
         // -0.7     **  too jumpy
         // -1.0      *  erratic
-        double proportionalBpmAdjustment = -0.6f;
+        double proportionalBpmAdjustment = -0.4f;
 
         // High values result in a "pumping" effect. 
         double phaseAdjustmentAmount = 0.01f;
@@ -232,7 +232,7 @@ public static class BeatSynchronizer
 
         // Check for onset specific to this type
         var hasEnoughPause = (currentTimeMs - _lastAnyOnsetDetectionTimes[typeIndex]) > MinOnsetIntervalMs;
-        var hasEnoughStrength = currentStrength > averageStrength * band.OnSetThresholdFactor * 1.2f;
+        var hasEnoughStrength = currentStrength > averageStrength * band.OnSetThresholdFactor * 1.4f;
 
         return hasEnoughPause && hasEnoughStrength;
     }
@@ -276,8 +276,8 @@ public static class BeatSynchronizer
     private static readonly FrequencyBand[] _bands =
         [
             new(FrequencyRangeType.Bass, 0, 7, 3.5f),
-            new(FrequencyRangeType.Snare, 4, 26, 2.5f),
-            new(FrequencyRangeType.Hihat, 20, 31, 2.5f),
+            new(FrequencyRangeType.Snare, 4, 26, 3.0f),
+            new(FrequencyRangeType.Hihat, 20, 31, 3.0f),
         ];
 
     // Rhythmic Template Definition (now an array)
@@ -303,7 +303,7 @@ public static class BeatSynchronizer
                 ],
             // Hihat
                 [
-                    new RhythmicTemplate { NormalizedBarPosition = 0.000f, ImpactWeight = 0.5f, ToleranceMs = 60 },
+                    new RhythmicTemplate { NormalizedBarPosition = 0.000f, ImpactWeight = 1.0f, ToleranceMs = 60 },
                     new RhythmicTemplate { NormalizedBarPosition = 0.125f, ImpactWeight = 0.7f, ToleranceMs = 60 },
                     new RhythmicTemplate { NormalizedBarPosition = 0.250f, ImpactWeight = 0.5f, ToleranceMs = 60 },
                     new RhythmicTemplate { NormalizedBarPosition = 0.375f, ImpactWeight = 0.7f, ToleranceMs = 60 },

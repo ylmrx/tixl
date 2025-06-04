@@ -111,12 +111,12 @@ public static class WasapiAudioInput
         BassWasapi.Stop();
         BassWasapi.Free();
         if (!BassWasapi.Init(inputDeviceIndex,
-                             Frequency: 0,
+                             Frequency: device.DeviceInfo.MixFrequency,
                              Channels: 0,
                              //Flags: WasapiInitFlags.Buffer | WasapiInitFlags.Exclusive,
                              Flags: WasapiInitFlags.Buffer,
-                             Buffer: (float)device.DeviceInfo.DefaultUpdatePeriod,
-                             Period: (float)device.DeviceInfo.DefaultUpdatePeriod,
+                             Buffer: (float)device.DeviceInfo.MinimumUpdatePeriod*4,
+                             Period: (float)device.DeviceInfo.MinimumUpdatePeriod,
                              Procedure: ProcessDataCallback,
                              User: IntPtr.Zero))
         {
