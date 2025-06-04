@@ -94,7 +94,7 @@ internal sealed class CameraWithRotation : Instance<CameraWithRotation>, ICamera
 
         _camDef = new CameraDefinition
                       {
-                          ClipPlanes = ClipPlanes.GetValue(context),
+                          NearFarClip = ClipPlanes.GetValue(context),
                           LensShift = LensShift.GetValue(context),
                           PositionOffset = PositionOffset.GetValue(context),
                           Position = position,
@@ -107,7 +107,7 @@ internal sealed class CameraWithRotation : Instance<CameraWithRotation>, ICamera
                           OffsetAffectsTarget = AlsoOffsetTarget.GetValue(context)
                       };
 
-        var camToClipSpace = GraphicsMath.PerspectiveFovRH(_camDef.FieldOfView, _camDef.AspectRatio, _camDef.ClipPlanes.X, _camDef.ClipPlanes.Y);
+        var camToClipSpace = GraphicsMath.PerspectiveFovRH(_camDef.FieldOfView, _camDef.AspectRatio, _camDef.NearFarClip.X, _camDef.NearFarClip.Y);
         camToClipSpace.M31 = _camDef.LensShift.X;
         camToClipSpace.M32 = _camDef.LensShift.Y;
 

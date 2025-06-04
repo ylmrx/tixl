@@ -57,7 +57,7 @@ internal sealed class Camera : Instance<Camera>, ICamera, ICameraPropertiesProvi
 
         _cameraDefinition = new CameraDefinition
                                 {
-                                    ClipPlanes = ClipPlanes.GetValue(context),
+                                    NearFarClip = ClipPlanes.GetValue(context),
                                     LensShift = LensShift.GetValue(context),
                                     PositionOffset = PositionOffset.GetValue(context),
                                     Position = Position.GetValue(context),

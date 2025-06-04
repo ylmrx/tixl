@@ -16,7 +16,7 @@ public interface ICamera
 
 public struct CameraDefinition
 {
-    public Vector2 ClipPlanes;
+    public Vector2 NearFarClip;
     public Vector2 LensShift;
     public Vector3 PositionOffset;
     public Vector3 Position;
@@ -32,7 +32,7 @@ public struct CameraDefinition
     {
         return new CameraDefinition
                    {
-                       ClipPlanes = MathUtils.Lerp(a.ClipPlanes, b.ClipPlanes, f),
+                       NearFarClip = MathUtils.Lerp(a.NearFarClip, b.NearFarClip, f),
                        LensShift = MathUtils.Lerp(a.LensShift, b.LensShift, f),
                        PositionOffset = MathUtils.Lerp(a.PositionOffset, b.PositionOffset, f),
                        Position = MathUtils.Lerp(a.Position, b.Position, f),
@@ -48,7 +48,7 @@ public struct CameraDefinition
 
     public void BuildProjectionMatrices(out Matrix4x4 camToClipSpace, out Matrix4x4 worldToCamera)
     {
-        camToClipSpace = GraphicsMath.PerspectiveFovRH(FieldOfView, AspectRatio, ClipPlanes.X, ClipPlanes.Y);
+        camToClipSpace = GraphicsMath.PerspectiveFovRH(FieldOfView, AspectRatio, NearFarClip.X, NearFarClip.Y);
         camToClipSpace.M31 = LensShift.X;
         camToClipSpace.M32 = LensShift.Y;
 
