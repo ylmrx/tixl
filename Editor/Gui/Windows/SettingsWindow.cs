@@ -239,9 +239,30 @@ internal sealed class SettingsWindow : Window
 
                 case Categories.Project:
                 {
+                    var projectSettingsChanged = false;
                     FormInputs.AddSectionHeader("Project specific settings");
                     FormInputs.AddVerticalSpace();
 
+                    FormInputs.AddSectionSubHeader("Performance Settings");
+                    FormInputs.SetIndentToLeft();
+
+                    projectSettingsChanged |= FormInputs.AddCheckBox("Skip Shader Optimization",
+                                                                     ref ProjectSettings.Config.SkipOptimization,
+                                                                     "This make working with shader graphs easier.",
+                                                                     ProjectSettings.Config.SkipOptimization);
+                    
+                    projectSettingsChanged |= FormInputs.AddCheckBox("Enable DirectX Debug Mode",
+                                                                     ref ProjectSettings.Config.EnableDirectXDebug,
+                                                                     """
+                                                                     This will add debug information for to shaders and buffers that can help developing wiht Tools like RenderDoc.
+                                                                     Enabling this can impact rendering performance.
+
+                                                                     Changing this option requires a restart.
+                                                                     """,
+                                                                     ProjectSettings.Config.EnableDirectXDebug);
+                    FormInputs.SetIndentToParameters();
+                    FormInputs.AddVerticalSpace();
+                    FormInputs.AddSectionSubHeader("Project Settings");
                     changed |= FormInputs.AddStringInput("Project Directory",
                                                          ref UserSettings.Config.ProjectsFolder,
                                                          "Nickname",
@@ -265,7 +286,6 @@ internal sealed class SettingsWindow : Window
                     FormInputs.AddVerticalSpace();
                     
                     FormInputs.AddSectionSubHeader("Export Settings");
-                    var projectSettingsChanged = false;
                     CustomComponents.HelpText("These settings only when playback as executable");
                     FormInputs.AddVerticalSpace();
 
@@ -279,10 +299,7 @@ internal sealed class SettingsWindow : Window
                                                                      "Users can use cursor left/right to skip through time\nand space key to pause playback\nof exported executable.",
                                                                      ProjectSettings.Defaults.EnablePlaybackControlWithKeyboard);
 
-                    projectSettingsChanged |= FormInputs.AddCheckBox("Skip Shader Optimization",
-                                                                     ref ProjectSettings.Config.SkipOptimization,
-                                                                     "This make working with shadergraphs easier.",
-                                                                     ProjectSettings.Config.SkipOptimization);
+
 
                     if (projectSettingsChanged)
                         ProjectSettings.Save();
