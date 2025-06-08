@@ -91,11 +91,6 @@ float3 GetNormalNonNormalized(float3 p)
     //);
 }
 
-inline float fmod(float x, float y)
-{
-    return (x - y * floor(x / y));
-}
-
 #define PI acos(-1.)
 #define INFINITY pow(2., 8.)
 
