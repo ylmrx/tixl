@@ -6,8 +6,8 @@
     {
       "InputId": "0b4d60de-261f-4dbf-ad44-6395cda3a496"/*MinDistance*/,
       "Position": {
-        "X": 218.2935,
-        "Y": 808.45105
+        "X": 104.6602,
+        "Y": 720.8185
       },
       "Description": "The distance threshold when the raymarching is marked as completed.",
       "Min": 0.0,
@@ -17,16 +17,16 @@
     {
       "InputId": "1251368b-f8f4-4210-be1e-4d05223caf21"/*DistToColor*/,
       "Position": {
-        "X": 218.2935,
-        "Y": 1263.451
+        "X": 104.6602,
+        "Y": 1175.8185
       },
       "Description": "A minor factor that can help to reduce edge artifacts for compositing into the scene."
     },
     {
       "InputId": "3148d927-8779-47ab-9e0a-fa63206f3002"/*MaxSteps*/,
       "Position": {
-        "X": 218.2935,
-        "Y": 738.45105
+        "X": 104.6602,
+        "Y": 650.8185
       },
       "GroupTitle": "Quality",
       "Description": "The number of raymarching steps. This has a major impact on the quality and performance. Normal values are between 50 and 150.\n",
@@ -37,23 +37,23 @@
       "InputId": "340ca675-9356-4548-ba64-732181bebeef"/*SdfField*/,
       "Relevancy": "Required",
       "Position": {
-        "X": 589.1019,
-        "Y": 420.65332
+        "X": 541.9152,
+        "Y": 351.31775
       }
     },
     {
       "InputId": "3a23730d-09b9-44bd-84b7-c252dd83e1f9"/*UVMapping*/,
       "Position": {
-        "X": 309.10193,
-        "Y": 560.6533
+        "X": 261.91522,
+        "Y": 491.31775
       },
       "Description": "Provides various options to generate UVs for the field."
     },
     {
       "InputId": "561768f6-adf6-4d3d-a36a-20b6f35ff151"/*StepSize*/,
       "Position": {
-        "X": 218.2935,
-        "Y": 773.45105
+        "X": 104.6602,
+        "Y": 685.8185
       },
       "Description": "An initial scaling factor. Lowering this can be useful to reduce artifacts caused by invalid Lipschitz continuities (e.g. by applying noise).",
       "Min": 0.9,
@@ -62,24 +62,24 @@
     {
       "InputId": "89218016-a0ca-4150-95d4-23f415cf07f0"/*TextureScale*/,
       "Position": {
-        "X": 218.2935,
-        "Y": 1158.4509
+        "X": 104.6602,
+        "Y": 1070.8182
       },
       "Description": "Scale texture defined by the [SetMaterial]."
     },
     {
       "InputId": "9715075b-b02b-4290-9332-9bbfe67933f2"/*Color*/,
       "Position": {
-        "X": 78.29352,
-        "Y": 878.45105
+        "X": -35.339783,
+        "Y": 790.8185
       },
       "Description": "A color multiplier. You could also use [SetSDFMaterial] or [SetMaterial] for this."
     },
     {
       "InputId": "adeb374b-bce0-4af2-867b-efb3ce6289c9"/*MaxDistance*/,
       "Position": {
-        "X": 218.29349,
-        "Y": 843.45105
+        "X": 104.66019,
+        "Y": 755.8185
       },
       "Description": "A threshold after which the raymarching is aborted.",
       "Min": 0.0,
@@ -88,8 +88,8 @@
     {
       "InputId": "e3a85c27-b94c-4e77-b0c2-4644cd3a22d4"/*AmbientOcclusion*/,
       "Position": {
-        "X": 78.29346,
-        "Y": 1018.45105
+        "X": -35.339844,
+        "Y": 930.8185
       },
       "Description": "Will apply an ambient occlusion color depending on the AO Distance parameter.\nYou can use the alpha channel to control the intensity.\nAlso try light colors to add some kind of inner glow effect.",
       "AddPadding": "True"
@@ -97,8 +97,8 @@
     {
       "InputId": "f14e7a2f-cd4e-4399-b137-ea0b87c7dfbd"/*NormalSamplingD*/,
       "Position": {
-        "X": 218.29349,
-        "Y": 1228.451
+        "X": 104.66019,
+        "Y": 1140.8185
       },
       "Description": "Defines the look-up distance when calculating the surface normal. This controls how sharp objects appear.\nToo small values will cause artifacts. Larger values will apply some sort of smoothing effect.",
       "AddPadding": "True",
@@ -108,8 +108,8 @@
     {
       "InputId": "ffb73f4d-6d24-4f4c-866b-5bdd6f876e6f"/*AoDistance*/,
       "Position": {
-        "X": 218.29349,
-        "Y": 1193.4509
+        "X": 104.66019,
+        "Y": 1105.8182
       },
       "GroupTitle": "Appearance",
       "Description": "Controls the distance and intensity of the Ambient Occlusion."
@@ -133,8 +133,8 @@
     {
       "ChildId": "0667216d-478f-4854-a1e6-6b311b598306"/*PickStringPart*/,
       "Position": {
-        "X": 449.10193,
-        "Y": 525.6533
+        "X": 401.91522,
+        "Y": 456.31775
       }
     },
     {
@@ -203,8 +203,8 @@
     {
       "ChildId": "41605222-0a75-4d34-a466-0aa5e3c5cb91"/*ReadFile*/,
       "Position": {
-        "X": 449.10193,
-        "Y": 490.65332
+        "X": 401.91522,
+        "Y": 421.31775
       }
     },
     {
@@ -271,8 +271,8 @@
         "Y": 751.5494
       },
       "Position": {
-        "X": 358.2935,
-        "Y": 703.45105
+        "X": 244.66019,
+        "Y": 615.8185
       }
     },
     {
@@ -292,8 +292,8 @@
     {
       "ChildId": "b8773240-5218-4217-8475-975199bc0235"/*GenerateShaderGraphCode*/,
       "Position": {
-        "X": 589.1019,
-        "Y": 455.65332
+        "X": 541.9152,
+        "Y": 386.31775
       }
     },
     {
@@ -306,8 +306,8 @@
     {
       "ChildId": "d211bef5-f50f-447f-aa59-fd771fb0115d"/*Vector4Components*/,
       "Position": {
-        "X": 218.29349,
-        "Y": 878.45105
+        "X": 104.66019,
+        "Y": 790.8185
       }
     },
     {
@@ -320,8 +320,8 @@
     {
       "ChildId": "db0daf0f-2e6b-4252-86f6-cb6c882bf3ed"/*Vector4Components*/,
       "Position": {
-        "X": 218.29349,
-        "Y": 1018.45105
+        "X": 104.66019,
+        "Y": 930.8185
       }
     },
     {
