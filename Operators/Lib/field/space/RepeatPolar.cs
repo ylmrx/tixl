@@ -4,13 +4,13 @@ using T3.Core.Utils;
 namespace Lib.field.space;
 
 [Guid("1d9f133d-eba6-4b28-9dfd-08f6c5417ed6")]
-internal sealed class PolarRepeat : Instance<PolarRepeat>
-                                  , IGraphNodeOp
+internal sealed class RepeatPolar : Instance<RepeatPolar>
+,IGraphNodeOp
 {
     [Output(Guid = "de78d5d8-b232-44f6-ab18-cc765f81eb38")]
     public readonly Slot<ShaderGraphNode> Result = new();
 
-    public PolarRepeat()
+    public RepeatPolar()
     {
         ShaderNode = new ShaderGraphNode(this, null, InputField);
         Result.Value = ShaderNode;
