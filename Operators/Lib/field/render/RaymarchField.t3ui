@@ -70,8 +70,8 @@
     {
       "InputId": "9715075b-b02b-4290-9332-9bbfe67933f2"/*Color*/,
       "Position": {
-        "X": -35.339783,
-        "Y": 790.8185
+        "X": -486.14932,
+        "Y": 794.4215
       },
       "Description": "A color multiplier. You could also use [SetSDFMaterial] or [SetMaterial] for this."
     },
@@ -145,27 +145,6 @@
       }
     },
     {
-      "ChildId": "0a8c9314-35b3-410c-a2ea-560f15320e7d"/*SetPixelAndVertexShaderStage*/,
-      "Position": {
-        "X": 1097.4438,
-        "Y": 1398.1482
-      }
-    },
-    {
-      "ChildId": "18a07e70-e561-4fab-9272-41f53bdc94e0"/*SamplerState*/,
-      "Position": {
-        "X": 957.44385,
-        "Y": 1923.1482
-      }
-    },
-    {
-      "ChildId": "1d17bbd1-b403-4b76-9048-74df06416a66"/*SrvFromTexture2d*/,
-      "Position": {
-        "X": 957.44385,
-        "Y": 1853.1482
-      }
-    },
-    {
       "ChildId": "1d29ab95-330a-48d5-a0f3-76ce20ba669b"/*Draw*/,
       "Position": {
         "X": 1350.3239,
@@ -187,13 +166,6 @@
       }
     },
     {
-      "ChildId": "30b64d06-d22b-46d1-82ca-ec54d9b9dcba"/*GetPbrParameters*/,
-      "Position": {
-        "X": 817.44385,
-        "Y": 1643.1482
-      }
-    },
-    {
       "ChildId": "3e87843d-7eb1-414e-9857-0e8db741ac3b"/*SamplerState*/,
       "Position": {
         "X": 852.9934,
@@ -205,13 +177,6 @@
       "Position": {
         "X": 401.91522,
         "Y": 421.31775
-      }
-    },
-    {
-      "ChildId": "45ca55ac-763b-4466-b4fd-e3e8b9581ae1"/*TransformsConstBuffer*/,
-      "Position": {
-        "X": 957.44385,
-        "Y": 1538.1482
       }
     },
     {
@@ -250,17 +215,10 @@
       }
     },
     {
-      "ChildId": "961f2082-4e36-4a44-967c-fa0576700f1c"/*clampedSampler*/,
+      "ChildId": "963ef259-cf61-4a33-bbcb-479da9d729c5"/*BlendColors*/,
       "Position": {
-        "X": 957.44385,
-        "Y": 1958.1482
-      }
-    },
-    {
-      "ChildId": "a0a5bf66-c03a-4279-995b-ebce612330c7"/*ContextCBuffers*/,
-      "Position": {
-        "X": 957.44385,
-        "Y": 1573.1482
+        "X": -346.14932,
+        "Y": 794.4215
       }
     },
     {
@@ -311,13 +269,6 @@
       }
     },
     {
-      "ChildId": "d42c25ed-6a0d-441d-81e5-46afb1cc1fb0"/*PixelShaderFromSource*/,
-      "Position": {
-        "X": 957.44385,
-        "Y": 1433.1482
-      }
-    },
-    {
       "ChildId": "db0daf0f-2e6b-4252-86f6-cb6c882bf3ed"/*Vector4Components*/,
       "Position": {
         "X": 104.66019,
@@ -343,6 +294,13 @@
       "Position": {
         "X": 1169.585,
         "Y": 272.71463
+      }
+    },
+    {
+      "ChildId": "fe2fd76e-15eb-4ea0-9356-042577214232"/*GetForegroundColor*/,
+      "Position": {
+        "X": -486.14932,
+        "Y": 829.4215
       }
     }
   ],
