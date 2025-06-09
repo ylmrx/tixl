@@ -16,6 +16,7 @@
 - [x] Exit should ask before quit
 - [ ] Rearranging parameters with additional annotations (e.g. ShaderParameters) breaks operator 
 - [ ] Pre/Post Curve modes are applied to all (not just selected curves)
+- [ ] Indicate Pre/Post curve moves in timeline
 
 ## Project handling
 
