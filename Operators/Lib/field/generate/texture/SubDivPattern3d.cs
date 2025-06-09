@@ -2,7 +2,7 @@ using T3.Core.DataTypes.ShaderGraph;
 using T3.Core.Utils;
 using T3.Core.Utils.Geometry;
 
-namespace Lib.field.generate;
+namespace Lib.field.generate.texture;
 
 [Guid("f17aba3c-dafc-4cab-9513-ea6bc19bcb15")]
 internal sealed class SubDivPattern3d : Instance<SubDivPattern3d>
