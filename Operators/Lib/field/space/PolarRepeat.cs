@@ -22,12 +22,14 @@ internal sealed class PolarRepeat : Instance<PolarRepeat>
         ShaderNode.Update(context);
 
         var axis = Axis.GetEnumValue<AxisTypes>(context);
-        
-        var templateChanged = axis != _axis;
+        var mirror = Mirror.GetValue(context);
+
+        var templateChanged = axis != _axis || mirror != _useMirror;
         if (!templateChanged)
             return;
 
         _axis = axis;
+        _useMirror = mirror;
         ShaderNode.FlagCodeChanged();
     }
 
@@ -37,27 +39,54 @@ internal sealed class PolarRepeat : Instance<PolarRepeat>
     {
         c.Globals["Common"] = ShaderGraphIncludes.Common;
 
-        c.Globals["pModPolar"] = """
-                                 // https://mercury.sexy/hg_sdf/
-                                 void pModPolar(inout float2 p, float repetitions, float offset) {
-                                     float angle = 2*PI/repetitions;
-                                     float a = atan2(p.y, p.x) + angle/2. +  offset / (180 *PI);
-                                     float r = length(p);
-                                     float c = floor(a/angle);
-                                     a = mod(a,angle) - angle/2.;
-                                     p = float2(cos(a), sin(a))*r;
-                                 }
-                                 """;
+        if (_useMirror)
+        {
+            c.Globals["pModPolarMirror"] = """
+                                     // https://mercury.sexy/hg_sdf/
+                                     void pModPolarMirror(inout float2 p, float repetitions, float offset) {
+                                         float angle = 2.0 * PI / repetitions;
+                                         float a = atan2(p.y, p.x) + angle / 2.0 + offset / (180.0 * PI);
+                                         float r = length(p);
+                                         float c = floor(a / angle);
+                                         a = mod(a, angle) - angle / 2.0;
+                                         
+                                         // Flip every second repetition by mirroring the angle
+                                         if (mod(c, 2.0) >= 1.0) {
+                                             a = -a;
+                                         }
+                                         
+                                         p = float2(cos(a), sin(a)) * r;
+                                     }
+                                     """;            
+        }
+        else
+        {
+            c.Globals["pModPolar"] = """
+                                     // https://mercury.sexy/hg_sdf/
+                                     void pModPolar(inout float2 p, float repetitions, float offset) {
+                                         float angle = 2*PI/repetitions;
+                                         float a = atan2(p.y, p.x) + angle/2. +  offset / (180 *PI);
+                                         float r = length(p);
+                                         float c = floor(a/angle);
+                                         a = mod(a,angle) - angle/2.;
+                                         p = float2(cos(a), sin(a))*r;
+                                     }
+                                     """;
+        }
     }
     
     void IGraphNodeOp.GetPreShaderCode(CodeAssembleContext c, int inputIndex)
     {
-        c.AppendCall($"pModPolar(p{c}.{_axisCodes0[(int)_axis]}, {ShaderNode}Repetitions, {ShaderNode}Offset);");
+        if (_useMirror)
+        {
+            c.AppendCall($"pModPolarMirror(p{c}.{_axisCodes0[(int)_axis]}, {ShaderNode}Repetitions, {ShaderNode}Offset);");
+        }
+        else
+        {
+            c.AppendCall($"pModPolar(p{c}.{_axisCodes0[(int)_axis]}, {ShaderNode}Repetitions, {ShaderNode}Offset);");
+        }
     }
 
-    public void GetPostShaderCode(CodeAssembleContext cac, int inputIndex)
-    {
-    }
 
     private readonly string[] _axisCodes0 =
         [
@@ -67,6 +96,7 @@ internal sealed class PolarRepeat : Instance<PolarRepeat>
         ];
 
     private AxisTypes _axis;
+    private bool _useMirror;
 
     private enum AxisTypes
     {
@@ -88,4 +118,7 @@ internal sealed class PolarRepeat : Instance<PolarRepeat>
     [GraphParam]
     [Input(Guid = "A0231B91-8AB8-4591-A3DA-3CD7F3980D2F")]
     public readonly InputSlot<float> Offset = new();
+    
+    [Input(Guid = "57F25302-EA5E-40AB-9C54-9D7C3411E467")]
+    public readonly InputSlot<bool> Mirror = new();
 }
