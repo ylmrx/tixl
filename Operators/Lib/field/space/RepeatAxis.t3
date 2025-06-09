@@ -12,6 +12,10 @@
     {
       "Id": "a1b0fb9c-1e12-480c-8cf6-6bd7ed95f02e"/*Axis*/,
       "DefaultValue": 0
+    },
+    {
+      "Id": "f590393a-c318-4254-91b3-4f8e3d3de937"/*Mirror*/,
+      "DefaultValue": false
     }
   ],
   "Children": [],
