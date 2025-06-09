@@ -44,8 +44,12 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             
             DrawAllLayers(_clipSelection.AllClips, compositionOp);
             DrawContextMenu(compositionOp);
-            FormInputs.AddVerticalSpace(15);
-            ImGui.TextUnformatted("");  // Enforce application of space. Not sure why imgui requires that
+            if (_clipSelection.AllClips.Count > 0)
+            {
+                FormInputs.AddVerticalSpace(15);
+                ImGui.TextUnformatted("");  // Enforce application of space. Not sure why imgui requires that
+            }
+            
         }
         ImGui.EndGroup();
     }
