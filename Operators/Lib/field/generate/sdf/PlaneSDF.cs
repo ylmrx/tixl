@@ -36,7 +36,8 @@ internal sealed class PlaneSDF : Instance<PlaneSDF>
     public void GetPreShaderCode(CodeAssembleContext c, int inputIndex)
     {
         var a = _axisCodes0[(int)_axis];
-        c.AppendCall($"f{c}.w = p{c}.{a} + {ShaderNode}Center.{a};");
+        var sign = _axisSigns[(int)_axis];
+        c.AppendCall($"f{c}.w = {sign}p{c}.{a} + {ShaderNode}Center.{a};");
     }
 
     private readonly string[] _axisCodes0 =
@@ -44,6 +45,19 @@ internal sealed class PlaneSDF : Instance<PlaneSDF>
             "x",
             "y",
             "z",
+            "x",
+            "y",
+            "z",
+        ];
+    
+    private readonly string[] _axisSigns =
+        [
+            "",
+            "",
+            "",
+            "-",
+            "-",
+            "-",
         ];
 
     private AxisTypes _axis;
@@ -53,6 +67,9 @@ internal sealed class PlaneSDF : Instance<PlaneSDF>
         X,
         Y,
         Z,
+        NegX,
+        NegY,
+        NegZ,
     }
 
     [GraphParam]
