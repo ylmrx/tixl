@@ -5,7 +5,7 @@ namespace Lib.field.generate.sdf;
 
 [Guid("a54e0946-71d0-4985-90bc-184cdb1b6b34")]
 internal sealed class TorusSDF : Instance<TorusSDF>
-,IGraphNodeOp
+                               , IGraphNodeOp
 {
     [Output(Guid = "14cd4d1f-0b9b-43c4-93cc-d730c137cee8")]
     public readonly Slot<ShaderGraphNode> Result = new();
@@ -19,16 +19,16 @@ internal sealed class TorusSDF : Instance<TorusSDF>
 
     private void Update(EvaluationContext context)
     {
-        ShaderNode.Update(context);
-        
         var axis = Axis.GetEnumValue<AxisTypes>(context);
-        
-        var templateChanged = axis != _axis;
-        if (!templateChanged)
-            return;
 
-        _axis = axis;
-        ShaderNode.FlagCodeChanged();      
+        var templateChanged = axis != _axis;
+        if (templateChanged)
+        {
+            _axis = axis;
+            ShaderNode.FlagCodeChanged();
+        }
+
+        ShaderNode.Update(context);
     }
 
     public ShaderGraphNode ShaderNode { get; }
@@ -51,7 +51,7 @@ internal sealed class TorusSDF : Instance<TorusSDF>
         c.AppendCall($"f{c}.w = fTorus(p{c}.{a} - {ShaderNode}Center.{a} , {ShaderNode}Size);");
         c.AppendCall($"f{c}.xyz = p.w < 0.5 ?  p{c}.xyz : 1;"); // save local space
     }
-    
+
     private readonly string[] _axisCodes0 =
         [
             "yzx",
@@ -67,9 +67,7 @@ internal sealed class TorusSDF : Instance<TorusSDF>
         Y,
         Z,
     }
-    
 
-    
     [GraphParam]
     [Input(Guid = "dbc72bd7-6191-4145-a69f-d17b3808b3ab")]
     public readonly InputSlot<Vector3> Center = new();
@@ -77,8 +75,7 @@ internal sealed class TorusSDF : Instance<TorusSDF>
     [GraphParam]
     [Input(Guid = "5fe2ab92-f8e5-400d-b5a3-197f20570d6f")]
     public readonly InputSlot<Vector2> Size = new();
-    
+
     [Input(Guid = "522A9640-CA8C-47E6-AD36-5C316A9092AE", MappedType = typeof(AxisTypes))]
     public readonly InputSlot<int> Axis = new();
-
 }
