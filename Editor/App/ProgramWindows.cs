@@ -171,7 +171,7 @@ internal static class ProgramWindows
             }
             catch (Exception e)
             {
-                Log.Warning("Failed to create device with advanced features. Trying basic settings.");
+                Log.Warning("Failed to create device with advanced features. Trying basic settings. " + e.Message);
                 Device.CreateWithSwapChain(selectedAdapter,
                                            DeviceCreationFlags.None,
                                            levels,
