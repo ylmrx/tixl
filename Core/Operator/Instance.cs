@@ -18,7 +18,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
     public Guid SymbolChildId => SymbolChild!.Id;
 
-    internal void InitializeSymbolChildInfo(Symbol.Child child, Symbol.Child? parent, IReadOnlyList<Guid> instancePath)
+    internal void InitializeSymbolChildInfo(Symbol.Child child, Symbol.Child? parent, IReadOnlyList<Guid> instancePath, int pathHash)
     {
         if(SymbolChild != null)
             throw new InvalidOperationException("Instance already has a symbol child");
@@ -33,6 +33,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
         
         InstancePath = instancePath;
+        _pathHash = pathHash;
         SymbolChild = child;
         _parentSymbolChild = parent;
         Children = new InstanceChildren(instancePath, child);
@@ -42,6 +43,9 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
 
     private Guid[]? _parentPath;
     private Symbol.Child? _parentSymbolChild;
+    
+    internal bool NeedsReconnectionToPeers { get; set; }
+    internal bool NeedsInternalReconnections { get; set; }
     public Instance? Parent
     {
         get
@@ -117,54 +121,36 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         {
             Log.Error($"Instance {this} was not disposed properly");
             // todo : do we want to invoke disposal here? could this prevent memory leaks or other shutdown/reload issues?
+            // would it cause thread safety issues? probably..
         }
     }
 
-    internal void Dispose(SymbolPackage? packageToDispose, int hash = -1)
+    internal void Dispose(SymbolPackage? packageToDispose)
     {
-        if (packageToDispose != null && Symbol.SymbolPackage != packageToDispose)
-        {
-            // clear connections - they need to be repopulated with valid connections next time
-            
-            if(SymbolChild.TryGetOrCreateInstance(_parentPath!, out var parent, out _, false))
-            {
-                if (parent.IsDisposed)
-                {
-                    // clear our connections - we may be reassigned to another parent
-                    for (var index = 0; index < _inputs.Count; index++)
-                    {
-                        var input = _inputs[index];
-                        while (input.HasInputConnections)
-                            input.RemoveConnection();
-                    }
-                }
-            }
-            
-            // note this early return requires that no circular dependencies exist
-            // (e.g. package A has an op from package B, which contains an op from package A - big no-no)
-            // id love to keep this here but i know that it will be an issue since it is not currently enforced as far as i know
-            // so we're gonna dispose our children anyway before we return
-            // the goal is definitely to not need to though
-            Children.Dispose(packageToDispose);
-            return;
-        }
-        
         if (_hasDisposed)
         {
             throw new Exception($"{this} has already been disposed\n" + Environment.StackTrace);
         }
         
+        if (packageToDispose != null && Symbol.SymbolPackage != packageToDispose)
+        {
+            // returning without disposing of our children requires no circular dependencies exist, which is not
+            // currently enforced well as far as i know
+            // (e.g. package A has an op from package B, which contains an op from package A - big no-no)
+            // so we're gonna dispose our children anyway before we return
+            Children.Dispose(packageToDispose);
+
+            NeedsInternalReconnections = Children.Count > 0;
+            
+            // clear connections - they need to be repopulated with valid connections next time
+            // we don't clear outputs as they are solely connected to by internal instances
+            DisconnectInputs();
+            return;
+        }
+        
+
         _hasDisposed = true;
-
-        try
-        {
-            Disposing?.Invoke(this);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"Error on dispose event for {this}: {e}");
-        }
-
+        
         // kill children
         Children.Dispose(packageToDispose);
 
@@ -177,7 +163,22 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
             Log.Error($"Error disposing instance {this}: {e}");
         }
 
-        SymbolChild.RemoveDisposedInstance(this, hash);
+        SymbolChild.RemoveDisposedInstance(this, _pathHash);
+        
+        try
+        {
+            Disposing?.Invoke(this);
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Error on dispose event for {this}: {e}");
+        }
+        
+        // warning CA1816: Dispose methods should call SuppressFinalize on themselves
+        // it doesn't recognize this as a dispose method due to its argument type
+        #pragma warning disable CA1816
+        GC.SuppressFinalize(this);
+        #pragma warning restore CA1816
     }
 
     protected virtual void Dispose(bool disposing)
@@ -216,10 +217,10 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
     }
 
-    internal bool TryAddConnection(Symbol.Connection connection, int multiInputIndex)
+    internal bool TryAddConnection(Symbol.Connection connection, int multiInputIndex, bool allowCreate)
     {
-        if (!TryGetSourceSlot(connection, out var sourceSlot) || 
-            !TryGetTargetSlot(connection, out var targetSlot))
+        if (!TryGetSourceSlot(connection, out var sourceSlot, allowCreate) || 
+            !TryGetTargetSlot(connection, out var targetSlot, allowCreate))
             return false;
 
         targetSlot.AddConnection(sourceSlot, multiInputIndex);
@@ -227,7 +228,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         return true;
     }
     
-    private bool TryGetSourceSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? sourceSlot)
+    private bool TryGetSourceSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? sourceSlot, bool allowCreate)
     {
         // Get source Instance
         IEnumerable<ISlot> sourceSlotList;
@@ -239,7 +240,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
         else
         {
-            if (!Children.TryGetChildInstance(sourceParentOrChildId, out var sourceInstance))
+            if (!Children.TryGetChildInstance(sourceParentOrChildId, out var sourceInstance, allowCreate))
             {
                 sourceSlot = null;
                 return false;
@@ -265,7 +266,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         return gotSourceSlot;
     }
 
-    internal bool TryGetTargetSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? targetSlot)
+    internal bool TryGetTargetSlot(Symbol.Connection connection, [NotNullWhen(true)] out ISlot? targetSlot, bool allowCreate)
     {
         // Get target Instance
         var targetParentOrChildId = connection.TargetParentOrChildId;
@@ -277,7 +278,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         }
         else
         {
-            if (!Children.TryGetChildInstance(targetParentOrChildId, out var targetInstance))
+            if (!Children.TryGetChildInstance(targetParentOrChildId, out var targetInstance, allowCreate))
             {
                 targetSlot = null;
                 return false;
@@ -371,7 +372,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     }
 
     public IReadOnlyList<Guid> InstancePath { get; private set; }
-
+    private int? _pathHash;
     private List<SymbolPackage> _availableResourcePackages = [];
     private bool _resourceFoldersDirty = true;
 
@@ -386,6 +387,23 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
     internal void MarkResourceDirectoriesDirty()
     {
         _resourceFoldersDirty = true;
+    }
+
+    internal void DisconnectInputs()
+    {
+        // clear our connections - we may be reassigned to another parent
+        bool disconnected = false;
+        for (var index = 0; index < _inputs.Count; index++)
+        {
+            var input = _inputs[index];
+            while (input.HasInputConnections)
+            {
+                input.RemoveConnection();
+                disconnected = true;
+            }
+        }
+
+        NeedsReconnectionToPeers = disconnected;
     }
 }
 

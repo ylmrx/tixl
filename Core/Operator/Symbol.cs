@@ -70,7 +70,7 @@ public sealed partial class Symbol : IDisposable, IResource
 
         if (symbolPackage != null)
         {
-            UpdateInstanceType();
+            UpdateInstanceType(false);
         }
     }
 
@@ -216,7 +216,7 @@ public sealed partial class Symbol : IDisposable, IResource
         {
             foreach (var child in _childrenCreatedFromMe.Values)
             {
-                child.AddConnectionToInstances(connection, multiInputIndex);
+                child.AddConnectionToInstances(connection, multiInputIndex, true);
             }
         }
     }
@@ -380,4 +380,41 @@ public sealed partial class Symbol : IDisposable, IResource
     internal bool NeedsTypeUpdate { get; private set; } = true;
     private readonly ConcurrentDictionary<Guid, Child> _children = new();
     private readonly Dictionary<Guid, Child> _childrenCreatedFromMe = new();
+    
+    public bool NeedsReconnections { get; private set; }
+
+    private void ReplaceConnection(Connection con)
+    {
+        if(TryGetMultiInputIndexOf(con, out var foundAtConnectionIndex, out _))
+        {
+            Connections.RemoveAt(foundAtConnectionIndex);
+            Connections.Insert(foundAtConnectionIndex, con);
+            NeedsReconnections = true;
+        }
+        else
+        {
+            Log.Error($"Failed to replace connection {con} in symbol {this}. Connection not found.");
+        }
+    }
+
+    internal bool IsReconnecting { get; private set; }
+    public void ReconnectAll()
+    {
+        NeedsReconnections = false;
+        IsReconnecting = true;
+        lock (_creationLock)
+        {
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                if (child.Symbol.NeedsReconnections)
+                {
+                    child.Symbol.ReconnectAll();
+                }
+                
+                child.ReconnectAllChildren();
+            }
+        }
+
+        IsReconnecting = false;
+    }
 }

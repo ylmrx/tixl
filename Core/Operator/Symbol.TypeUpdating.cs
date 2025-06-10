@@ -9,29 +9,33 @@ namespace T3.Core.Operator;
 
 public sealed partial class Symbol
 {
-    internal void UpdateInstanceType(bool forceTypeUpdate = false)
+    internal bool UpdateInstanceType(bool forceTypeUpdate)
     {
-        if (!NeedsTypeUpdate && !forceTypeUpdate)
-            return;
-        
-        NeedsTypeUpdate = false;
-        UpdateSlotsAndConnectionsForType(out var oldInputDefinitions, out var oldOutputDefinitions);
-
-        var slotChanges = new SlotChangeInfo(oldInputDefinitions, oldOutputDefinitions, InputDefinitions, OutputDefinitions);
-
         lock (_creationLock)
         {
-            var count = _childrenCreatedFromMe.Count;
-            if (count == 0)
-                return;
+            if (!NeedsTypeUpdate && !forceTypeUpdate)
+            {
+                return false;
+            }
 
+            NeedsTypeUpdate = false;
+            UpdateSlotsAndConnectionsForType(out var oldInputDefinitions, out var oldOutputDefinitions);
+            
+            if(oldOutputDefinitions.Count == 0 && OutputDefinitions.Count == 0 || _childrenCreatedFromMe.Count == 0)
+            {
+                // if there are no outputs, we can skip the update
+                return true;
+            }
+
+            var slotChanges = new SlotChangeInfo(oldInputDefinitions, oldOutputDefinitions, InputDefinitions, OutputDefinitions);
+            
             foreach (var child in _childrenCreatedFromMe.Values)
             {
                 child.UpdateIOAndConnections(slotChanges);
             }
         }
 
-        return;
+        return true;
 
         void UpdateSlotsAndConnectionsForType(out List<InputDefinition> removedInputDefinitions, out List<OutputDefinition> removedOutputDefinitions)
         {
@@ -157,18 +161,24 @@ public sealed partial class Symbol
 
     }
 
+
     private void RemoveConnections(IEnumerable<ConnectionEntry> connectionsToRemoveWithinSymbol)
     {
         lock (_creationLock)
         {
-            foreach (var entry in connectionsToRemoveWithinSymbol.OrderByDescending(x => x.ConnectionIndex))
+            foreach (var entry in connectionsToRemoveWithinSymbol.OrderByDescending(x => x.ConnectionIndex).ThenByDescending(x => x.MultiInputIndex))
             {
-                Connections.RemoveAt(entry.ConnectionIndex);
-                foreach (var child in _childrenCreatedFromMe.Values)
-                {
-                    child.RemoveConnectionFromInstances(entry);
-                }
+                RemoveConnectionEntry(entry);
             }
+        }
+    }
+
+    private void RemoveConnectionEntry(ConnectionEntry entry)
+    {
+        Connections.RemoveAt(entry.ConnectionIndex);
+        foreach (var child in _childrenCreatedFromMe.Values)
+        {
+            child.RemoveConnectionFromInstances(entry.Connection, entry.MultiInputIndex);
         }
     }
 

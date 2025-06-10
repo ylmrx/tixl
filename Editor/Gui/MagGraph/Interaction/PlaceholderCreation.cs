@@ -559,8 +559,7 @@ internal sealed class PlaceholderCreation
                               Selectable = newChildUi,
                               Size = default,
                               SymbolUi = symbol.GetSymbolUi(),
-                              SymbolChild = null,
-                              Instance = newInstance,
+                              InstancePath = newInstance.InstancePath,
                           };
 
         List<MagGraphItem.InputLine> inputLines = [];

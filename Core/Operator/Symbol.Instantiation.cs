@@ -107,7 +107,7 @@ public sealed partial class Symbol
         }
     }
 
-    public bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, Symbol? parent, [NotNullWhen(true)] out Instance? instance)
+    public bool TryGetOrCreateInstance(IReadOnlyList<Guid> path, Symbol? parent, [NotNullWhen(true)] out Instance? instance, bool allowCreate = true)
     {
         if (path.Count == 0)
         {
@@ -123,7 +123,7 @@ public sealed partial class Symbol
             path = newPath;
         }
         
-        return child.TryGetOrCreateInstance(path, out instance, out _);
+        return child.TryGetOrCreateInstance(path, out instance, out _, allowCreate);
     }
 
     public bool TryGetParentlessInstance([NotNullWhen(true)] out Instance? instance) => TryGetOrCreateInstance(_parentlessIdPath, null, out instance);

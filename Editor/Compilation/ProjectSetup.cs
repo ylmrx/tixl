@@ -183,6 +183,11 @@ internal static partial class ProjectSetup
             UpdateSymbolPackages(needingReload);
         }
 
+      /*  foreach (var symbol in ActivePackages.SelectMany(x => x.Symbols.Values)
+                                             .Where(x => x.NeedsReconnections))
+        {
+            symbol.ReconnectAll();
+        }*/
     }
 
     private static readonly HashSet<EditorSymbolPackage> ActivePackages = new();

@@ -21,9 +21,38 @@ internal sealed class Structure
         _getRoot = getRoot;
     }
 
-    public Instance? GetInstanceFromIdPath(IReadOnlyList<Guid>? compositionPath)
+    public Instance? GetInstanceFromIdPath(IReadOnlyList<Guid>? childPath)
     {
-        return TryGetInstanceFromIdPath(compositionPath, out var instance) ? instance : null;
+        if (childPath == null || childPath.Count == 0)
+        {
+            return null;
+        }
+
+        var rootSymbolChild = _getRoot();
+        if (rootSymbolChild == null)
+        {
+            Log.Error("Root does not exist? \n" + Environment.StackTrace);
+            return null;
+        }
+
+        if (childPath[0] != rootSymbolChild.Id)
+        {
+            Log.Warning("Can't access instance after root changed.\n" + Environment.StackTrace);
+            return null;
+        }
+        
+        var current = rootSymbolChild;
+        for (int i = 1; i < childPath.Count; i++)
+        {
+            if (!current.Symbol.Children.TryGetValue(childPath[i], out current))
+            {
+                Log.Error("Did not find child in path provided.\n" + Environment.StackTrace);
+                return null;
+            }
+        }
+        
+        _ = current.TryGetOrCreateInstance(childPath, out var instance, out _);
+        return instance;
     }
 
     public List<string> GetReadableInstancePath(IReadOnlyList<Guid>? path, bool includeLeave = true)
@@ -113,31 +142,19 @@ internal sealed class Structure
         }
     }
 
-    private static readonly List<Guid> _searchPath = [];
     public static bool TryGetUiAndInstanceInComposition(Guid id,
                                                         Instance compositionOp,
                                                         [NotNullWhen(true)] out SymbolUi.Child? childUi,
                                                         [NotNullWhen(true)] out Instance? instance)
     {
-        var child = compositionOp.SymbolChild;
-        lock (_searchPath)
+        if (!compositionOp.Children.TryGetChildInstance(id, out instance))
         {
-            _searchPath.AddRange(compositionOp.InstancePath);
-            _searchPath.Add(id);
-
-            if (!child.TryGetOrCreateInstance(_searchPath, out instance, out _))
-            {
-                Log.Warning($"Failed to get instance for {id} in {compositionOp.Symbol.Name}");
-                childUi = null;
-                _searchPath.Clear();
-                return false;
-            }
-            
-            _searchPath.Clear();
+            Log.Warning($"Failed to get instance for {id} in {compositionOp.Symbol.Name}");
+            childUi = null;
+            return false;
         }
-
-
-        childUi = child.GetChildUi();
+        
+        childUi = instance.SymbolChild.GetChildUi();
         return true;
     }
 
@@ -316,43 +333,6 @@ internal sealed class Structure
             path.Insert(0, parent.SymbolChildId);
             parent = parent.Parent;
         }
-    }
-
-    private bool TryGetInstanceFromIdPath([NotNullWhen(true)] IReadOnlyList<Guid>? childPath, [NotNullWhen(true)] out Instance? instance)
-    {
-        if (childPath == null || childPath.Count == 0)
-        {
-            instance = null;
-            return false;
-        }
-
-        var rootSymbolChild = _getRoot();
-        if (rootSymbolChild == null)
-        {
-            instance = null;
-            Log.Error("Root does not exist? \n" + Environment.StackTrace);
-            return false;
-        }
-
-        if (childPath[0] != rootSymbolChild.Id)
-        {
-            instance = null;
-            Log.Warning("Can't access instance after root changed.\n" + Environment.StackTrace);
-            return false;
-        }
-        
-        var current = rootSymbolChild;
-        for (int i = 1; i < childPath.Count; i++)
-        {
-            if (!current.Symbol.Children.TryGetValue(childPath[i], out current))
-            {
-                Log.Error("Did not find child in path provided.\n" + Environment.StackTrace);
-                instance = null;
-                return false;
-            }
-        }
-        
-        return current.TryGetOrCreateInstance(childPath, out instance, out _);
     }
 
     public static bool TryGetInstanceFromPath(IReadOnlyList<Guid> entrySourceIdPath, out Instance? hoveredSourceInstance,

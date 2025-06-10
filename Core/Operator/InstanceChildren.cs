@@ -83,16 +83,16 @@ public sealed class InstanceChildren : IEnumerable<(Guid, Instance)>
 
     internal void Dispose(SymbolPackage? packageToDispose)
     {
-        foreach (var child in _asChild.Symbol.Children.Values)
+        lock (_childSearchPath)
         {
-            if(packageToDispose != null && child.Symbol.SymbolPackage != packageToDispose)
-                continue;
-            
-            var childId = child.Id;
-            lock (_childSearchPath)
+            foreach (var child in _asChild.Symbol.Children.Values)
             {
+                var childId = child.Id;
                 _childSearchPath[^1] = childId;
-                _asChild.DisposeAndRemoveIfExists(_childSearchPath, packageToDispose);
+                if (child.TryGetOrCreateInstance(_childSearchPath, out var inst, out _, false))
+                {
+                    inst.Dispose(packageToDispose);
+                }
             }
         }
     }

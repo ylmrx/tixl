@@ -124,8 +124,7 @@ public abstract partial class SymbolPackage : IResourcePackage
             }
         }
     }
-
-
+    
     /// <summary>
     /// Loads symbols from the assembly and locates their symbol .t3/json files
     /// </summary>
@@ -166,6 +165,13 @@ public abstract partial class SymbolPackage : IResourcePackage
             }
         }
 
+        // gather slot changes
+        foreach (var symbol in updatedSymbols)
+        {
+            symbol.UpdateInstanceType(true);
+        } 
+        
+        // update symbol instances 
         foreach (var symbol in updatedSymbols)
         {
             UpdateSymbolInstances(symbol);
