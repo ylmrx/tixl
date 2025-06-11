@@ -205,6 +205,12 @@
       "Outputs": []
     },
     {
+      "Id": "92619ddd-a214-488f-9d3c-a5cad970aba6"/*OutputMergerStage*/,
+      "SymbolId": "5efaf208-ba62-42ce-b3df-059b37fc1382",
+      "InputValues": [],
+      "Outputs": []
+    },
+    {
       "Id": "963ef259-cf61-4a33-bbcb-479da9d729c5"/*BlendColors*/,
       "SymbolId": "6b7c541a-ca36-4f21-ac95-89e874820c5a",
       "InputValues": [
@@ -285,6 +291,18 @@
       "Id": "e39b8798-65df-44f0-9cdb-6e0a151f6c21"/*TransformsConstBuffer*/,
       "SymbolId": "a60adc26-d7c6-4615-af78-8d2d6da46b79",
       "InputValues": [],
+      "Outputs": []
+    },
+    {
+      "Id": "e6544c1b-7650-4abc-8d61-86b0b62b8079"/*DepthStencilState*/,
+      "SymbolId": "04858a08-f0fe-4536-9152-686659f0ab58",
+      "InputValues": [
+        {
+          "Id": "2342df71-a162-4db7-afc3-514916239897"/*EnableZWrite*/,
+          "Type": "System.Boolean",
+          "Value": false
+        }
+      ],
       "Outputs": []
     },
     {
@@ -460,6 +478,12 @@
     {
       "SourceParentOrChildId": "09f45b55-216a-4b5c-bc33-05f7308923dc",
       "SourceSlotId": "c723ad69-ff0c-47b2-9327-bd27c0d7b6d1",
+      "TargetParentOrChildId": "54c99ee5-78cc-4825-a28b-e4024bb6679d",
+      "TargetSlotId": "5d73ebe6-9aa0-471a-ae6b-3f5bfd5a0f9c"
+    },
+    {
+      "SourceParentOrChildId": "92619ddd-a214-488f-9d3c-a5cad970aba6",
+      "SourceSlotId": "cee8c3f0-64ea-4e4d-b967-ec7e3688dd03",
       "TargetParentOrChildId": "54c99ee5-78cc-4825-a28b-e4024bb6679d",
       "TargetSlotId": "5d73ebe6-9aa0-471a-ae6b-3f5bfd5a0f9c"
     },

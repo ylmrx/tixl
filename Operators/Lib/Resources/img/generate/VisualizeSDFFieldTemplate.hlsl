@@ -55,11 +55,14 @@ vsOutput vsMain4(uint vertexId : SV_VertexID)
     return output;
 }
 
-//=== Globals =======================================================
-/*{GLOBALS}*/
+sampler ClampedSampler : register(s0);
 
 //=== Resources =====================================================
 /*{RESOURCES(t0)}*/
+
+//=== Globals =======================================================
+/*{GLOBALS}*/
+
 
 //=== Field functions ===============================================
 /*{FIELD_FUNCTIONS}*/
