@@ -3,11 +3,16 @@ using T3.Core.DataTypes.ShaderGraph;
 namespace Lib.field.generate.sdf;
 
 [Guid("860da1cd-b341-4bc5-965a-4a9c295831f4")]
-internal sealed class BoxSDF : Instance<BoxSDF>
-,IGraphNodeOp
+internal sealed class BoxSDF : Instance<BoxSDF>, ITransformable
+, IGraphNodeOp
 {
     [Output(Guid = "9153c53c-0b19-4ce4-b086-e448d78ef032")]
     public readonly Slot<ShaderGraphNode> Result = new();
+
+    IInputSlot ITransformable.TranslationInput => Center;
+    IInputSlot ITransformable.RotationInput => null;
+    IInputSlot ITransformable.ScaleInput => null;
+    public Action<Instance, EvaluationContext> TransformCallback { get; set; }
 
     public BoxSDF()
     {
@@ -18,6 +23,8 @@ internal sealed class BoxSDF : Instance<BoxSDF>
 
     private void Update(EvaluationContext context)
     {
+        TransformCallback?.Invoke(this, context); 
+
         ShaderNode.Update(context);
     }
 

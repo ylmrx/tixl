@@ -6,10 +6,16 @@ namespace Lib.field.generate.sdf;
 
 [Guid("a54e0946-71d0-4985-90bc-184cdb1b6b34")]
 internal sealed class TorusSDF : Instance<TorusSDF>
-                               , IGraphNodeOp
+                               , IGraphNodeOp, ITransformable
 {
     [Output(Guid = "14cd4d1f-0b9b-43c4-93cc-d730c137cee8")]
     public readonly Slot<ShaderGraphNode> Result = new();
+
+    // ITransformable interface implementation (Gizmo support)
+    IInputSlot ITransformable.TranslationInput => Center;
+    IInputSlot ITransformable.RotationInput => null;
+    IInputSlot ITransformable.ScaleInput => null;
+    public Action<Instance, EvaluationContext> TransformCallback { get; set; }
 
     public TorusSDF()
     {
@@ -20,6 +26,7 @@ internal sealed class TorusSDF : Instance<TorusSDF>
 
     private void Update(EvaluationContext context)
     {
+        TransformCallback?.Invoke(this, context); // Needed for Gizmo support
         var axis = Axis.GetEnumValue<AxisTypes>(context);
         
         var templateChanged = axis != _axis;
