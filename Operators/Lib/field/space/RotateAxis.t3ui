@@ -3,7 +3,7 @@
   "Description": "",
   "InputUis": [
     {
-      "InputId": "5e037357-1a5c-4011-98ed-df061ea890ac"/*Amount*/,
+      "InputId": "5e037357-1a5c-4011-98ed-df061ea890ac"/*Rotation*/,
       "Position": {
         "X": -200.0,
         "Y": 45.0

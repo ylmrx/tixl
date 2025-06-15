@@ -4,7 +4,7 @@ namespace Lib.field.generate.sdf;
 
 [Guid("860da1cd-b341-4bc5-965a-4a9c295831f4")]
 internal sealed class BoxSDF : Instance<BoxSDF>, ITransformable
-, IGraphNodeOp
+,IGraphNodeOp
 {
     [Output(Guid = "9153c53c-0b19-4ce4-b086-e448d78ef032")]
     public readonly Slot<ShaderGraphNode> Result = new();
@@ -13,7 +13,7 @@ internal sealed class BoxSDF : Instance<BoxSDF>, ITransformable
     IInputSlot ITransformable.RotationInput => null;
     IInputSlot ITransformable.ScaleInput => null;
     public Action<Instance, EvaluationContext> TransformCallback { get; set; }
-
+    
     public BoxSDF()
     {
         ShaderNode = new ShaderGraphNode(this);
@@ -23,8 +23,7 @@ internal sealed class BoxSDF : Instance<BoxSDF>, ITransformable
 
     private void Update(EvaluationContext context)
     {
-        TransformCallback?.Invoke(this, context); 
-
+        TransformCallback?.Invoke(this, context); // this this is stupid stupid
         ShaderNode.Update(context);
     }
 
