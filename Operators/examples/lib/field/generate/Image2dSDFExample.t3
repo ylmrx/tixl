@@ -47,21 +47,7 @@
     {
       "Id": "1e45443a-03c7-4185-bbf4-1be0d69e7d73"/*SampleFieldPoints*/,
       "SymbolId": "ef440c7d-9cbd-49b7-81b6-e1a42c6eda83",
-      "InputValues": [
-        {
-          "Id": "11229757-3390-4a2d-825e-757b75b173b1"/*FieldValueRange*/,
-          "Type": "System.Numerics.Vector2",
-          "Value": {
-            "X": 0.29,
-            "Y": 1.0
-          }
-        },
-        {
-          "Id": "5067fb53-debc-49d6-84bd-dcfea1e1c881"/*DiscardNonSelected*/,
-          "Type": "System.Boolean",
-          "Value": false
-        }
-      ],
+      "InputValues": [],
       "Outputs": []
     },
     {
