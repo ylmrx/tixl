@@ -138,7 +138,11 @@ internal static class TransformGizmoHandling
                 break;
 
             case TransformGizmoModes.Scale:
-                isHoveringSomething = HandleScaleGizmos();
+                // Only show scale gizmo if ScaleInput is available
+                if (_transformable.ScaleInput != null)
+                {
+                    isHoveringSomething = HandleScaleGizmos();
+                }
                 break;
         }
 
