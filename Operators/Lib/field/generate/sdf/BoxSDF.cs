@@ -11,7 +11,7 @@ internal sealed class BoxSDF : Instance<BoxSDF>, ITransformable
 
     IInputSlot ITransformable.TranslationInput => Center;
     IInputSlot ITransformable.RotationInput => null;
-    IInputSlot ITransformable.ScaleInput => null;
+    IInputSlot ITransformable.ScaleInput => Size;
     public Action<Instance, EvaluationContext> TransformCallback { get; set; }
     
     public BoxSDF()

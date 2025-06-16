@@ -129,6 +129,24 @@ internal static class TransformGizmoHandling
         _planeGizmoSize = 0.5f * gizmoScale / _canvas.Scale.X;
         //var lineThickness = 2;
 
+        var isHoveringSomething = false;
+        // Handle different gizmo modes
+        switch (context.TransformGizmoMode)
+        {
+            case TransformGizmoModes.Move:
+                isHoveringSomething = HandlePositionGizmos();
+                break;
+
+            case TransformGizmoModes.Scale:
+                isHoveringSomething = HandleScaleGizmos();
+                break;
+        }
+
+    }
+
+    // Extract position gizmo handling into separate method
+    private static bool HandlePositionGizmos()
+    {
         var isHoveringSomething = HandleDragOnAxis(Vector3.UnitX, Color.Red, GizmoParts.PositionXAxis);
         isHoveringSomething |= HandleDragOnAxis(Vector3.UnitY, Color.Green, GizmoParts.PositionYAxis);
         isHoveringSomething |= HandleDragOnAxis(Vector3.UnitZ, Color.Blue, GizmoParts.PositionZAxis);
@@ -136,6 +154,204 @@ internal static class TransformGizmoHandling
         isHoveringSomething |= HandleDragOnPlane(Vector3.UnitX, Vector3.UnitZ, Color.Green, GizmoParts.PositionOnXzPlane);
         isHoveringSomething |= HandleDragOnPlane(Vector3.UnitY, Vector3.UnitZ, Color.Red, GizmoParts.PositionOnYzPlane);
         isHoveringSomething |= HandleDragInScreenSpace();
+
+        return isHoveringSomething;
+    }
+
+    // New method to handle scale gizmos
+    private static bool HandleScaleGizmos()
+    {
+        var isHoveringSomething = HandleScaleDragOnAxis(Vector3.UnitX, Color.Red, GizmoParts.ScaleXAxis);
+        isHoveringSomething |= HandleScaleDragOnAxis(Vector3.UnitY, Color.Green, GizmoParts.ScaleYAxis);
+        isHoveringSomething |= HandleScaleDragOnAxis(Vector3.UnitZ, Color.Blue, GizmoParts.ScaleZAxis);
+        isHoveringSomething |= HandleUniformScale();
+
+        return isHoveringSomething;
+    }
+
+    // New method to handle scale dragging on axis
+    private static bool HandleScaleDragOnAxis(Vector3 gizmoAxis, Color color, GizmoParts mode)
+    {
+        var axisStartInScreen = LocalPosToScreenPos(gizmoAxis * _centerPadding);
+        var axisEndInScreen = LocalPosToScreenPos(gizmoAxis * _gizmoLength);
+
+        // Draw scale handle as a cube at the end of the axis
+        var handleSize = 12f;
+        var handleRect = new Vector2(handleSize, handleSize);
+        var handleCenter = axisEndInScreen;
+        var handleMin = handleCenter - handleRect * 0.5f;
+        var handleMax = handleCenter + handleRect * 0.5f;
+
+        var isHovering = false;
+        if (!IsDragging)
+        {
+            // Check if mouse is over the handle
+            isHovering = (_mousePosInScreen.X >= handleMin.X && _mousePosInScreen.X <= handleMax.X &&
+                          _mousePosInScreen.Y >= handleMin.Y && _mousePosInScreen.Y <= handleMax.Y);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartScaleDragging(mode, gizmoAxis);
+            }
+        }
+        else if (_draggedGizmoPart == mode
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateScaleDragging(gizmoAxis);
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteScaleDragging();
+            }
+        }
+
+        if (_renderGizmo)
+        {
+            // Draw axis line
+            _drawList.AddLine(axisStartInScreen, axisEndInScreen, color, 2 * (isHovering ? 3 : 1));
+
+            // Draw scale handle (cube)
+            var handleColor = color;
+            handleColor.Rgba.W = isHovering ? 1.0f : 0.8f;
+            _drawList.AddRectFilled(handleMin, handleMax, handleColor);
+            _drawList.AddRect(handleMin, handleMax, Color.White, 0, ImDrawFlags.None, 1);
+        }
+
+        return isHovering;
+    }
+
+    // New method to handle uniform scaling
+    private static bool HandleUniformScale()
+    {
+        const float handleSize = 12f;
+        var handleRect = new Vector2(handleSize, handleSize);
+        var handleCenter = _originInScreen;
+        var handleMin = handleCenter - handleRect * 0.5f;
+        var handleMax = handleCenter + handleRect * 0.5f;
+
+        var isHovering = false;
+
+        if (!IsDragging)
+        {
+            isHovering = (_mousePosInScreen.X >= handleMin.X && _mousePosInScreen.X <= handleMax.X &&
+                          _mousePosInScreen.Y >= handleMin.Y && _mousePosInScreen.Y <= handleMax.Y);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartScaleDragging(GizmoParts.ScaleUniform, Vector3.One);
+            }
+        }
+        else if (_draggedGizmoPart == GizmoParts.ScaleUniform
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateUniformScaleDragging();
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteScaleDragging();
+            }
+        }
+
+        if (_renderGizmo)
+        {
+            var color = UiColors.StatusAnimated;
+            color.Rgba.W = isHovering ? 1.0f : 0.6f;
+            _drawList.AddRectFilled(handleMin, handleMax, color);
+            _drawList.AddRect(handleMin, handleMax, Color.White, 0, ImDrawFlags.None, 2);
+        }
+
+        return isHovering;
+    }
+
+    // New method to start scale dragging
+    private static void StartScaleDragging(GizmoParts mode, Vector3 axis)
+    {
+        _draggedGizmoPart = mode;
+        _scaleCommandInFlight = new ChangeInputValueCommand(_instance.Parent.Symbol,
+                                                           _instance.SymbolChildId,
+                                                           _transformable.ScaleInput.Input,
+                                                           _transformable.ScaleInput.Input.Value);
+
+        _draggedTransformable = _transformable;
+        _dragInteractionWindowId = ImGui.GetID("");
+        _initialOffsetToOrigin = _mousePosInScreen - _originInScreen;
+        _initialScale = TryGetVectorFromInput(_transformable.ScaleInput, 1f);
+
+        var rayInObject = GetPickRayInObject(_mousePosInScreen);
+        var rayInLocal = rayInObject;
+        rayInLocal.Direction = Vector3.TransformNormal(rayInObject.Direction, _initialObjectToLocal);
+        rayInLocal.Origin = Vector3.Transform(rayInObject.Origin, _initialObjectToLocal);
+
+        _plane = GetPlaneForDragMode(mode, rayInObject.Direction, _initialOrigin);
+        if (!_plane.Intersects(rayInLocal, out _initialIntersectionPoint))
+        {
+            _plane.D = -_plane.D;
+            if (!_plane.Intersects(rayInLocal, out _initialIntersectionPoint))
+            {
+                _plane.Normal = Vector3.Zero;
+                Log.Debug($"Couldn't intersect pick ray with gizmo axis plane.");
+            }
+        }
+    }
+
+    // New method to update scale dragging
+    private static void UpdateScaleDragging(Vector3 axis)
+    {
+        var rayInObject = GetPickRayInObject(_mousePosInScreen);
+        var rayInLocal = rayInObject;
+        rayInLocal.Direction = Vector3.TransformNormal(rayInObject.Direction, _initialObjectToLocal);
+        rayInLocal.Origin = Vector3.Transform(rayInObject.Origin, _initialObjectToLocal);
+
+        if (_plane.Normal != Vector3.Zero && _plane.Intersects(rayInLocal, out Vector3 intersectionPoint))
+        {
+            var deltaInLocal = intersectionPoint - _initialIntersectionPoint;
+            var scaleDelta = Vector3.Dot(deltaInLocal, axis) * 0.25f; // Scale sensitivity
+
+            var newScale = _initialScale + axis * scaleDelta;
+
+            // Prevent negative or zero scaling
+            newScale.X = Math.Max(0.001f, newScale.X);
+            newScale.Y = Math.Max(0.001f, newScale.Y);
+            newScale.Z = Math.Max(0.001f, newScale.Z);
+
+            TrySetVector3ToInput(_transformable.ScaleInput, newScale);
+            _scaleCommandInFlight.AssignNewValue(_transformable.ScaleInput.Input.Value);
+        }
+    }
+
+    // New method to update uniform scale dragging
+    private static void UpdateUniformScaleDragging()
+    {
+        var mouseDelta = _mousePosInScreen - (_originInScreen + _initialOffsetToOrigin);
+        var scaleDelta = mouseDelta.X * 0.01f; // Use X movement for uniform scaling
+
+        var newScale = _initialScale + Vector3.One * scaleDelta;
+
+        // Prevent negative or zero scaling
+        var minScale = Math.Max(0.001f, Math.Min(Math.Min(newScale.X, newScale.Y), newScale.Z));
+        if (minScale < 0.001f)
+        {
+            var scaleRatio = 0.001f / Math.Min(Math.Min(_initialScale.X, _initialScale.Y), _initialScale.Z);
+            newScale = _initialScale * scaleRatio;
+        }
+
+        TrySetVector3ToInput(_transformable.ScaleInput, newScale);
+        _scaleCommandInFlight.AssignNewValue(_transformable.ScaleInput.Input.Value);
+    }
+
+    // New method to complete scale dragging
+    private static void CompleteScaleDragging()
+    {
+        UndoRedoStack.Add(_scaleCommandInFlight);
+        _scaleCommandInFlight = null;
+
+        _draggedGizmoPart = GizmoParts.None;
+        _draggedTransformable = null;
+        _dragInteractionWindowId = 0;
     }
 
     private static void UpdateInternalState()
@@ -473,51 +689,62 @@ internal static class TransformGizmoHandling
         return _topLeftOnScreen + posInCanvas;
     }
 
+    // Update the GetPlaneForDragMode method to handle scale modes
     private static Plane GetPlaneForDragMode(GizmoParts mode, Vector3 normDir, Vector3 origin)
     {
         Vector3 firstAxis, secondAxis;
-            
+
         switch (mode)
         {
             case GizmoParts.PositionXAxis:
-            {
-                firstAxis = Vector3.UnitX;
-                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitY)) <
-                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
-                                 ? Vector3.UnitY
-                                 : Vector3.UnitZ;
-                break;
-            }
+            case GizmoParts.ScaleXAxis:
+                {
+                    firstAxis = Vector3.UnitX;
+                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitY)) <
+                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
+                                     ? Vector3.UnitY
+                                     : Vector3.UnitZ;
+                    break;
+                }
             case GizmoParts.PositionYAxis:
-            {
-                firstAxis = Vector3.UnitY;
-                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
-                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
-                                 ? Vector3.UnitX
-                                 : Vector3.UnitZ;
-                break;
-            }
+            case GizmoParts.ScaleYAxis:
+                {
+                    firstAxis = Vector3.UnitY;
+                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
+                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
+                                     ? Vector3.UnitX
+                                     : Vector3.UnitZ;
+                    break;
+                }
             case GizmoParts.PositionZAxis:
-            {
-                firstAxis = Vector3.UnitZ;
-                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
-                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitY))
-                                 ? Vector3.UnitX
-                                 : Vector3.UnitY;
-
-                break;
-            }
+            case GizmoParts.ScaleZAxis:
+                {
+                    firstAxis = Vector3.UnitZ;
+                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
+                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitY))
+                                     ? Vector3.UnitX
+                                     : Vector3.UnitY;
+                    break;
+                }
             case GizmoParts.PositionOnXyPlane:
+            case GizmoParts.ScaleOnXyPlane:
                 firstAxis = Vector3.UnitX;
                 secondAxis = Vector3.UnitY;
                 break;
             case GizmoParts.PositionOnXzPlane:
+            case GizmoParts.ScaleOnXzPlane:
                 firstAxis = Vector3.UnitX;
                 secondAxis = Vector3.UnitZ;
                 break;
             case GizmoParts.PositionOnYzPlane:
+            case GizmoParts.ScaleOnYzPlane:
                 firstAxis = Vector3.UnitY;
                 secondAxis = Vector3.UnitZ;
+                break;
+            case GizmoParts.ScaleUniform:
+                // For uniform scaling, use a plane perpendicular to the view direction
+                firstAxis = Vector3.UnitX;
+                secondAxis = Vector3.UnitY;
                 break;
             default:
                 Log.Error($"{nameof(GetPlaneForDragMode)}(...) called with wrong GizmoDraggingMode.");
@@ -578,6 +805,15 @@ internal static class TransformGizmoHandling
         PositionOnXyPlane,
         PositionOnXzPlane,
         PositionOnYzPlane,
+
+        // Scale gizmo parts
+        ScaleXAxis,
+        ScaleYAxis,
+        ScaleZAxis,
+        ScaleUniform,
+        ScaleOnXyPlane,
+        ScaleOnXzPlane,
+        ScaleOnYzPlane,
     }
 
     private static ImDrawListPtr _drawList = null;
@@ -618,4 +854,8 @@ internal static class TransformGizmoHandling
     private static Matrix4x4 _objectToWorld;
     private static Matrix4x4 _localToObject;
     private static Matrix4x4 _localToClipSpace;
+    
+    // scale gizmo state
+    private static Vector3 _initialScale;
+    private static ChangeInputValueCommand _scaleCommandInFlight;
 }
