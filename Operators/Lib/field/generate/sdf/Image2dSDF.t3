@@ -18,7 +18,7 @@
     },
     {
       "Id": "d7ed4ea1-0472-4535-8f39-fd440400d11d"/*SdfScale*/,
-      "DefaultValue": 1.0
+      "DefaultValue": 0.5
     }
   ],
   "Children": [

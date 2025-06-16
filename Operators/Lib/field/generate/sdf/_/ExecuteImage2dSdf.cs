@@ -53,7 +53,7 @@ internal sealed class ExecuteImage2dSdf : Instance<ExecuteImage2dSdf>
                                            return texDist;
                                    
                                        // Outside bounds: approximate distance to closest edge or corner
-                                       return outsideDist + texDist ;
+                                       return sqrt( outsideDist*outsideDist + texDist*texDist);
                                    }
                                    """);
     }
