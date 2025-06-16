@@ -318,9 +318,9 @@ internal static class TransformGizmoHandling
             var newScale = _initialScale + axis * scaleDelta;
 
             // Prevent negative or zero scaling
-            newScale.X = Math.Max(0.001f, newScale.X);
-            newScale.Y = Math.Max(0.001f, newScale.Y);
-            newScale.Z = Math.Max(0.001f, newScale.Z);
+            //newScale.X = Math.Max(0.001f, newScale.X);
+            //newScale.Y = Math.Max(0.001f, newScale.Y);
+            //newScale.Z = Math.Max(0.001f, newScale.Z);
 
             TrySetVector3ToInput(_transformable.ScaleInput, newScale);
             _scaleCommandInFlight.AssignNewValue(_transformable.ScaleInput.Input.Value);
@@ -336,12 +336,12 @@ internal static class TransformGizmoHandling
         var newScale = _initialScale + Vector3.One * scaleDelta;
 
         // Prevent negative or zero scaling
-        var minScale = Math.Max(0.001f, Math.Min(Math.Min(newScale.X, newScale.Y), newScale.Z));
-        if (minScale < 0.001f)
-        {
-            var scaleRatio = 0.001f / Math.Min(Math.Min(_initialScale.X, _initialScale.Y), _initialScale.Z);
-            newScale = _initialScale * scaleRatio;
-        }
+        //var minScale = Math.Max(0.001f, Math.Min(Math.Min(newScale.X, newScale.Y), newScale.Z));
+        //if (minScale < 0.001f)
+        //{
+        //    var scaleRatio = 0.001f / Math.Min(Math.Min(_initialScale.X, _initialScale.Y), _initialScale.Z);
+        //    newScale = _initialScale * scaleRatio;
+        //}
 
         TrySetVector3ToInput(_transformable.ScaleInput, newScale);
         _scaleCommandInFlight.AssignNewValue(_transformable.ScaleInput.Input.Value);
