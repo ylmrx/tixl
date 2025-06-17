@@ -1,0 +1,95 @@
+{
+  "Id": "98efc7c8-cafd-45ee-8746-14f37e9f59f8"/*ArtnetOutput*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "168d0023-554f-46cd-9e62-8f3d1f564b8d"/*SendTrigger*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 135.0
+      }
+    },
+    {
+      "InputId": "34aeeda5-72b0-4f13-bfd3-4ad5cf42b24f"/*StartUniverse*/,
+      "Position": {
+        "X": -200.0,
+        "Y": -45.0
+      },
+      "Min": 0,
+      "Max": 32768,
+      "Scale": 0.0,
+      "Clamp": true
+    },
+    {
+      "InputId": "35a5efd8-b670-4f2d-bde0-380789e85e0c"/*SubNetMask*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 75.0
+      },
+      "Usage": "Default"
+    },
+    {
+      "InputId": "46a59b8c-bef9-47f6-b0da-a6277ef24431"/*StartIndices*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 300.0
+      }
+    },
+    {
+      "InputId": "73babdb1-f88f-4e4d-aa3f-0536678b0793"/*Reconnect*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 180.0
+      }
+    },
+    {
+      "InputId": "ad5cfe4a-f09a-4083-984c-5c60dca3e603"/*OnlySendChanges*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 90.0
+      }
+    },
+    {
+      "InputId": "c81d7178-34db-48c9-b0e2-ca7014747bc8"/*Broadcast*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 45.0
+      }
+    },
+    {
+      "InputId": "e2caf182-de22-4769-9b3c-9d75c53972a7"/*InputsValues*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": -200.0,
+        "Y": 225.0
+      }
+    },
+    {
+      "InputId": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*IpAddress*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      },
+      "Usage": "Default"
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "499329d0-15e9-410e-9f61-63724dbec937"/*Result*/,
+      "Position": {
+        "X": 300.0,
+        "Y": 200.0
+      }
+    }
+  ],
+  "Links": [
+    {
+      "Id": "7d97a2ce-9297-4bac-b947-91dca0c12e4c",
+      "Title": "An introduction to OSC",
+      "Description": "",
+      "LinkUrl": "https://opensoundcontrol.stanford.edu/spec-1_0.html#introduction",
+      "LinkType": "Reference"
+    }
+  ]
+}

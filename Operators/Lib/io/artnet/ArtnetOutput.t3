@@ -1,0 +1,47 @@
+{
+  "Id": "98efc7c8-cafd-45ee-8746-14f37e9f59f8"/*ArtnetOutput*/,
+  "Inputs": [
+    {
+      "Id": "168d0023-554f-46cd-9e62-8f3d1f564b8d"/*SendTrigger*/,
+      "DefaultValue": true
+    },
+    {
+      "Id": "34aeeda5-72b0-4f13-bfd3-4ad5cf42b24f"/*StartUniverse*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "35a5efd8-b670-4f2d-bde0-380789e85e0c"/*SubNetMask*/,
+      "DefaultValue": "255.255.255.0"
+    },
+    {
+      "Id": "46a59b8c-bef9-47f6-b0da-a6277ef24431"/*StartIndices*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    },
+    {
+      "Id": "73babdb1-f88f-4e4d-aa3f-0536678b0793"/*Reconnect*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "ad5cfe4a-f09a-4083-984c-5c60dca3e603"/*OnlySendChanges*/,
+      "DefaultValue": true
+    },
+    {
+      "Id": "c81d7178-34db-48c9-b0e2-ca7014747bc8"/*Broadcast*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "e2caf182-de22-4769-9b3c-9d75c53972a7"/*InputsValues*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    },
+    {
+      "Id": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*IpAddress*/,
+      "DefaultValue": "127.0.0.1"
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}
