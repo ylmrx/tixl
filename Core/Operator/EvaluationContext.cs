@@ -132,7 +132,7 @@ public class EvaluationContext
     public System.Numerics.Vector4 ForegroundColor { get; set; } = Vector4.One;
         
     public GizmoVisibility ShowGizmos { get; set; }
-    public TransformGizmoModes TransformGizmoMode { get; set; }
+    public TransformGizmoModes TransformGizmoMode { get; set; } = TransformGizmoModes.Move;
     
     #region context variables
     public Dictionary<string, float> FloatVariables { get; } = new();
