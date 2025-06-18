@@ -1,4 +1,4 @@
-﻿using SharpDX.Direct3D11;
+using SharpDX.Direct3D11;
 using Utilities = T3.Core.Utils.Utilities;
 
 // Added for List<float>
@@ -7,12 +7,12 @@ using Utilities = T3.Core.Utils.Utilities;
 namespace Lib.io.artnet;
 
 [Guid("c9d7cd19-7fc6-4491-8dfa-3808725c7857")]
-public sealed class PointsToMovingHeadList : Instance<PointsToMovingHeadList>
+public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 {
     [Output(Guid = "2a1298f8-073b-4a6f-b53e-083ef97fe931")]
     public readonly Slot<List<float>> Result = new(new List<float>(20));
 
-    public PointsToMovingHeadList()
+    public PointsToArtNetLights()
     {
         Result.UpdateAction = Update;
     }
@@ -209,7 +209,6 @@ public sealed class PointsToMovingHeadList : Instance<PointsToMovingHeadList>
         if (_useReferencePointsForRotation)
         {
             var refRotation = referencePoint.Orientation;
-            //Quaternion qDelta = Quaternion.Concatenate(rotation, Quaternion.Inverse(refRotation));
             Quaternion qDelta =   Quaternion.Inverse(refRotation) * rotation;
             
             direction = Vector3.Transform(initialForwardAxis, qDelta);
@@ -244,8 +243,6 @@ public sealed class PointsToMovingHeadList : Instance<PointsToMovingHeadList>
                                          MathF.Sqrt(direction.X * direction.X + direction.Y * direction.Y)) - MathF.PI/2;
                 break;            
         }        
-        //Log.Debug($" Direction: {direction:0.0}  pan: {panValue:0.00}  tilt:{tiltValue:0.00}", this);
-
 
         var panRange = PanRange.GetValue(context);
         var tiltRange = TiltRange.GetValue(context);
@@ -504,6 +501,14 @@ public sealed class PointsToMovingHeadList : Instance<PointsToMovingHeadList>
         _channelValues[index] = value;
     }
 
+    private enum RotationModes
+    {
+        XYZ,
+        XZY,
+        ZXY,
+        ForReferencePoints,
+    }
+
     private BufferWithViews _bufferWithViewsCpuAccess = new();
     private bool _useReferencePointsForRotation;
 
@@ -519,7 +524,7 @@ public sealed class PointsToMovingHeadList : Instance<PointsToMovingHeadList>
     [Input(Guid = "4922acd8-ab83-4394-8118-c555385c2ce9")]
     public readonly InputSlot<bool> GetRotation = new();
 
-    [Input(Guid = "ba8d8f32-792c-4675-a5f5-415c16db8c66")]
+    [Input(Guid = "ba8d8f32-792c-4675-a5f5-415c16db8c66", MappedType = typeof(RotationModes))]
     public readonly InputSlot<int> AxisOrder = new();
 
     [Input(Guid = "7bf3e057-b9eb-43d2-8e1a-64c1c3857ca1")]

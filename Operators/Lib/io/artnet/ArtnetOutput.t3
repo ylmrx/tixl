@@ -24,22 +24,14 @@
       "DefaultValue": false
     },
     {
-      "Id": "ad5cfe4a-f09a-4083-984c-5c60dca3e603"/*OnlySendChanges*/,
-      "DefaultValue": true
-    },
-    {
-      "Id": "c81d7178-34db-48c9-b0e2-ca7014747bc8"/*Broadcast*/,
-      "DefaultValue": false
-    },
-    {
       "Id": "e2caf182-de22-4769-9b3c-9d75c53972a7"/*InputsValues*/,
       "DefaultValue": {
         "Values": []
       }
     },
     {
-      "Id": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*IpAddress*/,
-      "DefaultValue": "127.0.0.1"
+      "Id": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*LocalIpAddress*/,
+      "DefaultValue": "10.10.0.0"
     }
   ],
   "Children": [],

@@ -1,5 +1,5 @@
-﻿{
-  "Id": "c9d7cd19-7fc6-4491-8dfa-3808725c7857"/*PointsToMovingHeadList*/,
+{
+  "Id": "c9d7cd19-7fc6-4491-8dfa-3808725c7857"/*PointsToArtNetLights*/,
   "Inputs": [
     {
       "Id": "013cc355-91d6-4ea6-b9f7-f1817b89e4a3"/*RedChannel*/,
@@ -85,6 +85,10 @@
       "DefaultValue": 0
     },
     {
+      "Id": "afd3aa99-c892-4b87-ad3f-f97461e8a934"/*WithReferencePoints*/,
+      "DefaultValue": false
+    },
+    {
       "Id": "b08c920f-0d6b-4820-bc2d-81a47d5f1147"/*CustomVar1Channel*/,
       "DefaultValue": 0
     },
@@ -94,7 +98,7 @@
     },
     {
       "Id": "ba8d8f32-792c-4675-a5f5-415c16db8c66"/*AxisOrder*/,
-      "DefaultValue": 0
+      "DefaultValue": 3
     },
     {
       "Id": "cf2c3308-8f3f-442d-a563-b419f12e7ad1"/*RGBToCMY*/,

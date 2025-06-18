@@ -1,5 +1,5 @@
-﻿{
-  "Id": "c9d7cd19-7fc6-4491-8dfa-3808725c7857"/*PointsToMovingHeadList*/,
+{
+  "Id": "c9d7cd19-7fc6-4491-8dfa-3808725c7857"/*PointsToArtNetLights*/,
   "Description": "",
   "InputUis": [
     {
@@ -29,6 +29,8 @@
         "X": -204.96455,
         "Y": 1242.3049
       },
+      "Description": "The number of channels for each point. \nE.g. for two points with size of 5  we write 10 to the value list.\n\nThe price alignment can be merged with [MergeFloatLists]",
+      "AddPadding": "True",
       "Min": 0,
       "Max": 512,
       "Scale": 1.0
@@ -121,7 +123,8 @@
       "Position": {
         "X": -206.38298,
         "Y": -0.95744324
-      }
+      },
+      "Description": "The source points. When WithReferencePoints is activated, the buffer should have twice the length with the points comming first and the reference points appended."
     },
     {
       "InputId": "6e8b4125-0e8c-430b-897d-2231bb4c8f6f"/*TiltRange*/,
@@ -185,6 +188,14 @@
       "Max": 512,
       "Scale": 1.0,
       "Clamp": true
+    },
+    {
+      "InputId": "afd3aa99-c892-4b87-ad3f-f97461e8a934"/*WithReferencePoints*/,
+      "Position": {
+        "X": -206.38298,
+        "Y": 74.04256
+      },
+      "Description": "Uses a second set of points to define the rest position and orientation of the fixture in space."
     },
     {
       "InputId": "b08c920f-0d6b-4820-bc2d-81a47d5f1147"/*CustomVar1Channel*/,

@@ -43,20 +43,6 @@
       }
     },
     {
-      "InputId": "ad5cfe4a-f09a-4083-984c-5c60dca3e603"/*OnlySendChanges*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 90.0
-      }
-    },
-    {
-      "InputId": "c81d7178-34db-48c9-b0e2-ca7014747bc8"/*Broadcast*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 45.0
-      }
-    },
-    {
       "InputId": "e2caf182-de22-4769-9b3c-9d75c53972a7"/*InputsValues*/,
       "Relevancy": "Required",
       "Position": {
@@ -65,7 +51,7 @@
       }
     },
     {
-      "InputId": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*IpAddress*/,
+      "InputId": "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d"/*LocalIpAddress*/,
       "Position": {
         "X": -200.0,
         "Y": 0.0
