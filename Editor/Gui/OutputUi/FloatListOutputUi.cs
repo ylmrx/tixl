@@ -2,7 +2,10 @@
 using ImGuiNET;
 using T3.Core.Operator.Slots;
 using T3.Core.Utils;
+using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Styling;
+using T3.Editor.Gui.UiHelpers;
+using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.OutputUi;
 
@@ -29,13 +32,11 @@ internal sealed class FloatListOutputUi : OutputUi<List<float>>
     private sealed class ViewSettings
     {
         public ViewStyles ViewStyle = ViewStyles.Plot;
-
-        public int GridColumns = 16;
+        
         public float MinFit = -1;
         public float MaxFit = 1;
-        public float _lastMin;
-        public float _lastMax;
-        public double _lastSum;
+        public float LastMin;
+        public float LastMax;
     }
 
     private static readonly Dictionary<string, ViewSettings> _viewSettingsForId = [];
@@ -55,68 +56,94 @@ internal sealed class FloatListOutputUi : OutputUi<List<float>>
             return;
         }
 
+        // ReSharper disable once NullCoalescingConditionIsAlwaysNotNullAccordingToAPIContract
         viewId ??= string.Empty;
         var viewSettings = _viewSettingsForId.TryGetValue(viewId, out var settings)
                                ? settings
                                : _viewSettingsForId[viewId] = new ViewSettings();
 
-        FormInputs.DrawEnumDropdown(ref viewSettings.ViewStyle, "##view style");
+        FormInputs.SegmentedButton(ref viewSettings.ViewStyle);
 
         switch (viewSettings.ViewStyle)
         {
             case ViewStyles.List:
+                ImGui.TextUnformatted("not implemented");
                 break;
 
             case ViewStyles.Grid:
             {
-                var indexColumnWidth = 80 * T3Ui.UiScaleFactor;
+                ImGui.SameLine(0,20);
+                ImGui.TextUnformatted("Columns:");
+                ImGui.SameLine();
+                if (SingleValueEdit.Draw(ref UserSettings.Config.GridOutputColumnCount,
+                                         new Vector2(ImGui.GetFrameHeight() * 2, ImGui.GetFrameHeight()),
+                                         0,
+                                         100,
+                                         true, 0.1f) == InputEditStateFlags.Modified)
+                {
+                    UserSettings.Config.GridOutputColumnCount = UserSettings.Config.GridOutputColumnCount.Clamp(1, 100);
+                }
+                
+                var indexColumnWidth = 40 * T3Ui.UiScaleFactor;
+                var columnWidth = 40;
                 ImGui.NewLine();
+                FormInputs.AddVerticalSpace();
 
                 // Draw Header
-                for (var index = 0; index < viewSettings.GridColumns; index++)
+                for (var index = 0; index < UserSettings.Config.GridOutputColumnCount; index++)
                 {
-                    ImGui.SameLine(50 * T3Ui.UiScaleFactor * index + indexColumnWidth);
+                    ImGui.SameLine(columnWidth * T3Ui.UiScaleFactor * index + indexColumnWidth);
                     CustomComponents.StylizedText($"{index}", Fonts.FontSmall, UiColors.TextMuted);
                 }
 
                 int columnIndex = 0;
                 var min = float.PositiveInfinity;
                 var max = float.NegativeInfinity;
+                var drawList = ImGui.GetWindowDrawList();
 
                 for (var index = 0; index < valueList.Count; index++)
                 {
                     if (columnIndex == 0)
                     {
                         CustomComponents.StylizedText($"#{index}", Fonts.FontSmall, UiColors.TextMuted);
-                        //ImGui.SameLine();
-                        //ImGui.TextUnformatted($"#{index}");    
                     }
 
-                    ImGui.SameLine(50 * T3Ui.UiScaleFactor * columnIndex + indexColumnWidth);
+                    ImGui.SameLine(columnWidth * T3Ui.UiScaleFactor * columnIndex + indexColumnWidth);
 
                     var v = valueList[index];
                     min = MathF.Min(min, v);
                     max = MathF.Max(max, v);
-                    //ImGui.TextUnformatted($"{v:0.00}");
 
                     var n = v < 0
-                                ? (v / viewSettings._lastMax)
-                                : (v / viewSettings._lastMin);
+                                ? (v / viewSettings.LastMax)
+                                : (v / viewSettings.LastMin);
+                    if (float.IsNaN(n) || !float.IsFinite(n))
+                        n = 0;
+                    
+                    // Draw Bar overlay
+                    {
+                        var pos = ImGui.GetCursorScreenPos() + new Vector2(-1,1);
+                        var size = new Vector2((columnWidth -2) * n, Fonts.FontSmall.FontSize-1);
+                        drawList.AddRectFilled(pos, pos + size, UiColors.BackgroundActive.Fade(0.2f));
+                    }
 
-                    var opacity = (n + 0.1f).Clamp(0, 1);
+                    var opacity = (MathF.Pow(n, 0.3f) + 0.3f).Clamp(0, 1) * 0.8f;
                     var color = v < 0 ? UiColors.StatusAttention : UiColors.Text;
                     CustomComponents.StylizedText($"{v:0.0}", Fonts.FontSmall, color.Fade(opacity));
+                    
+
+                    
                     columnIndex++;
 
-                    if (columnIndex == viewSettings.GridColumns)
+                    if (columnIndex == UserSettings.Config.GridOutputColumnCount)
                     {
                         //ImGui.NewLine();
                         columnIndex = 0;
                     }
                 }
 
-                viewSettings._lastMax = max;
-                viewSettings._lastMin = max;
+                viewSettings.LastMax = max;
+                viewSettings.LastMin = max;
 
                 break;
             }
