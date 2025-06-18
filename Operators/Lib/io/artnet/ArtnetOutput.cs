@@ -49,7 +49,7 @@ internal sealed class ArtnetOutput : Instance<ArtnetOutput>
     /// <summary>
     ///Send DMX data across universes 
     /// </summary>
-    private void SendData(EvaluationContext context, int startUniverse, List<Slot<List<float>>> connections)
+    private void SendData(EvaluationContext context, int startUniverse, List<Slot<List<int>>> connections)
     {
         if (!_enableSending || !_connected)
             return;
@@ -127,7 +127,7 @@ internal sealed class ArtnetOutput : Instance<ArtnetOutput>
         return true;
     }
 
-    private static byte[] ConvertListToByteArray(IEnumerable<float> intList, int count)
+    private static byte[] ConvertListToByteArray(IEnumerable<int> intList, int count)
     {
         var byteArray = new byte[count];
 
@@ -154,26 +154,24 @@ internal sealed class ArtnetOutput : Instance<ArtnetOutput>
     string? IStatusProvider.GetStatusMessage() => _lastErrorMessage;
     private string? _lastErrorMessage;
 
-        [Input(Guid = "e2caf182-de22-4769-9b3c-9d75c53972a7")]
-        public readonly MultiInputSlot<System.Collections.Generic.List<float>> InputsValues = new MultiInputSlot<System.Collections.Generic.List<float>>();
+        [Input(Guid = "F7520A37-C2D4-41FA-A6BA-A6ED0423A4EC")]
+        public readonly MultiInputSlot<System.Collections.Generic.List<int>> InputsValues = new();
 
         [Input(Guid = "34aeeda5-72b0-4f13-bfd3-4ad5cf42b24f")]
-        public readonly InputSlot<int> StartUniverse = new InputSlot<int>();
+        public readonly InputSlot<int> StartUniverse = new();
 
         [Input(Guid = "fcbfe87b-b8aa-461c-a5ac-b22bb29ad36d")]
-        public readonly InputSlot<string> LocalIpAddress = new InputSlot<string>();
+        public readonly InputSlot<string> LocalIpAddress = new();
 
         [Input(Guid = "35A5EFD8-B670-4F2D-BDE0-380789E85E0C")]
-        public readonly InputSlot<string> SubNetMask = new InputSlot<string>();
+        public readonly InputSlot<string> SubNetMask = new();
 
         [Input(Guid = "168d0023-554f-46cd-9e62-8f3d1f564b8d")]
-        public readonly InputSlot<bool> SendTrigger = new InputSlot<bool>();
+        public readonly InputSlot<bool> SendTrigger = new();
 
         [Input(Guid = "73babdb1-f88f-4e4d-aa3f-0536678b0793")]
-        public readonly InputSlot<bool> Reconnect = new InputSlot<bool>();
+        public readonly InputSlot<bool> Reconnect = new();
 
-        [Input(Guid = "46A59B8C-BEF9-47F6-B0DA-A6277EF24431")]
-        public readonly InputSlot<System.Collections.Generic.List<float>> StartIndices = new InputSlot<System.Collections.Generic.List<float>>();
     
     /// <summary>
     /// Helper class for updating connection settings

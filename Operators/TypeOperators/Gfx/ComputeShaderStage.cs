@@ -194,6 +194,6 @@ public sealed class ComputeShaderStage : Instance<ComputeShaderStage>, IRenderSt
     [Input(Guid = "4047c9e7-1edb-4c71-b85c-c1b87058c81c")]
     public readonly MultiInputSlot<SharpDX.Direct3D11.SamplerState> SamplerStates = new();
 
-    private RenderTargetView[] _prevRenderTargetViews;
-    private DepthStencilView _prevDepthStencilView;
+    private RenderTargetView[]? _prevRenderTargetViews;
+    private DepthStencilView? _prevDepthStencilView;
 }

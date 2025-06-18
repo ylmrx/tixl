@@ -15,16 +15,14 @@ internal sealed class MergeIntLists : Instance<MergeIntLists>, IStatusProvider
 
     private void Update(EvaluationContext context)
     {
+        _lastErrorMessage = string.Empty;
+        
         Result.Value ??= [];
         var list = Result.Value;
         
         var inputListSlots = InputLists.GetCollectedTypedInputs();
         var noValidInputs = inputListSlots == null || inputListSlots.Count == 0;
-        if (noValidInputs)
-        {
-            list.Clear();
-            
-        }
+        list.Clear();
 
         var listNeedsCleanup = StartIndices.DirtyFlag.IsDirty;
         
@@ -47,7 +45,7 @@ internal sealed class MergeIntLists : Instance<MergeIntLists>, IStatusProvider
         if (noValidInputs)
             return;
         
-        _lastErrorMessage = string.Empty;
+        
 
         try
         {
@@ -78,7 +76,7 @@ internal sealed class MergeIntLists : Instance<MergeIntLists>, IStatusProvider
 
                 if (useMaxSize)
                 {
-                    for (var indexInSource = 0; indexInSource < source.Count && indexInSource < maxSize; indexInSource++)
+                    for (var indexInSource = 0; indexInSource < source.Count && indexInSource < maxSize && writeIndex < maxSize ; indexInSource++)
                     {
                         if (writeIndex >= 0)
                             list[writeIndex] = source[indexInSource];
@@ -102,9 +100,9 @@ internal sealed class MergeIntLists : Instance<MergeIntLists>, IStatusProvider
                             continue;
                         }
 
-                        while (writeIndex > list.Count - 1)
+                        while (writeIndex > list.Count )
                         {
-                            list.Add(0);
+                            list.Add(-1);
                         }
 
                         list.Add(value);

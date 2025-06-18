@@ -9,8 +9,8 @@ namespace Lib.io.artnet;
 [Guid("c9d7cd19-7fc6-4491-8dfa-3808725c7857")]
 public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 {
-    [Output(Guid = "2a1298f8-073b-4a6f-b53e-083ef97fe931")]
-    public readonly Slot<List<float>> Result = new(new List<float>(20));
+    [Output(Guid = "8DC2DB32-D7A3-4B3A-A000-93C3107D19E4")]
+    public readonly Slot<List<int>> Result = new(new List<int>(20));
 
     public PointsToArtNetLights()
     {
@@ -30,22 +30,21 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
                 Log.Warning("Point buffer is null.", this);
                 return;
             }
+
             var fixtureChannelSize = FixtureChannelSize.GetValue(context);
 
-            
-            if (!TryReadPointBufferFromGpu(pointBuffer, out var points)) 
+            if (!TryReadPointBufferFromGpu(pointBuffer, out var points))
                 return;
 
             var fixtureCount = points.Length / (_useReferencePointsForRotation ? 2 : 1);
-            
-            var resultItems = new List<float>(fixtureChannelSize * fixtureCount);
-            
+
+            var resultItems = new List<int>(fixtureChannelSize * fixtureCount);
+
             _channelValues.Clear();
-            
+
             // initialize size
             for (var i = 0; i < fixtureChannelSize; i++) _channelValues.Add(0);
-            
-            
+
             // Create a new items list for each point
             for (var pointIndex = 0; pointIndex < fixtureCount; pointIndex++)
             {
@@ -54,15 +53,13 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
                 {
                     _channelValues[i] = 0;
                 }
-                
-                var point = points[pointIndex];
 
+                var point = points[pointIndex];
 
                 if (GetRotation.GetValue(context))
                 {
                     var refPoint = _useReferencePointsForRotation ? points[pointIndex + points.Length / 2] : point;
                     ProcessRotation(context, point, refPoint);
-                    
                 }
 
                 if (GetColor.GetValue(context))
@@ -104,18 +101,19 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
         {
             Log.Error("Failed to fetch GPU resource or process data: " + e.Message);
             // Optionally, you might want to clear Result.Value in case of an error
-            Result.Value = new List<float>();
+            Result.Value = [];
         }
     }
+
     // Reuse list to avoid allocations
-    private readonly List<float> _channelValues = [];
+    private readonly List<int> _channelValues = [];
 
     private bool TryReadPointBufferFromGpu(BufferWithViews pointBuffer, [NotNullWhen(true)] out Point[] points)
     {
         var d3DDevice = ResourceManager.Device;
         var immediateContext = d3DDevice.ImmediateContext;
         points = null;
-        
+
         // Re-evaluate buffer setup conditions
         // var needsBufferSetup =
         //     _bufferWithViewsCpuAccess == null ||
@@ -177,7 +175,7 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 
             if (_points.Length != elementCount)
                 _points = new Point[elementCount];
-            
+
             //points = sourceStream.ReadRange<Point>(elementCount);
             sourceStream.ReadRange(_points, 0, elementCount);
         }
@@ -191,26 +189,25 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 
     private Vector2 _lastPanTilt = new(float.NaN, float.NaN);
     private Point[] _points = [];
-    
+
     private void ProcessRotation(EvaluationContext context, Point point, Point referencePoint)
     {
         var rotation = point.Orientation;
-        
+
         var isRotationValid = float.IsNaN(rotation.X) || float.IsNaN(rotation.Y) || float.IsNaN(rotation.Z) || float.IsNaN(rotation.W);
         if (isRotationValid)
             return;
-        
-        var axisOrder = AxisOrder.GetValue(context);
-        
-        var initialForwardAxis = Vector3.UnitZ;
 
+        var axisOrder = AxisOrder.GetValue(context);
+
+        var initialForwardAxis = Vector3.UnitZ;
 
         Vector3 direction;
         if (_useReferencePointsForRotation)
         {
             var refRotation = referencePoint.Orientation;
-            Quaternion qDelta =   Quaternion.Inverse(refRotation) * rotation;
-            
+            Quaternion qDelta = Quaternion.Inverse(refRotation) * rotation;
+
             direction = Vector3.Transform(initialForwardAxis, qDelta);
         }
         else
@@ -230,19 +227,19 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
                 panValue = MathF.Atan2(direction.X, direction.Y);
                 tiltValue = MathF.Atan2(-direction.Z, MathF.Sqrt(direction.X * direction.X + direction.Y * direction.Y));
                 break;
-            
+
             case 2:
                 panValue = MathF.Atan2(direction.X, direction.Z);
                 tiltValue = MathF.Atan2(direction.Y, MathF.Sqrt(direction.X * direction.X + direction.Z * direction.Z));
                 break;
-            
+
             // case 3
             default:
                 panValue = MathF.Atan2(direction.X, direction.Y);
-                tiltValue = MathF.Atan2( direction.Z, 
-                                         MathF.Sqrt(direction.X * direction.X + direction.Y * direction.Y)) - MathF.PI/2;
-                break;            
-        }        
+                tiltValue = MathF.Atan2(direction.Z,
+                                        MathF.Sqrt(direction.X * direction.X + direction.Y * direction.Y)) - MathF.PI / 2;
+                break;
+        }
 
         var panRange = PanRange.GetValue(context);
         var tiltRange = TiltRange.GetValue(context);
@@ -407,36 +404,39 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 
     private void ProcessColor(EvaluationContext context, Point point)
     {
-        if (!float.IsNaN(point.Color.X) && !float.IsNaN(point.Color.Y) && !float.IsNaN(point.Color.Z))
+        float r, g, b;
+
+        if (float.IsNaN(point.Color.X) || float.IsNaN(point.Color.Y) || float.IsNaN(point.Color.Z))
         {
-            var r = point.Color.X;
-            var g = point.Color.Y;
-            var b = point.Color.Z;
-
-            if (RGBToCMY.GetValue(context))
-            {
-                // Convert RGB to CMY
-                r = 1f - r;
-                g = 1f - g;
-                b = 1f - b;
-            }
-
-            var vR = Math.Clamp(r, 0f, 1f) * 255.0f;
-            var vG = Math.Clamp(g, 0f, 1f) * 255.0f;
-            var vB = Math.Clamp(b, 0f, 1f) * 255.0f;
-
-            InsertOrSet(RedChannel.GetValue(context) - 1, (float)Math.Round(vR));
-            InsertOrSet(GreenChannel.GetValue(context) - 1, (float)Math.Round(vG));
-            InsertOrSet(BlueChannel.GetValue(context) - 1, (float)Math.Round(vB));
-
-            if (AlphaChannel.GetValue(context) > 0)
-            {
-                InsertOrSet( AlphaChannel.GetValue(context) - 1, (float)Math.Round(point.Color.W * 255.0f));
-            }
+            Log.Warning("Invalid color value", this);
+            r = b = g = 0;
         }
         else
         {
-            Log.Warning("Invalid color value", this);
+            r = point.Color.X;
+            g = point.Color.Y;
+            b = point.Color.Z;
+        }
+
+        if (RGBToCMY.GetValue(context))
+        {
+            // Convert RGB to CMY
+            r = 1f - r;
+            g = 1f - g;
+            b = 1f - b;
+        }
+
+        var vR = Math.Clamp(r, 0f, 1f) * 255.0f;
+        var vG = Math.Clamp(g, 0f, 1f) * 255.0f;
+        var vB = Math.Clamp(b, 0f, 1f) * 255.0f;
+
+        InsertOrSet(RedChannel.GetValue(context) - 1, (int)Math.Round(vR));
+        InsertOrSet(GreenChannel.GetValue(context) - 1, (int)Math.Round(vG));
+        InsertOrSet(BlueChannel.GetValue(context) - 1, (int)Math.Round(vB));
+
+        if (AlphaChannel.GetValue(context) > 0)
+        {
+            InsertOrSet(AlphaChannel.GetValue(context) - 1, (int)Math.Round(point.Color.W * 255.0f));
         }
     }
 
@@ -444,7 +444,7 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
     {
         if (!float.IsNaN(point.F1))
         {
-            InsertOrSet(F1Channel.GetValue(context) - 1, (float)Math.Round(point.F1 * 255.0f));
+            InsertOrSet(F1Channel.GetValue(context) - 1, (int)Math.Round(point.F1 * 255.0f));
         }
         else
         {
@@ -456,7 +456,7 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
     {
         if (!float.IsNaN(point.F2))
         {
-            InsertOrSet(F2Channel.GetValue(context) - 1, (float)Math.Round(point.F2 * 255.0f));
+            InsertOrSet(F2Channel.GetValue(context) - 1, (int)Math.Round(point.F2 * 255.0f));
         }
         else
         {
@@ -485,7 +485,7 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
         return (int)Math.Round((degreeValue / safeMaxDegrees) * 255.0f);
     }
 
-    private void InsertOrSet( int index, float value)
+    private void InsertOrSet(int index, int value)
     {
         if (index < 0)
         {
@@ -495,9 +495,11 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 
         if (index >= _channelValues.Count)
         {
-            Log.Warning($"DMX Channel index {index + 1} is out of range (list size: {_channelValues.Count}).  Adjust FixtureChannelSize or Channel Assignments.", this);
+            Log.Warning($"DMX Channel index {index + 1} is out of range (list size: {_channelValues.Count}).  Adjust FixtureChannelSize or Channel Assignments.",
+                        this);
             return;
         }
+
         _channelValues[index] = value;
     }
 
@@ -517,7 +519,7 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 
     [Input(Guid = "AFD3AA99-C892-4B87-AD3F-F97461E8A934")]
     public readonly InputSlot<bool> WithReferencePoints = new();
-    
+
     [Input(Guid = "1348ed7c-79f8-48c6-ac00-e60fb40050db")]
     public readonly InputSlot<int> FixtureChannelSize = new();
 
