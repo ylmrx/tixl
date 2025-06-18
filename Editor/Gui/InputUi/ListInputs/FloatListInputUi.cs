@@ -1,11 +1,7 @@
-﻿using ImGuiNET;
-using T3.Core.Operator;
-using T3.Editor.Gui.InputUi.ListInputs;
-using T3.Editor.Gui.Interaction;
-using T3.Editor.Gui.UiHelpers;
+﻿using T3.Core.Operator;
 using T3.Editor.UiModel.InputsAndTypes;
 
-namespace T3.Editor.Gui.InputUi.SingleControl;
+namespace T3.Editor.Gui.InputUi.ListInputs;
 
 internal sealed class FloatListInputUi : ListInputValueUi<List<float>>
 {
