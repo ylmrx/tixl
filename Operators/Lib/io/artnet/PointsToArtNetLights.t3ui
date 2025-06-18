@@ -75,7 +75,7 @@
         "X": -204.96455,
         "Y": 192.30495
       },
-      "GroupTitle": "Rotation"
+      "GroupTitle": "Rotation..."
     },
     {
       "InputId": "4a40e022-d206-447c-bda3-d534f231c816"/*TiltFineChannel*/,
@@ -312,10 +312,10 @@
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "2a1298f8-073b-4a6f-b53e-083ef97fe931"/*Result*/,
+      "OutputId": "8dc2db32-d7a3-4b3a-a000-93c3107d19e4"/*Result*/,
       "Position": {
-        "X": 0.0,
-        "Y": 0.0
+        "X": 300.0,
+        "Y": 200.0
       }
     }
   ]

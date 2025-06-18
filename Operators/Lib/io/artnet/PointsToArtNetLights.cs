@@ -1,3 +1,4 @@
+using SharpDX;
 using SharpDX.Direct3D11;
 using Utilities = T3.Core.Utils.Utilities;
 
@@ -9,7 +10,7 @@ namespace Lib.io.artnet;
 [Guid("c9d7cd19-7fc6-4491-8dfa-3808725c7857")]
 public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
 {
-    [Output(Guid = "8DC2DB32-D7A3-4B3A-A000-93C3107D19E4")]
+    [Output(Guid = "8DC2DB32-D7A3-4B3A-A000-93C3107D19E4", DirtyFlagTrigger = DirtyFlagTrigger.Animated)]
     public readonly Slot<List<int>> Result = new(new List<int>(20));
 
     public PointsToArtNetLights()
@@ -17,174 +18,107 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
         Result.UpdateAction = Update;
     }
 
+    private readonly List<int> _resultItems = [128];
+
     private void Update(EvaluationContext context)
     {
         _useReferencePointsForRotation = WithReferencePoints.GetValue(context);
-        var updateContinuously = true; // Consider making this an input
-        try
+        var fixtureChannelSize = FixtureChannelSize.GetValue(context);
+        var pointBuffer = Points.GetValue(context);
+
+        if (pointBuffer == null)
         {
-            var pointBuffer = Points.GetValue(context);
-
-            if (pointBuffer == null)
-            {
-                Log.Warning("Point buffer is null.", this);
-                return;
-            }
-
-            var fixtureChannelSize = FixtureChannelSize.GetValue(context);
-
-            if (!TryReadPointBufferFromGpu(pointBuffer, out var points))
-                return;
-
-            var fixtureCount = points.Length / (_useReferencePointsForRotation ? 2 : 1);
-
-            var resultItems = new List<int>(fixtureChannelSize * fixtureCount);
-
-            _channelValues.Clear();
-
-            // initialize size
-            for (var i = 0; i < fixtureChannelSize; i++) _channelValues.Add(0);
-
-            // Create a new items list for each point
-            for (var pointIndex = 0; pointIndex < fixtureCount; pointIndex++)
-            {
-                // clear channel values
-                for (var i = 0; i < fixtureChannelSize; i++)
-                {
-                    _channelValues[i] = 0;
-                }
-
-                var point = points[pointIndex];
-
-                if (GetRotation.GetValue(context))
-                {
-                    var refPoint = _useReferencePointsForRotation ? points[pointIndex + points.Length / 2] : point;
-                    ProcessRotation(context, point, refPoint);
-                }
-
-                if (GetColor.GetValue(context))
-                    ProcessColor(context, point);
-
-                if (GetF1.GetValue(context))
-                    ProcessF1(context, point);
-
-                if (GetF2.GetValue(context))
-                    ProcessF2(context, point);
-
-                // CustomVar1
-                if (SetCustomVar1.GetValue(context) && CustomVar1Channel.GetValue(context) > 0)
-                {
-                    InsertOrSet(CustomVar1Channel.GetValue(context) - 1, CustomVar1.GetValue(context));
-                }
-
-                // CustomVar2
-                if (SetCustomVar2.GetValue(context) && CustomVar2Channel.GetValue(context) > 0)
-                {
-                    InsertOrSet(CustomVar2Channel.GetValue(context) - 1, CustomVar2.GetValue(context));
-                }
-
-                // CustomVar3
-                if (SetCustomVar3.GetValue(context) && CustomVar3Channel.GetValue(context) > 0)
-                {
-                    InsertOrSet(CustomVar3Channel.GetValue(context) - 1, CustomVar3.GetValue(context));
-                }
-
-                // Append this point's items to the result list
-                resultItems.AddRange(_channelValues);
-            }
-
-            Result.Value = resultItems;
-
-            Result.DirtyFlag.Trigger = updateContinuously ? DirtyFlagTrigger.Animated : DirtyFlagTrigger.None;
+            Log.Warning("Point buffer is null.", this);
+            return;
         }
-        catch (Exception e)
+
+        _structuredBufferReader.InitiateRead(pointBuffer.Buffer,
+                                             pointBuffer.Srv.Description.Buffer.ElementCount,
+                                             pointBuffer.Buffer.Description.StructureByteStride,
+                                             OnReadComplete);
+
+        _structuredBufferReader.Update();
+
+        // if (!TryReadPointBufferFromGpu(pointBuffer, out var points))
+        //     return;
+        if (_points != null)
         {
-            Log.Error("Failed to fetch GPU resource or process data: " + e.Message);
-            // Optionally, you might want to clear Result.Value in case of an error
-            Result.Value = [];
+            UpdateChannelData(context, _points, fixtureChannelSize);
+            Result.Value = _resultItems;
         }
     }
 
-    // Reuse list to avoid allocations
-    private readonly List<int> _channelValues = [];
-
-    private bool TryReadPointBufferFromGpu(BufferWithViews pointBuffer, [NotNullWhen(true)] out Point[] points)
+    private void OnReadComplete(StructuredBufferReadAccess.ReadRequestItem readItem, IntPtr dataPointer, DataStream dataStream)
     {
-        var d3DDevice = ResourceManager.Device;
-        var immediateContext = d3DDevice.ImmediateContext;
-        points = null;
+        int count = readItem.ElementCount;
 
-        // Re-evaluate buffer setup conditions
-        // var needsBufferSetup =
-        //     _bufferWithViewsCpuAccess == null ||
-        //     _bufferWithViewsCpuAccess.Buffer == null ||
-        //     _bufferWithViewsCpuAccess.Buffer.Description.SizeInBytes != pointBuffer.Buffer.Description.SizeInBytes ||
-        //     _bufferWithViewsCpuAccess.Buffer.Description.StructureByteStride != pointBuffer.Buffer.Description.StructureByteStride;
+        if (_points.Length != count)
+            _points = new Point[count];
 
-        try
+        using (dataStream)
         {
-            // Dispose existing buffer if it exists and needs replacement
-            if (_bufferWithViewsCpuAccess != null && _bufferWithViewsCpuAccess.Buffer != null)
+            dataStream.ReadRange(_points, 0, count);
+        }
+    }
+
+    private void UpdateChannelData(EvaluationContext context, Point[] points, int fixtureChannelSize)
+    {
+        var fixtureCount = points.Length / (_useReferencePointsForRotation ? 2 : 1);
+
+        _resultItems.Clear();
+
+        _pointChannelValues.Clear();
+
+        // initialize size
+        for (var i = 0; i < fixtureChannelSize; i++) _pointChannelValues.Add(0);
+
+        // Create a new items list for each point
+        for (var pointIndex = 0; pointIndex < fixtureCount; pointIndex++)
+        {
+            // clear channel values
+            for (var i = 0; i < fixtureChannelSize; i++)
             {
-                if (_bufferWithViewsCpuAccess.Buffer.Description.SizeInBytes != pointBuffer.Buffer.Description.SizeInBytes)
-                {
-                    Utilities.Dispose(ref _bufferWithViewsCpuAccess.Buffer);
-                    _bufferWithViewsCpuAccess.Buffer = null; // Ensure it's nullified after dispose for proper re-creation
-                }
+                _pointChannelValues[i] = 0;
             }
 
-            _bufferWithViewsCpuAccess ??= new BufferWithViews();
+            var point = points[pointIndex];
 
-            if (_bufferWithViewsCpuAccess.Buffer == null ||
-                _bufferWithViewsCpuAccess.Buffer.Description.SizeInBytes != pointBuffer.Buffer.Description.SizeInBytes)
+            if (GetRotation.GetValue(context))
             {
-                var bufferDesc = new BufferDescription
-                                     {
-                                         Usage = ResourceUsage.Default, // For CopyResource
-                                         BindFlags = BindFlags.UnorderedAccess | BindFlags.ShaderResource, // For SRV/UAV
-                                         SizeInBytes = pointBuffer.Buffer.Description.SizeInBytes,
-                                         OptionFlags = ResourceOptionFlags.BufferStructured,
-                                         StructureByteStride = pointBuffer.Buffer.Description.StructureByteStride,
-                                         CpuAccessFlags = CpuAccessFlags.Read // For MapSubresource
-                                     };
-                _bufferWithViewsCpuAccess.Buffer = new Buffer(ResourceManager.Device, bufferDesc);
+                var refPoint = _useReferencePointsForRotation ? points[pointIndex + points.Length / 2] : point;
+                ProcessRotation(context, point, refPoint);
             }
+
+            if (GetColor.GetValue(context))
+                ProcessColor(context, point);
+
+            if (GetF1.GetValue(context))
+                ProcessF1(context, point);
+
+            if (GetF2.GetValue(context))
+                ProcessF2(context, point);
+
+            // CustomVar1
+            if (SetCustomVar1.GetValue(context) && CustomVar1Channel.GetValue(context) > 0)
+            {
+                InsertOrSet(CustomVar1Channel.GetValue(context) - 1, CustomVar1.GetValue(context));
+            }
+
+            // CustomVar2
+            if (SetCustomVar2.GetValue(context) && CustomVar2Channel.GetValue(context) > 0)
+            {
+                InsertOrSet(CustomVar2Channel.GetValue(context) - 1, CustomVar2.GetValue(context));
+            }
+
+            // CustomVar3
+            if (SetCustomVar3.GetValue(context) && CustomVar3Channel.GetValue(context) > 0)
+            {
+                InsertOrSet(CustomVar3Channel.GetValue(context) - 1, CustomVar3.GetValue(context));
+            }
+
+            // Append this point's items to the result list
+            _resultItems.AddRange(_pointChannelValues);
         }
-        catch (Exception e)
-        {
-            Log.Error("Failed to setup structured buffer: " + e.Message, this);
-            return false;
-        }
-
-        ResourceManager.CreateStructuredBufferSrv(_bufferWithViewsCpuAccess.Buffer, ref _bufferWithViewsCpuAccess.Srv);
-        immediateContext.CopyResource(pointBuffer.Buffer, _bufferWithViewsCpuAccess.Buffer);
-
-        // Only map if the buffer was successfully created/updated
-        if (_bufferWithViewsCpuAccess?.Buffer == null)
-        {
-            Log.Warning("Structured buffer is not available for mapping.", this);
-            return false;
-        }
-
-        _ = immediateContext.MapSubresource(_bufferWithViewsCpuAccess.Buffer, 0, MapMode.Read, MapFlags.None, out var sourceStream);
-
-        using (sourceStream)
-        {
-            var elementCount = _bufferWithViewsCpuAccess.Buffer.Description.SizeInBytes /
-                               _bufferWithViewsCpuAccess.Buffer.Description.StructureByteStride;
-
-            if (_points.Length != elementCount)
-                _points = new Point[elementCount];
-
-            //points = sourceStream.ReadRange<Point>(elementCount);
-            sourceStream.ReadRange(_points, 0, elementCount);
-        }
-
-        // Ensure UnmapSubresource is called outside the using block to guarantee it's always called after the stream is closed.
-        // This is actually safer if `sourceStream` might throw during construction.
-        immediateContext.UnmapSubresource(_bufferWithViewsCpuAccess.Buffer, 0);
-        points = _points;
-        return true;
     }
 
     private Vector2 _lastPanTilt = new(float.NaN, float.NaN);
@@ -493,14 +427,14 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
             return;
         }
 
-        if (index >= _channelValues.Count)
+        if (index >= _pointChannelValues.Count)
         {
-            Log.Warning($"DMX Channel index {index + 1} is out of range (list size: {_channelValues.Count}).  Adjust FixtureChannelSize or Channel Assignments.",
+            Log.Warning($"DMX Channel index {index + 1} is out of range (list size: {_pointChannelValues.Count}).  Adjust FixtureChannelSize or Channel Assignments.",
                         this);
             return;
         }
 
-        _channelValues[index] = value;
+        _pointChannelValues[index] = value;
     }
 
     private enum RotationModes
@@ -511,8 +445,11 @@ public sealed class PointsToArtNetLights : Instance<PointsToArtNetLights>
         ForReferencePoints,
     }
 
+    // Reuse list to avoid allocations
+    private readonly List<int> _pointChannelValues = [];
     private BufferWithViews _bufferWithViewsCpuAccess = new();
     private bool _useReferencePointsForRotation;
+    private StructuredBufferReadAccess _structuredBufferReader = new();
 
     [Input(Guid = "61b48e46-c3d1-46e3-a470-810d55f30aa6")]
     public readonly InputSlot<T3.Core.DataTypes.BufferWithViews> Points = new();
