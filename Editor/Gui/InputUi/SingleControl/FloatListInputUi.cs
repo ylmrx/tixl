@@ -21,6 +21,11 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
     
     protected override InputEditStateFlags DrawEditControl(string name, Symbol.Child.Input input, ref List<float> list, bool readOnly)
     {
+        return DrawListInputControl(input, ref list);
+    }
+
+    private static InputEditStateFlags DrawListInputControl<T>(Symbol.Child.Input input, ref List<T> list)
+    {
         // Handle missing or empty list
         if (list == null)
         {
@@ -29,6 +34,7 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
                 list = [];
                 return InputEditStateFlags.Modified | InputEditStateFlags.Finished;
             }
+
             return InputEditStateFlags.Nothing;
         }
 
@@ -41,7 +47,7 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
                     list = [];
                     input.IsDefault = false;
                 } 
-                list.Add(0);
+                list.Add(default);
                 return InputEditStateFlags.ModifiedAndFinished;
             }
 
@@ -84,7 +90,6 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
             ImGui.PushID(dragIndex);
             ImGui.AlignTextToFramePadding();
             
-            //ImGui.TextUnformatted($"{index}.");
             ImGui.Button($"{dragIndex}.");
 
             if (ImGui.IsItemActive())
@@ -132,7 +137,35 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
             
             var f = list[index];
             var ff = f;
-            var r = SingleValueEdit.Draw(ref ff, new Vector2(300 * T3Ui.UiScaleFactor,0));
+
+            var size = new Vector2(300 * T3Ui.UiScaleFactor, 0);
+
+            var r = InputEditStateFlags.Nothing;
+                //var r = SingleValueEdit.Draw(ref ff, new Vector2(300 * T3Ui.UiScaleFactor,0));
+
+            switch (ff)
+            {
+                case float floatValue:
+                {
+                    r = SingleValueEdit.Draw(ref floatValue, size);
+                    if (r != InputEditStateFlags.Nothing)
+                    {
+                    
+                        ff = (T)(object)floatValue;
+                    }
+
+                    break;
+                }
+                case int intValue:
+                {
+                    r = SingleValueEdit.Draw(ref intValue, size);
+                    if(r != InputEditStateFlags.Nothing)
+                        ff = (T)(object)intValue;
+                    break;
+                }
+            }
+     
+            
             
             ImGui.SameLine();
             if(ImGui.Button("×"))
@@ -181,22 +214,6 @@ internal sealed class FloatListInputUi : InputValueUi<List<float>>
         }
         return modified;
     }
-    // protected override bool DrawSingleEditControl(string name, ref List<float> list)
-    // {
-    //     if (list == null || list.Count == 0) return false;
-    //     lock (list)
-    //     {
-    //         foreach (var i in list)
-    //         {
-    //             var f = i;
-    //             SingleValueEdit.Draw(ref f, Vector2.Zero);
-    //         }
-    //         string outputString;
-    //         outputString = list == null ? "NULL" :  string.Join(", ", list);
-    //         ImGui.TextUnformatted($"{outputString}");
-    //     }
-    //     return false;
-    // }
 
     private static readonly List<int> _listOrderWhileDragging = [];
     private static bool _isDragging;
