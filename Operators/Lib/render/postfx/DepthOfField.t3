@@ -2,19 +2,6 @@
   "Id": "53d3eebd-4ead-4965-b26d-10a8bbd48182"/*DepthOfField*/,
   "Inputs": [
     {
-      "Id": "1592e94b-a20d-463c-baec-5fb5dfa85532"/*BackgroundColor*/,
-      "DefaultValue": {
-        "X": 1E-06,
-        "Y": 9.9999E-07,
-        "Z": 9.9999E-07,
-        "W": 1.0
-      }
-    },
-    {
-      "Id": "22f5e8db-0b80-47dc-b30b-4bc49d9fad59"/*Command*/,
-      "DefaultValue": null
-    },
-    {
       "Id": "3655d507-96b3-4ded-9cef-886ea703ca89"/*Amount*/,
       "DefaultValue": 1.0
     },

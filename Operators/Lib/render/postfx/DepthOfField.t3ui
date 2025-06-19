@@ -4,24 +4,6 @@
   "SymbolTags": "1",
   "InputUis": [
     {
-      "InputId": "1592e94b-a20d-463c-baec-5fb5dfa85532"/*BackgroundColor*/,
-      "Position": {
-        "X": -180.9964,
-        "Y": -353.25583
-      },
-      "Description": "Defines the BackgroundColor.",
-      "AddPadding": "True"
-    },
-    {
-      "InputId": "22f5e8db-0b80-47dc-b30b-4bc49d9fad59"/*Command*/,
-      "Position": {
-        "X": -180.9964,
-        "Y": -388.2559
-      },
-      "Description": "Internal Input.",
-      "AddPadding": "True"
-    },
-    {
       "InputId": "3655d507-96b3-4ded-9cef-886ea703ca89"/*Amount*/,
       "Position": {
         "X": 386.16498,

@@ -4,22 +4,28 @@
   "SymbolTags": "24",
   "InputUis": [
     {
-      "InputId": "646bf43b-0198-4798-9e15-70b42fa772ef"/*InputField*/,
-      "Relevancy": "Required",
+      "InputId": "5d256e1e-7189-4239-a1dd-717d909382a0"/*Scale*/,
       "Position": {
         "X": -200.0,
-        "Y": 135.0
+        "Y": 360.0
       }
     },
     {
-      "InputId": "b9c106bb-8a49-47ca-ace5-3ba0d1373bf1"/*Range*/,
+      "InputId": "7c1b8678-3961-43e7-9f61-df4c82fb5c63"/*Offset*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 435.0
+      }
+    },
+    {
+      "InputId": "b9c106bb-8a49-47ca-ace5-3ba0d1373bf1"/*Size*/,
       "Position": {
         "X": -200.0,
         "Y": 285.0
       }
     },
     {
-      "InputId": "bd8e1e6a-65bf-431c-a0f1-38c7858af0f5"/*GradientSrv*/,
+      "InputId": "bd8e1e6a-65bf-431c-a0f1-38c7858af0f5"/*SdfImageSrv*/,
       "Relevancy": "Required",
       "Position": {
         "X": -200.0,

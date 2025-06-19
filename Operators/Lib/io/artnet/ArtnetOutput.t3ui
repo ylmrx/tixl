@@ -29,13 +29,6 @@
       "Usage": "Default"
     },
     {
-      "InputId": "46a59b8c-bef9-47f6-b0da-a6277ef24431"/*StartIndices*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 300.0
-      }
-    },
-    {
       "InputId": "73babdb1-f88f-4e4d-aa3f-0536678b0793"/*Reconnect*/,
       "Position": {
         "X": -200.0,
@@ -43,11 +36,10 @@
       }
     },
     {
-      "InputId": "e2caf182-de22-4769-9b3c-9d75c53972a7"/*InputsValues*/,
-      "Relevancy": "Required",
+      "InputId": "f7520a37-c2d4-41fa-a6ba-a6ed0423a4ec"/*InputsValues*/,
       "Position": {
         "X": -200.0,
-        "Y": 225.0
+        "Y": 0.0
       }
     },
     {

@@ -1,5 +1,5 @@
 {
-  "Id": "58ff3790-5ec5-4113-8e37-a934c3a7fdcd"/*RepeatWithMirror*/,
+  "Id": "58ff3790-5ec5-4113-8e37-a934c3a7fdcd"/*RepeatAxis*/,
   "Inputs": [
     {
       "Id": "1c437dc9-aabf-404a-b23d-99ca677b6eb7"/*Size*/,
