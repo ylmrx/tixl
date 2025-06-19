@@ -873,20 +873,8 @@ internal static class TransformGizmoHandling
         _initialRotation = TryGetVectorFromInput(_transformable.RotationInput);
         _rotationAxis = axis;
 
-        // Store initial mouse angle relative to object's rotation
-        float currentMouseAngle = GetMouseAngle(_mousePosInScreen);
-        Vector3 currentRotation = TryGetVectorFromInput(_transformable.RotationInput);
-
-        if (axis == Vector3.UnitX) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.X;
-        else if (axis == Vector3.UnitY) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.Y;
-        else if (axis == Vector3.UnitZ) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.Z;
-        else _initialAngleOffset = 0; // For screen rotation
-
-        // For screen rotation, we'll handle it differently
-        if (mode == GizmoParts.RotationScreen)
-        {
-            _initialMousePos = _mousePosInScreen;
-        }
+        // Store initial mouse position for delta calculations
+        _initialMousePos = _mousePosInScreen;
     }
 
     private static void UpdateRotationDragging(Vector3 axis)
@@ -894,19 +882,32 @@ internal static class TransformGizmoHandling
         Debug.Assert(_rotationCommandInFlight != null);
         Debug.Assert(_transformable != null);
 
-        float currentMouseAngle = GetMouseAngle(_mousePosInScreen);
-        float angleDelta = currentMouseAngle.ToDegrees() - _initialAngleOffset;
+        Vector2 mouseDelta = _mousePosInScreen - _initialMousePos;
+        float rotationDelta = 0f;
+
+        if (axis == Vector3.UnitX) // X axis - pitch
+        {
+            
+            rotationDelta = mouseDelta.Y * 0.5f;
+        }
+        else if (axis == Vector3.UnitY) // Y axis - yaw
+        {
+            
+            rotationDelta = mouseDelta.X * 0.5f;
+        }
+        else if (axis == Vector3.UnitZ) // Z axis - roll
+        {
+            
+            rotationDelta = -mouseDelta.X * 0.5f;
+
+        
+        }
 
         Vector3 newRotation = _initialRotation;
 
-        if (axis == Vector3.UnitX) newRotation.X = angleDelta;
-        else if (axis == Vector3.UnitY) newRotation.Y = angleDelta;
-        else if (axis == Vector3.UnitZ) newRotation.Z = angleDelta;
-
-        // Apply rotation limits if needed (optional)
-        // newRotation.X = Math.Clamp(newRotation.X, -180, 180);
-        // newRotation.Y = Math.Clamp(newRotation.Y, -180, 180);
-        // newRotation.Z = Math.Clamp(newRotation.Z, -180, 180);
+        if (axis == Vector3.UnitX) newRotation.X += rotationDelta;
+        else if (axis == Vector3.UnitY) newRotation.Y += rotationDelta;
+        else if (axis == Vector3.UnitZ) newRotation.Z += rotationDelta;
 
         TrySetVector3ToInput(_transformable.RotationInput, newRotation);
         _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
@@ -917,11 +918,18 @@ internal static class TransformGizmoHandling
         Debug.Assert(_rotationCommandInFlight != null);
         Debug.Assert(_transformable != null);
 
-        // Calculate angle based on mouse movement from initial position
-        Vector2 mouseDelta = _mousePosInScreen - _initialMousePos;
-        float angleDelta = mouseDelta.X * 0.5f; // Adjust sensitivity as needed
+        // For screen rotation, use circular motion around the gizmo center
+        Vector2 initialDir = Vector2.Normalize(_initialMousePos - _originInScreen);
+        Vector2 currentDir = Vector2.Normalize(_mousePosInScreen - _originInScreen);
 
-        Vector3 newRotation = _initialRotation + new Vector3(angleDelta);
+        // Calculate the angle between the two directions
+        float dot = Vector2.Dot(initialDir, currentDir);
+        float det = initialDir.X * currentDir.Y - initialDir.Y * currentDir.X;
+        float angleDelta = MathF.Atan2(det, dot) * (180f / MathF.PI);
+
+        // Apply to all axes equally for screen rotation, or choose one axis
+        Vector3 newRotation = _initialRotation;
+        newRotation.Z += angleDelta; // Apply to Z-axis for screen rotation
 
         TrySetVector3ToInput(_transformable.RotationInput, newRotation);
         _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
