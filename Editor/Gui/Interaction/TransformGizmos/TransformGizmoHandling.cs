@@ -164,6 +164,13 @@ internal static class TransformGizmoHandling
                     HandleScaleGizmos();
                 }
                 break;
+
+            case TransformGizmoModes.Rotate:
+                if (_transformable.RotationInput != null)
+                {
+                    HandleRotationGizmos();
+                }
+                break;
         }
     }
 
@@ -693,6 +700,286 @@ internal static class TransformGizmoHandling
         }
     }
 
+    private static bool HandleRotationGizmos()
+    {
+        var isHoveringSomething = HandleRotationOnAxis(Vector3.UnitX, Color.Red, GizmoParts.RotationXAxis);
+        isHoveringSomething |= HandleRotationOnAxis(Vector3.UnitY, Color.Green, GizmoParts.RotationYAxis);
+        isHoveringSomething |= HandleRotationOnAxis(Vector3.UnitZ, Color.Blue, GizmoParts.RotationZAxis);
+        isHoveringSomething |= HandleScreenRotation();
+
+        return isHoveringSomething;
+    }
+
+    private static bool HandleRotationOnAxis(Vector3 axis, Color color, GizmoParts mode)
+    {
+        const int circleSegments = 32;
+        const float circleRadius = 0.5f;
+
+        var circlePoints = new Vector2[circleSegments];
+        var circleCenter = _originInScreen;
+
+        // Create two perpendicular vectors to form the circle plane
+        Vector3 tangent1, tangent2;
+        if (MathF.Abs(Vector3.Dot(axis, Vector3.UnitZ)) > 0.999f)
+        {
+            tangent1 = Vector3.UnitX;
+            tangent2 = Vector3.UnitY;
+        }
+        else
+        {
+            tangent1 = Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitZ));
+            tangent2 = Vector3.Normalize(Vector3.Cross(axis, tangent1));
+        }
+
+        // Calculate circle points in 3D space then project to screen
+        for (int i = 0; i < circleSegments; i++)
+        {
+            float angle = (float)i / circleSegments * MathF.PI * 2;
+            Vector3 point3D = tangent1 * MathF.Cos(angle) * circleRadius +
+                             tangent2 * MathF.Sin(angle) * circleRadius;
+
+            circlePoints[i] = LocalPosToScreenPos(point3D);
+        }
+
+        var isHovering = false;
+
+        if (!IsDragging)
+        {
+            isHovering = IsPointNearPolygon(_mousePosInScreen, circlePoints);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartRotationDragging(mode, axis);
+            }
+        }
+        else if (_draggedGizmoPart == mode
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateRotationDragging(axis);
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteRotationDragging();
+            }
+        }
+
+        if (_renderGizmo)
+        {
+            var lineColor = color;
+            lineColor.Rgba.W = isHovering ? 1.0f : 0.8f;
+
+            for (int i = 0; i < circleSegments; i++)
+            {
+                int next = (i + 1) % circleSegments;
+                _drawList.AddLine(circlePoints[i], circlePoints[next], lineColor, isHovering ? 3 : 2);
+            }
+
+            // Draw axis indicator line to make orientation clearer
+            if (isHovering)
+            {
+                var axisEnd = LocalPosToScreenPos(axis * 1.0f);
+                _drawList.AddLine(_originInScreen, axisEnd, color, 2);
+            }
+        }
+
+        return isHovering;
+    }
+
+    // Add this method to handle screen space rotation
+    private static bool HandleScreenRotation()
+    {
+        const float outerRadius = 2.0f;
+        const float innerRadius = 1.8f;
+
+        var outerCirclePoints = new Vector2[32];
+        var innerCirclePoints = new Vector2[32];
+
+        // Calculate circle points in screen space
+        for (int i = 0; i < 32; i++)
+        {
+            float angle = (float)i / 32 * MathF.PI * 2;
+            outerCirclePoints[i] = _originInScreen + new Vector2(
+                MathF.Cos(angle) * outerRadius,
+                MathF.Sin(angle) * outerRadius);
+
+            innerCirclePoints[i] = _originInScreen + new Vector2(
+                MathF.Cos(angle) * innerRadius,
+                MathF.Sin(angle) * innerRadius);
+        }
+
+        var isHovering = false;
+
+        if (!IsDragging)
+        {
+            // Check if mouse is in the ring between inner and outer circles
+            isHovering = IsPointInRing(_mousePosInScreen, _originInScreen, innerRadius, outerRadius);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartRotationDragging(GizmoParts.RotationScreen, Vector3.Zero);
+            }
+        }
+        else if (_draggedGizmoPart == GizmoParts.RotationScreen
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateScreenRotationDragging();
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteRotationDragging();
+            }
+        }
+
+        if (_renderGizmo)
+        {
+            // Draw screen rotation ring
+            var color = UiColors.StatusAnimated;
+            color.Rgba.W = isHovering ? 0.8f : 0.6f;
+
+            for (int i = 0; i < 32; i++)
+            {
+                int next = (i + 1) % 32;
+                _drawList.AddQuad(
+                    outerCirclePoints[i],
+                    outerCirclePoints[next],
+                    innerCirclePoints[next],
+                    innerCirclePoints[i],
+                    color);
+            }
+        }
+
+        return isHovering;
+    }
+
+    // Add these helper methods for rotation
+    private static void StartRotationDragging(GizmoParts mode, Vector3 axis)
+    {
+        Debug.Assert(_instance?.Parent != null);
+        Debug.Assert(_transformable != null);
+
+        _draggedGizmoPart = mode;
+        _rotationCommandInFlight = new ChangeInputValueCommand(
+            _instance.Parent.Symbol,
+            _instance.SymbolChildId,
+            _transformable.RotationInput.Input,
+            _transformable.RotationInput.Input.Value);
+
+        _draggedTransformable = _transformable;
+        _dragInteractionWindowId = ImGui.GetID("");
+        _initialRotation = TryGetVectorFromInput(_transformable.RotationInput);
+        _rotationAxis = axis;
+
+        // Store initial mouse angle relative to object's rotation
+        float currentMouseAngle = GetMouseAngle(_mousePosInScreen);
+        Vector3 currentRotation = TryGetVectorFromInput(_transformable.RotationInput);
+
+        if (axis == Vector3.UnitX) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.X;
+        else if (axis == Vector3.UnitY) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.Y;
+        else if (axis == Vector3.UnitZ) _initialAngleOffset = currentMouseAngle.ToDegrees() - currentRotation.Z;
+        else _initialAngleOffset = 0; // For screen rotation
+
+        // For screen rotation, we'll handle it differently
+        if (mode == GizmoParts.RotationScreen)
+        {
+            _initialMousePos = _mousePosInScreen;
+        }
+    }
+
+    private static void UpdateRotationDragging(Vector3 axis)
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        Debug.Assert(_transformable != null);
+
+        float currentMouseAngle = GetMouseAngle(_mousePosInScreen);
+        float angleDelta = currentMouseAngle.ToDegrees() - _initialAngleOffset;
+
+        Vector3 newRotation = _initialRotation;
+
+        if (axis == Vector3.UnitX) newRotation.X = angleDelta;
+        else if (axis == Vector3.UnitY) newRotation.Y = angleDelta;
+        else if (axis == Vector3.UnitZ) newRotation.Z = angleDelta;
+
+        // Apply rotation limits if needed (optional)
+        // newRotation.X = Math.Clamp(newRotation.X, -180, 180);
+        // newRotation.Y = Math.Clamp(newRotation.Y, -180, 180);
+        // newRotation.Z = Math.Clamp(newRotation.Z, -180, 180);
+
+        TrySetVector3ToInput(_transformable.RotationInput, newRotation);
+        _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
+    }
+
+    private static void UpdateScreenRotationDragging()
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        Debug.Assert(_transformable != null);
+
+        // Calculate angle based on mouse movement from initial position
+        Vector2 mouseDelta = _mousePosInScreen - _initialMousePos;
+        float angleDelta = mouseDelta.X * 0.5f; // Adjust sensitivity as needed
+
+        Vector3 newRotation = _initialRotation + new Vector3(angleDelta);
+
+        TrySetVector3ToInput(_transformable.RotationInput, newRotation);
+        _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
+    }
+
+    private static void CompleteRotationDragging()
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        UndoRedoStack.Add(_rotationCommandInFlight);
+        _rotationCommandInFlight = null;
+
+        _draggedGizmoPart = GizmoParts.None;
+        _draggedTransformable = null;
+        _dragInteractionWindowId = 0;
+        _dragNotStopped = false;
+    }
+
+    private static float GetMouseAngle(Vector2 mousePos)
+    {
+        Vector2 delta = mousePos - _originInScreen;
+        return MathF.Atan2(delta.Y, delta.X);
+    }
+
+    // Add this helper method to check if point is near a polygon
+    private static bool IsPointNearPolygon(Vector2 point, Vector2[] polygon, float threshold = 5f)
+    {
+        for (int i = 0; i < polygon.Length; i++)
+        {
+            int next = (i + 1) % polygon.Length;
+            if (IsPointOnLine(point, polygon[i], polygon[next], threshold))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Add this helper method to check if point is in a ring
+    private static bool IsPointInRing(Vector2 point, Vector2 center, float innerRadius, float outerRadius)
+    {
+        float distanceSquared = Vector2.DistanceSquared(point, center);
+        return distanceSquared >= innerRadius * innerRadius &&
+               distanceSquared <= outerRadius * outerRadius;
+    }
+
+    private static Vector3 GetPerpendicularVector(Vector3 axis)
+    {
+        // Find a vector not parallel to axis
+        if (MathF.Abs(Vector3.Dot(axis, Vector3.UnitX)) < 0.8f)
+        {
+            return Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitX));
+        }
+        else
+        {
+            return Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitY));
+        }
+    }
+
     #region math
     private static Ray GetPickRayInObject(Vector2 posInScreen)
     {
@@ -868,6 +1155,12 @@ internal static class TransformGizmoHandling
         ScaleOnXyPlane,
         ScaleOnXzPlane,
         ScaleOnYzPlane,
+
+        // Rotation gizmo parts
+        RotationXAxis,
+        RotationYAxis,
+        RotationZAxis,
+        RotationScreen,
     }
 
 
@@ -915,4 +1208,11 @@ internal static class TransformGizmoHandling
     //private static float _scaleDelta;
     private static Vector3 _initialScale;
     private static ChangeInputValueCommand? _scaleCommandInFlight;
+
+    private static ChangeInputValueCommand? _rotationCommandInFlight;
+    private static Vector3 _initialRotation;
+    private static float _initialMouseAngle;
+    private static Vector3 _rotationAxis;
+    private static float _initialAngleOffset;
+    private static Vector2 _initialMousePos;
 }
