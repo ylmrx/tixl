@@ -114,7 +114,9 @@ internal static class TransformGizmoHandling
     /// </summary>
     public static void TransformCallback(Instance instance, EvaluationContext context)
     {
-        Debug.Assert(_canvas != null);
+        if (_canvas == null)
+            return;
+        
         if (!_isDrawListValid)
         {
             Log.Warning("can't draw gizmo without initialized draw list");
