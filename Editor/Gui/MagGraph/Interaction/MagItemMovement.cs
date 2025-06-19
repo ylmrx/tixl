@@ -328,13 +328,13 @@ internal sealed partial class MagItemMovement
             bounds.Add(itemBounds);
         }
 
-        bounds.Expand(200);
+        bounds.Expand(100);
 
 
         _visibleItemsForSnapping.Clear();
         foreach (var snapTo in context.Layout.Items.Values)
         {
-            if (bounds.Contains(snapTo.Bounds))
+            if (bounds.Overlaps(snapTo.Bounds))
                 _visibleItemsForSnapping.Add(snapTo);
         }
 

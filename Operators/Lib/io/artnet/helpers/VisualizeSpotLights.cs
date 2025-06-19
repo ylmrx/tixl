@@ -25,6 +25,9 @@ namespace Lib.io.artnet.helpers{
         [Input(Guid = "7fc925f9-2f0a-4146-94f7-d48a7abd80bf")]
         public readonly InputSlot<bool> VisualizeAxis = new InputSlot<bool>();
 
+        [Input(Guid = "7ae45928-69dc-47a1-8302-77b9a50f57bf")]
+        public readonly InputSlot<T3.Core.Operator.GizmoVisibility> Visibility = new InputSlot<T3.Core.Operator.GizmoVisibility>();
+
     }
 }
 
