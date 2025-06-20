@@ -1,3 +1,4 @@
+#nullable enable
 using System.Diagnostics;
 using ImGuiNET;
 using T3.Core.Operator;
@@ -113,6 +114,9 @@ internal static class TransformGizmoHandling
     /// </summary>
     public static void TransformCallback(Instance instance, EvaluationContext context)
     {
+        if (_canvas == null)
+            return;
+        
         if (!_isDrawListValid)
         {
             Log.Warning("can't draw gizmo without initialized draw list");
@@ -438,6 +442,9 @@ internal static class TransformGizmoHandling
                                            _viewport.Height * (1.0f - (_originInClipSpace.Y * 0.5f + 0.5f)));
 
         _canvas = ImageOutputCanvas.Current;
+        if (_canvas == null)
+            return;
+        
         var originInCanvas = _canvas.TransformDirection(originInViewport);
         _topLeftOnScreen = _canvas.TransformPosition(System.Numerics.Vector2.Zero);
         _originInScreen = _topLeftOnScreen + originInCanvas;

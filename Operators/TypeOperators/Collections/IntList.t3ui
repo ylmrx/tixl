@@ -3,7 +3,7 @@
   "Description": "A collection of int values. This can be useful to define indices.",
   "InputUis": [
     {
-      "InputId": "622e2d3e-f8cd-4185-ac16-83548c5ac545"/*List*/,
+      "InputId": "0e068da1-1e4b-40ab-b86f-c05622d34717"/*List*/,
       "Position": {
         "X": -200.0,
         "Y": 0.0
@@ -13,10 +13,10 @@
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "6f520ef8-bdb2-4f55-a16c-13e63d75f725"/*Result*/,
+      "OutputId": "17714f77-deb8-4d97-9045-76b351fa5a12"/*Result*/,
       "Position": {
-        "X": 0.0,
-        "Y": 0.0
+        "X": 300.0,
+        "Y": 200.0
       }
     }
   ]

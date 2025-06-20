@@ -28,7 +28,7 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
         ImGui.TextUnformatted($"{outputString}");
     }
 
-    protected InputEditStateFlags DrawListInputControl<T>(Symbol.Child.Input input, ref List<T> list)
+    protected InputEditStateFlags DrawListInputControl<TT>(Symbol.Child.Input input, ref List<TT> list)
     {
         // Handle missing or empty list
         if (list == null)
@@ -156,7 +156,7 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                     r = SingleValueEdit.Draw(ref floatValue, size);
                     if (r != InputEditStateFlags.Nothing)
                     {
-                        ff = (T)(object)floatValue;
+                        ff = (TT)(object)floatValue;
                     }
 
                     break;
@@ -165,7 +165,7 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                 {
                     r = SingleValueEdit.Draw(ref intValue, size);
                     if (r != InputEditStateFlags.Nothing)
-                        ff = (T)(object)intValue;
+                        ff = (TT)(object)intValue;
                     break;
                 }
             }
