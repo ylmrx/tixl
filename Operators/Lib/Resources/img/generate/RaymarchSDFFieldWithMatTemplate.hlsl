@@ -116,11 +116,13 @@ vsOutput vsMain4(uint vertexId : SV_VertexID)
     return output;
 }
 
+
 //=== Additional Resources ==========================================
 /*{RESOURCES(t6)}*/
 
 //=== Global functions ==============================================
 /*{GLOBALS}*/
+
 
 //=== Field functions ===============================================
 /*{FIELD_FUNCTIONS}*/

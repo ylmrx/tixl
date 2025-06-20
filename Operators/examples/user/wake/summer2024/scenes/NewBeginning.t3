@@ -603,7 +603,13 @@
     {
       "Id": "629548cf-ae90-4677-aa8d-57b6f6253da6"/*Layer2d*/,
       "SymbolId": "d8c5330f-59b5-4907-b845-a02def3042fa",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "c8d0e44e-acd1-4045-b565-e1ce0b722e70"/*BlendMode*/,
+          "Type": "System.Int32",
+          "Value": 1
+        }
+      ],
       "Outputs": []
     },
     {
@@ -1358,12 +1364,6 @@
       "SourceSlotId": "e6aae72f-8c22-4133-ba0d-c3635751d715",
       "TargetParentOrChildId": "0fdadfe3-c3d8-42f3-87c6-367640bf3491",
       "TargetSlotId": "519d77c0-5605-433a-b8ce-6d84f99edd7b"
-    },
-    {
-      "SourceParentOrChildId": "fe5f46e3-f458-4b41-b4fe-c21a6dd95f23",
-      "SourceSlotId": "e5dc2cd0-c57f-4e72-9452-e162fe1c37d5",
-      "TargetParentOrChildId": "10be8dee-f615-4174-bad7-655ff6b9ae5c",
-      "TargetSlotId": "47c3c549-78bb-41fd-a88c-58f643870b40"
     },
     {
       "SourceParentOrChildId": "785f6212-76da-4850-bac2-be3534965428",

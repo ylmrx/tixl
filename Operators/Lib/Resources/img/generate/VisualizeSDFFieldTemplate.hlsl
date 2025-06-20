@@ -63,7 +63,6 @@ sampler ClampedSampler : register(s0);
 //=== Globals =======================================================
 /*{GLOBALS}*/
 
-
 //=== Field functions ===============================================
 /*{FIELD_FUNCTIONS}*/
 
