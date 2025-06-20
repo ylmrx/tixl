@@ -222,7 +222,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     private void DrawClip(ITimeClip timeClip, ImRect layerArea, int minLayerIndex, Instance compositionOp, SymbolUi compositionSymbolUi)
     {
         var xStartTime = _timelineCanvas.TransformX(timeClip.TimeRange.Start) + 1;
-        var xEndTime = _timelineCanvas.TransformX(timeClip.TimeRange.End);
+        var xEndTime = _timelineCanvas.TransformX(timeClip.TimeRange.End)+1;
         var position = new Vector2(xStartTime,
                                    layerArea.Min.Y + (timeClip.LayerIndex - minLayerIndex ) * LayerHeight);
             
