@@ -149,7 +149,7 @@ public abstract class Instance :  IGuidPathContainer, IResourceConsumer
         {
             Log.Error($"Can't find operatorTypeInfo for id {symbol} {symbol.Id} in {assemblyInfo}");
             Debug.Assert(false);
-            
+            return;
         }
         
         //var operatorTypeInfo = assemblyInfo.OperatorTypeInfo[symbol.Id];

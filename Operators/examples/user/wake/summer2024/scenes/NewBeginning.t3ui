@@ -57,8 +57,8 @@
     {
       "ChildId": "0238466b-66fc-4c23-be46-26da8f978010"/*SimDirectionalOffset*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 631.366
+        "X": 1835.0787,
+        "Y": 579.77936
       },
       "SnapshotGroupIndex": "1"
     },
@@ -102,14 +102,14 @@
       "ChildId": "165ea216-754b-4abd-8ac8-135269e6a1cc"/*ReuseCamera*/,
       "Position": {
         "X": 2560.0454,
-        "Y": 1175.1462
+        "Y": 1210.1462
       }
     },
     {
       "ChildId": "16c8f4a3-686f-4bb6-9bb5-67d16923cd67"/*DrawLines*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 701.366
+        "X": 1835.0787,
+        "Y": 649.77936
       }
     },
     {
@@ -278,8 +278,8 @@
     {
       "ChildId": "78676439-f3c5-42e8-af36-fab25bc74071"/*MapPointAttributes*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 666.366
+        "X": 1835.0787,
+        "Y": 614.77936
       }
     },
     {
@@ -313,8 +313,8 @@
     {
       "ChildId": "844b68ef-9b13-4184-bd7f-c21f557ef417"/*PointTrail*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 421.36603
+        "X": 1835.0787,
+        "Y": 369.77933
       }
     },
     {
@@ -370,8 +370,8 @@
     {
       "ChildId": "ac45a688-e70a-4721-aea1-282483358f6c"/*SimCentricalOffset*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 561.366
+        "X": 1835.0787,
+        "Y": 509.77936
       },
       "SnapshotGroupIndex": "1"
     },
@@ -469,8 +469,8 @@
     {
       "ChildId": "dc7886fb-50a9-43ec-873f-6705cfafc0d0"/*SimNoiseOffset*/,
       "Position": {
-        "X": 1836.052,
-        "Y": 526.366
+        "X": 1835.0787,
+        "Y": 474.77936
       },
       "SnapshotGroupIndex": "1"
     },
@@ -499,7 +499,7 @@
       "ChildId": "f68b7cfd-8c3e-4a68-9c39-af3d64d0e9f7"/*Group*/,
       "Position": {
         "X": 2560.0454,
-        "Y": 1245.1462
+        "Y": 1280.1462
       }
     },
     {

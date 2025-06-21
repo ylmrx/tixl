@@ -55,7 +55,7 @@ public abstract partial class ShaderCompiler
                         timer.Stop();
                         success = true;
                         CacheSuccessfulCompilation(args.OldBytecode, hash, compiledBlob);
-                        reason = "compiled in: " + timer.Elapsed.TotalMilliseconds.ToString() + " ms";
+                        reason = $"compiled in: {timer.Elapsed.TotalMilliseconds:0.0} ms";
                     }
                         
                 }
@@ -67,7 +67,7 @@ public abstract partial class ShaderCompiler
             if (Instance.CompileShaderFromSource<TShader>(args, out compiledBlob, out reason))
             {   
                 timer.Stop();
-                reason = "compiled in: " +timer.Elapsed.TotalMilliseconds.ToString()+" ms";
+                reason = $"compiled in: {timer.Elapsed.TotalMilliseconds:0.0} ms";
                 success = true;
             }
         }
