@@ -114,8 +114,8 @@ internal static class TransformGizmoHandling
     /// </summary>
     public static void TransformCallback(Instance instance, EvaluationContext context)
     {
-        if (_canvas == null)
-            return;
+       // if (_canvas == null)
+        //    return;
         
         if (!_isDrawListValid)
         {
