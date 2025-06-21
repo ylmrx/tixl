@@ -72,11 +72,7 @@ internal static class TransformGizmoHandling
         _drawList = drawList;
         _isDrawListValid = true;
 
-        if (_draggedGizmoPart != GizmoParts.None && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
-        {
-            _dragNotStopped = true;
-        }
-        else if (_dragNotStopped)
+        if (_dragNotStopped)
         {
             if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
             {
@@ -85,6 +81,11 @@ internal static class TransformGizmoHandling
             }
             _dragNotStopped = false;
         }
+        else if (_draggedGizmoPart != GizmoParts.None && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
+        {
+            _dragNotStopped = true;
+        }
+
     }
 
     // 
@@ -114,8 +115,7 @@ internal static class TransformGizmoHandling
     /// </summary>
     public static void TransformCallback(Instance instance, EvaluationContext context)
     {
-        if (_canvas == null)
-            return;
+
         
         if (!_isDrawListValid)
         {
@@ -146,6 +146,9 @@ internal static class TransformGizmoHandling
 
         PrepareCalculations();
 
+        if (_canvas == null)
+            return;
+        
         var gizmoScale = CalcGizmoScale(context, _localToObject, _viewport.Width, _viewport.Height, 45f, UserSettings.Config.GizmoSize);
         _centerPadding = 0.2f * gizmoScale / _canvas.Scale.X;
         _gizmoLength = 2f * gizmoScale / _canvas.Scale.Y;
