@@ -52,7 +52,7 @@ internal static class OutputSnapper
         Debug.Assert(context.MacroCommand != null);
 
         var didSomething = false;
-        foreach (var tempConnection in context.TempConnections)
+        foreach (var tempConnection in context.TempConnections.OrderBy(t => t.TargetInput.Id).ThenBy(t=> t.MultiInputIndex))
         {
             var sourceParentOrChildId = BestOutputMatch.Item.Variant == MagGraphItem.Variants.Input ? Guid.Empty : BestOutputMatch.Item.Id;
             var targetParentOrChildId = tempConnection.TargetItem.Variant == MagGraphItem.Variants.Output ? Guid.Empty : tempConnection.TargetItem.Id;
