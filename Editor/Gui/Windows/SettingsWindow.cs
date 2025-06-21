@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using ImGuiNET;
 using Operators.Utils;
 using T3.Core.IO;
@@ -66,7 +66,8 @@ internal sealed class SettingsWindow : Window
                                                           "Value input method",
                                                           "The control that pops up when dragging on a number value"
                                                          );
-
+                    
+                    
                     changed |= FormInputs.AddInt("Value input smoothing", 
                                                  ref UserSettings.Config.ValueEditSmoothing, 
                                                  0, 20, 0.1f,
@@ -82,25 +83,42 @@ internal sealed class SettingsWindow : Window
 
                     changed |= FormInputs.AddEnumDropdown(ref UserSettings.Config.GraphStyle,
                                                           "Graph Style",
-                                                          "Allows to switch between different graphical representations.\nThis also will affect usability and performance"
-                                                          );
+                                                          """
+                                                          Allows to switch between different graphical representations.
+                                                          This also will affect usability and performance
+                                                          """
+                                                         );
                     
-                    changed |= FormInputs.AddCheckBox("Enable keyboard shortcut",
-                                                      ref UserSettings.Config.EnableKeyboardShortCuts,
-                                                      "This option might prevent unintended user interactions while live performing with [KeyInput] operators.",
-                                                      UserSettings.Defaults.EnableKeyboardShortCuts);
+
                     
                     if (UserSettings.Config.GraphStyle == UserSettings.GraphStyles.Magnetic)
                     {
                         changed |= FormInputs.AddCheckBox("Disconnect on unsnap",
                                                           ref UserSettings.Config.DisconnectOnUnsnap,
-                                                          "Defines if unsnapping operators from a block will automatically disconnect them.\nOps dragged out between snapped blocks will always be disconnected.",
+                                                          """
+                                                          Defines if unsnapping operators from a block will automatically disconnect them.
+                                                          Ops dragged out between snapped blocks will always be disconnected.
+                                                          """,
                                                           UserSettings.Defaults.DisconnectOnUnsnap);
 
+                        changed |= FormInputs.AddCheckBox("Snap horizontally",
+                                                          ref UserSettings.Config.EnableHorizontalSnapping,
+                                                          """
+                                                          Snap horizontally to ops above or below. 
+                                                          This can be useful because connections of vertically aligned operators will avoid overlapping.  
+                                                          """,
+                                                          UserSettings.Defaults.EnableHorizontalSnapping);
+                        
                         changed |= FormInputs.AddFloat("Connection radius",
                                                        ref UserSettings.Config.MaxCurveRadius,
-                                                       0.0f, 1000f, 1f, true, "Controls the roundness of curve lines",
+                                                       0.0f, 1000f, 1f, true, 
+                                                       "Controls the roundness of curve lines",
                                                        UserSettings.Defaults.MaxCurveRadius);
+                        changed |= FormInputs.AddInt("Connection segments",
+                                                       ref UserSettings.Config.MaxSegmentCount, 1, 100, 1f,
+                                                       "Controls the number of segments used to draw connections between operators.", UserSettings.Defaults.MaxSegmentCount);
+                        
+
                     }
                     else
                     {
@@ -142,6 +160,20 @@ internal sealed class SettingsWindow : Window
                                                    0.0f, 200f, 0.01f, true, "Size of the transform gizmo in 3d views",
                                                    UserSettings.Defaults.GizmoSize);
 
+                    
+                    changed |= FormInputs.AddCheckBox("Enable keyboard shortcut",
+                                                      ref UserSettings.Config.EnableKeyboardShortCuts,
+                                                      "This might prevent unintended user interactions while live performing with [KeyInput] operators.",
+                                                      UserSettings.Defaults.EnableKeyboardShortCuts);
+                    
+                    changed |= FormInputs.AddCheckBox("Readable parameter names",
+                                                      ref UserSettings.Config.AddSpacesToParameterNames,
+                                                      """
+                                                      Insert spaces to parameters names. E.g. prints "XAxisValue" becomes "X Axis Value".
+                                                      This is purely for output formatting. If you're developing, and used to PascalCase you might not need it.
+                                                      """,
+                                                      UserSettings.Defaults.AddSpacesToParameterNames);                    
+                    
                     FormInputs.AddVerticalSpace();
                     FormInputs.AddSectionSubHeader("Timeline");
 
@@ -224,9 +256,30 @@ internal sealed class SettingsWindow : Window
 
                 case Categories.Project:
                 {
+                    var projectSettingsChanged = false;
                     FormInputs.AddSectionHeader("Project specific settings");
                     FormInputs.AddVerticalSpace();
 
+                    FormInputs.AddSectionSubHeader("Performance Settings");
+                    FormInputs.SetIndentToLeft();
+
+                    projectSettingsChanged |= FormInputs.AddCheckBox("Skip Shader Optimization",
+                                                                     ref ProjectSettings.Config.SkipOptimization,
+                                                                     "This make working with shader graphs easier.",
+                                                                     ProjectSettings.Config.SkipOptimization);
+                    
+                    projectSettingsChanged |= FormInputs.AddCheckBox("Enable DirectX Debug Mode",
+                                                                     ref ProjectSettings.Config.EnableDirectXDebug,
+                                                                     """
+                                                                     This will add debug information for to shaders and buffers that can help developing wiht Tools like RenderDoc.
+                                                                     Enabling this can impact rendering performance.
+
+                                                                     Changing this option requires a restart.
+                                                                     """,
+                                                                     ProjectSettings.Config.EnableDirectXDebug);
+                    FormInputs.SetIndentToParameters();
+                    FormInputs.AddVerticalSpace();
+                    FormInputs.AddSectionSubHeader("Project Settings");
                     changed |= FormInputs.AddStringInput("Project Directory",
                                                          ref UserSettings.Config.ProjectsFolder,
                                                          "Nickname",
@@ -250,7 +303,6 @@ internal sealed class SettingsWindow : Window
                     FormInputs.AddVerticalSpace();
                     
                     FormInputs.AddSectionSubHeader("Export Settings");
-                    var projectSettingsChanged = false;
                     CustomComponents.HelpText("These settings only when playback as executable");
                     FormInputs.AddVerticalSpace();
 
@@ -264,10 +316,7 @@ internal sealed class SettingsWindow : Window
                                                                      "Users can use cursor left/right to skip through time\nand space key to pause playback\nof exported executable.",
                                                                      ProjectSettings.Defaults.EnablePlaybackControlWithKeyboard);
 
-                    projectSettingsChanged |= FormInputs.AddCheckBox("Skip Shader Optimization",
-                                                                     ref ProjectSettings.Config.SkipOptimization,
-                                                                     "This make working with shadergraphs easier.",
-                                                                     ProjectSettings.Config.SkipOptimization);
+
 
                     if (projectSettingsChanged)
                         ProjectSettings.Save();

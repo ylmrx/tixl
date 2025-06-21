@@ -518,14 +518,20 @@ internal sealed class PlaceholderCreation
 
                     if (tc.SourceItem != null && tc.TargetItem == null)
                     {
-                        var connectionToAdd = new Symbol.Connection(tc.SourceItem.Id,
-                                                                    tc.SourceOutput.Id,
-                                                                    newInstance.SymbolChildId,
-                                                                    primaryInput.Id);
-                        context.MacroCommand
-                               .AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
-                                                                           connectionToAdd,
-                                                                           tc.MultiInputIndex));
+                        var tcSourceOutput = tc.SourceOutput;
+                        var matchingInput = newInstance.Inputs.FirstOrDefault(i => i.ValueType == tcSourceOutput.ValueType);
+                        if (matchingInput != null)
+                        {
+                            var connectionToAdd = new Symbol.Connection(tc.SourceItem.Id,
+                                                                        tcSourceOutput.Id,
+                                                                        newInstance.SymbolChildId,
+                                                                        matchingInput.Id);
+                            context.MacroCommand
+                                   .AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
+                                                                               connectionToAdd,
+                                                                               tc.MultiInputIndex));
+                        }
+                        
                     }
                     else if (tc.SourceItem == null && tc.TargetItem != null)
                     {
