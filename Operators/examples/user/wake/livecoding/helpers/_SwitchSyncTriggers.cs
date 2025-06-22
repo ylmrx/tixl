@@ -13,6 +13,13 @@ namespace Examples.user.wake.livecoding.helpers;
 
     private void Update(EvaluationContext context)
     {
+        // Prevent double evaluation
+        var currentTime = context.LocalFxTime;
+        if (Math.Abs(currentTime - _lastUpdateTime) < 0.0001)
+            return;
+
+        _lastUpdateTime = currentTime;
+        
         var varName = IsSimulationVariable.GetValue(context);
             
         if (context.FloatVariables.TryGetValue(varName, out var isSimulation) && isSimulation > 0.5f)
@@ -24,6 +31,8 @@ namespace Examples.user.wake.livecoding.helpers;
             Selected.Value = LiveTrigger.GetValue(context);
         }
     }
+
+    private double _lastUpdateTime;
         
     [Input(Guid = "1e25e90a-b537-438b-9e39-9b70967716e8")]
     public readonly InputSlot<bool> LiveTrigger = new();

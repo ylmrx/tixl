@@ -143,7 +143,7 @@
         {
           "Id": "8f203c5f-6eb8-42a1-bfea-9ca52a49e132"/*Scale*/,
           "Type": "System.Single",
-          "Value": 1.4889764
+          "Value": 2.7
         },
         {
           "Id": "d9dd77b2-cfa6-429c-b87d-f6e3c602be23"/*ScaleDistribution*/,
@@ -238,7 +238,7 @@
         {
           "Id": "1097b588-db96-49c1-b6e6-78b5cb0f5f73"/*RandomizeBounce*/,
           "Type": "System.Single",
-          "Value": 0.0
+          "Value": -0.0
         },
         {
           "Id": "2ab85ac3-819d-4e3e-891a-7f27af627fdf"/*InvertVolume*/,
@@ -248,7 +248,7 @@
         {
           "Id": "3b975bd9-b8aa-4a41-97fc-ccd3b5e89e63"/*Attraction*/,
           "Type": "System.Single",
-          "Value": 0.10826772
+          "Value": 0.11
         },
         {
           "Id": "60eb8c10-93fa-487b-9eda-1767b485bb21"/*VolumeScale*/,
@@ -258,12 +258,12 @@
         {
           "Id": "7c6f58e7-27fc-4271-adef-248cffe5a8b7"/*Repulsion*/,
           "Type": "System.Single",
-          "Value": 0.03943307
+          "Value": 0.04
         },
         {
           "Id": "ceb7008d-c536-4d87-b3f8-d5ba9fe29eed"/*Bounciness*/,
           "Type": "System.Single",
-          "Value": 0.2676378
+          "Value": 0.27
         },
         {
           "Id": "e3485fea-3a75-47f9-9a7d-ea69f4feb5f6"/*VolumeCenter*/,
@@ -340,16 +340,16 @@
         {
           "Id": "82384eba-1d7a-41c8-a703-9184c961d766"/*Strength*/,
           "Type": "System.Single",
-          "Value": 0.4
+          "Value": 2.0
         },
         {
           "Id": "dd46595e-01e5-4616-9682-3a4eb7f63016"/*ColorHSB*/,
           "Type": "System.Numerics.Vector4",
           "Value": {
-            "X": 0.17,
-            "Y": 0.71,
-            "Z": 0.54,
-            "W": 0.2
+            "X": 2.0,
+            "Y": 2.0,
+            "Z": 0.32,
+            "W": 0.0
           }
         }
       ],
@@ -445,6 +445,11 @@
             "Z": 1.0,
             "W": 0.39
           }
+        },
+        {
+          "Id": "cf7692c9-d6bd-4e93-b89c-14ab507b6da5"/*Size*/,
+          "Type": "System.Single",
+          "Value": 1.29
         }
       ],
       "Outputs": []
@@ -579,15 +584,15 @@
           "Id": "04c5ee70-9f9a-4236-8871-772814b8b2ab"/*Offset*/,
           "Type": "System.Numerics.Vector3",
           "Value": {
-            "X": 3.39,
-            "Y": 7.87,
+            "X": 3.08,
+            "Y": 8.23,
             "Z": -0.67
           }
         },
         {
           "Id": "3e1dbc97-76d9-47da-a12e-1aefa384cf81"/*Amount*/,
           "Type": "System.Single",
-          "Value": 8.4
+          "Value": 0.86
         },
         {
           "Id": "4d7f1f34-ca1b-43ee-803f-cbc14bcc8679"/*GridScale*/,
@@ -597,15 +602,15 @@
         {
           "Id": "8343ab8b-6d3a-48f7-93ea-c52e1c36a5fa"/*Mode*/,
           "Type": "System.Int32",
-          "Value": 0
+          "Value": 2
         },
         {
           "Id": "eacc6bf8-1e12-44fb-8541-91ac4a557745"/*GridStretch*/,
           "Type": "System.Numerics.Vector3",
           "Value": {
-            "X": 0.06,
-            "Y": 0.05,
-            "Z": 0.61
+            "X": 0.85,
+            "Y": 0.66,
+            "Z": 0.6
           }
         }
       ],
@@ -624,7 +629,7 @@
         {
           "Id": "8b418dcd-e7cd-4bce-a69e-a9a543426bfe"/*Index*/,
           "Type": "System.Int32",
-          "Value": 1
+          "Value": 0
         }
       ],
       "Outputs": []
@@ -898,19 +903,14 @@
           "Value": 0.2
         },
         {
-          "Id": "56144ddb-9d4b-4e08-9169-7853a767f794"/*Variation*/,
-          "Type": "System.Single",
-          "Value": -1.6535416
-        },
-        {
           "Id": "e27a97ce-3d0f-41a9-93c3-a1691f4029aa"/*Amount*/,
           "Type": "System.Single",
-          "Value": 3.3669293
+          "Value": 5.0
         },
         {
           "Id": "f0345217-29f4-48f8-babd-8aed134cb0d5"/*Frequency*/,
           "Type": "System.Single",
-          "Value": 1.7066929
+          "Value": 0.56
         }
       ],
       "Outputs": []
@@ -1087,7 +1087,7 @@
         {
           "Id": "eddf467a-d96e-4639-aa09-b49dc1775c1b"/*Amount*/,
           "Type": "System.Single",
-          "Value": 1.0848819
+          "Value": 3.2
         }
       ],
       "Outputs": []
@@ -1266,7 +1266,7 @@
         {
           "Id": "79080698-1097-4178-b7da-7d10fd86be28"/*MixOriginal*/,
           "Type": "System.Single",
-          "Value": 0.567
+          "Value": 0.33
         }
       ],
       "Outputs": []
@@ -1300,7 +1300,7 @@
         {
           "Id": "5c7e5e27-2eb8-4933-97cb-fc49d576d625"/*Count*/,
           "Type": "System.Int32",
-          "Value": 8740
+          "Value": 5900
         },
         {
           "Id": "a970dad9-e5e9-4756-a84c-86737cce7e8f"/*ClampThreshold*/,
@@ -1389,7 +1389,7 @@
             "X": 0.77,
             "Y": 0.77,
             "Z": 0.77,
-            "W": 0.22905508
+            "W": 0.22999996
           }
         },
         {
