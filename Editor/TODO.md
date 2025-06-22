@@ -19,6 +19,8 @@
 - [ ] Indicate Pre/Post curve moves in timeline
 - [ ] Ask before removing inputs and outputs (can't be undone)
 - [ ] SequenceAnimUi should be visible before evaluation (Check AnimValue)
+- [ ] Fix Variations not saved to project folder but `Editor\bin\Debug\net9.0-windows\.tixl\variations`
+- [ ] Fix Multiinput connection editing
 
 ## Project handling
 
@@ -76,13 +78,15 @@
 - [x] Remove Time 2nd output
 - [ ] Rename Time2 <-> Time
 - [ ] Rounded Rect should have blend parameter
-- [ ] Fix BoxGradient
-- [ ] SetEnvironment should automatically insert textureToCubemap
+- [x] Fix BoxGradient
+- [x] SetEnvironment should automatically insert textureToCubemap
 - [ ] Remove Symbol from Editor
 - [ ] Fix SnapToPoints
 - [ ] Sort out obsolete pixtur examples
 - [ ] Rename PlayVideo to LoadVideo
 - [ ] Add RotateImage or add option to [TransformImage]
+- [ ] Clean up [SnapPointsToGrid] with amount
+- [ ] FIX: Filter returns a point with count 0 (with random-seed not applied)
 
 ## SDF-Stuff
 

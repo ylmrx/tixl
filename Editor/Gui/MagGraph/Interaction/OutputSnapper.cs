@@ -52,7 +52,7 @@ internal static class OutputSnapper
         Debug.Assert(context.MacroCommand != null);
 
         var didSomething = false;
-        foreach (var tempConnection in context.TempConnections)
+        foreach (var tempConnection in context.TempConnections.OrderBy(t => t.TargetInput.Id).ThenBy(t=> t.MultiInputIndex))
         {
             var sourceParentOrChildId = BestOutputMatch.Item.Variant == MagGraphItem.Variants.Input ? Guid.Empty : BestOutputMatch.Item.Id;
             var targetParentOrChildId = tempConnection.TargetItem.Variant == MagGraphItem.Variants.Output ? Guid.Empty : tempConnection.TargetItem.Id;
@@ -78,7 +78,7 @@ internal static class OutputSnapper
         return didSomething;
     }
 
-    public const float SnapThreshold = 50;
+    public const float SnapThreshold = 30;
 
     public sealed record OutputMatch(MagGraphItem? Item = null, MagGraphItem.OutputAnchorPoint Anchor = default, float Distance = SnapThreshold);
 
