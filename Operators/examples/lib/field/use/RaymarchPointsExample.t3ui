@@ -1,0 +1,221 @@
+{
+  "Id": "ba564ef5-bb9d-4b69-b3fe-65709cdd279e"/*RaymarchPointsExample*/,
+  "Description": "An interactive illustration how raymarching works.",
+  "InputUis": [
+    {
+      "InputId": "5ecede5e-287d-4f40-b84e-9efd7e36b0fa"/*FieldColor*/,
+      "Position": {
+        "X": 867.18274,
+        "Y": 807.90344
+      },
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
+    },
+    {
+      "InputId": "605074a4-eaf7-4638-84d3-4a37ac0e8ce2"/*Angle*/,
+      "Position": {
+        "X": 468.11877,
+        "Y": 202.54202
+      },
+      "Min": -180.0,
+      "Max": 180.0,
+      "Format": "{0:0.0}°"
+    },
+    {
+      "InputId": "6d232bb0-922f-48e1-9e2b-9043d444e416"/*MaxSteps*/,
+      "Position": {
+        "X": 468.11877,
+        "Y": 297.06937
+      }
+    },
+    {
+      "InputId": "c0b0b4e5-1781-4417-8f2f-ffdc1392fef7"/*InputField*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 382.22217,
+        "Y": 545.40405
+      }
+    },
+    {
+      "InputId": "ee47e0a0-4855-4b07-839e-f23cb588aac0"/*StartPosition*/,
+      "Position": {
+        "X": 608.1188,
+        "Y": 167.54202
+      },
+      "AddPadding": "True"
+    }
+  ],
+  "SymbolChildUis": [
+    {
+      "ChildId": "11b3a284-bd7b-41e6-8d2b-a2dd577bdfb6"/*RaymarchPoints*/,
+      "Position": {
+        "X": 748.1188,
+        "Y": 237.54202
+      }
+    },
+    {
+      "ChildId": "17797167-f572-4294-be49-428770682c52"/*MapPointAttributes*/,
+      "Position": {
+        "X": 748.1188,
+        "Y": 342.54202
+      }
+    },
+    {
+      "ChildId": "1ad9127a-fa0f-45d2-9a78-ec6bfc70668f"/*SetPointAttributes*/,
+      "Position": {
+        "X": 748.1188,
+        "Y": 482.542
+      }
+    },
+    {
+      "ChildId": "2318e2b3-ca07-4a0f-a76b-da62fc6f93bf"/*Point*/,
+      "Position": {
+        "X": 748.1188,
+        "Y": 167.54202
+      }
+    },
+    {
+      "ChildId": "34653076-95b0-4197-b150-5fbed58beb7b"/*RepeatAtGPoints*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 352.3208
+      }
+    },
+    {
+      "ChildId": "4e0dfbe5-236d-4077-8d26-32e1b719d253"/*DrawPoints*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 220.54453
+      }
+    },
+    {
+      "ChildId": "5a41cf57-fb70-46df-819a-9d91160e1abf"/*IntToFloat*/,
+      "Position": {
+        "X": 608.1188,
+        "Y": 377.54202
+      }
+    },
+    {
+      "ChildId": "64dfbce4-665c-4428-8995-88911de5e0de"/*RaymarchField*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 281.44135
+      }
+    },
+    {
+      "ChildId": "6fd80000-9664-4fbd-b918-9741b892731f"/*DrawLines*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 493.96667
+      }
+    },
+    {
+      "ChildId": "8089aae1-fa9f-44f7-8faf-ab86f69ef94b"/*TransformMesh*/,
+      "Position": {
+        "X": 1158.5111,
+        "Y": 715.6139
+      }
+    },
+    {
+      "ChildId": "853490c5-d2d4-4bbd-9b1b-7e3a1495080b"/*DrawLines*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 99.55588
+      }
+    },
+    {
+      "ChildId": "8b0ed4fe-e977-4793-93e2-bc47aa6af8a1"/*LoadObj*/,
+      "Position": {
+        "X": 1018.5111,
+        "Y": 715.6139
+      }
+    },
+    {
+      "ChildId": "95e4e046-8374-4173-83bf-108ba1701419"/*DrawPoints*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 598.8766
+      }
+    },
+    {
+      "ChildId": "a1948555-5cb1-46af-8f5f-2cf9eb7f7290"/*DrawMeshAtPoints*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 680.6139
+      }
+    },
+    {
+      "ChildId": "a3c0ed21-ce63-46ee-ace3-42ad3379d31d"/*DrawPoints*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 157.77927
+      }
+    },
+    {
+      "ChildId": "ab5ff56b-d1e5-4a17-a3e2-5b47b00ca99f"/*VisualizeFieldDistance*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 776.1888
+      }
+    },
+    {
+      "ChildId": "ac14b779-a9d2-49f4-83f8-3f0002229c13"/*PairPointsForLines*/,
+      "Position": {
+        "X": 1158.5111,
+        "Y": 493.96667
+      }
+    },
+    {
+      "ChildId": "ae0ecc52-7c05-42de-ba59-a1a10062e6ec"/*Group*/,
+      "Position": {
+        "X": 1539.1654,
+        "Y": 269.8656
+      }
+    },
+    {
+      "ChildId": "b50d84eb-bf50-4be6-8f6d-4b08c6ae2f59"/*DrawLines*/,
+      "Position": {
+        "X": 1298.5111,
+        "Y": 422.3208
+      }
+    },
+    {
+      "ChildId": "b887e20f-1872-4cae-9354-e45840ae34bb"/*Add*/,
+      "Position": {
+        "X": 608.1188,
+        "Y": 202.54202
+      }
+    },
+    {
+      "ChildId": "cb590f64-77ad-48a4-a5d1-59196d422617"/*MoveToSDF*/,
+      "Position": {
+        "X": 748.1188,
+        "Y": 412.54202
+      }
+    },
+    {
+      "ChildId": "d401ad45-4494-4636-a999-2c9e2aaa72e9"/*RadialPoints*/,
+      "Position": {
+        "X": 1018.5111,
+        "Y": 387.3208
+      }
+    },
+    {
+      "ChildId": "d70dd3cf-aea2-4bdc-ab82-675a35313d88"/*MapPointAttributes*/,
+      "Position": {
+        "X": 1158.5111,
+        "Y": 387.3208
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "428d1d44-1a4d-49bb-ac5e-2011326e3ed7"/*Output*/,
+      "Position": {
+        "X": 1539.1654,
+        "Y": 584.8656
+      }
+    }
+  ]
+}

@@ -1,0 +1,234 @@
+{
+  "Id": "a914c462-b707-4240-b57b-ed0e24e80a94"/*RaymarchPoints*/,
+  "Description": "Moves points along their Z-axis until they hit an SDF surface.\n\nThis can be used for visualizing raymarching or simlurate rays being reflected from an SDF surface.",
+  "InputUis": [
+    {
+      "InputId": "000617c3-709d-49e1-953e-55d45b565504"/*MinDistance*/,
+      "Position": {
+        "X": 973.82806,
+        "Y": 1474.262
+      },
+      "Min": 0.0
+    },
+    {
+      "InputId": "3ea2d4c9-35f4-49d4-b26f-1e12bfd71fbe"/*MaxDistance*/,
+      "Position": {
+        "X": 973.82806,
+        "Y": 1579.262
+      }
+    },
+    {
+      "InputId": "685b1c07-4696-4a87-bb24-3103122db557"/*WriteStepCountTo*/,
+      "Position": {
+        "X": 976.59106,
+        "Y": 1778.2859
+      }
+    },
+    {
+      "InputId": "71d7f5a5-f13c-40fd-9a28-fbdd64ae07b6"/*MaxSteps*/,
+      "Position": {
+        "X": 164.88193,
+        "Y": 1747.0396
+      }
+    },
+    {
+      "InputId": "75b28b25-02bf-4926-8d27-2a547231f40a"/*Mode*/,
+      "Position": {
+        "X": 164.88193,
+        "Y": 1800.6741
+      }
+    },
+    {
+      "InputId": "81855333-ab3a-4543-b68c-0eb2f62427b0"/*StepDistanceFactor*/,
+      "Position": {
+        "X": 973.82806,
+        "Y": 1509.262
+      },
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
+    },
+    {
+      "InputId": "86fbda4c-5c1b-42b0-a35f-ebcccd6cc648"/*MaxReflectionCount*/,
+      "Position": {
+        "X": 164.88193,
+        "Y": 1903.8231
+      }
+    },
+    {
+      "InputId": "a21ebc40-ae79-439b-a3e7-d90a50b71ca7"/*Field*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 469.7932,
+        "Y": 978.14343
+      }
+    },
+    {
+      "InputId": "a8f8ed3f-01e4-48c9-beaa-4a2833d50863"/*NormalSamplingDistance*/,
+      "Position": {
+        "X": 973.8282,
+        "Y": 1544.262
+      }
+    },
+    {
+      "InputId": "b1dc8336-33e0-4856-ba18-eaac052c5f43"/*Points*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 469.7932,
+        "Y": 1143.6428
+      }
+    },
+    {
+      "InputId": "cf27f634-039e-4500-acdb-b0523ea2d198"/*WriteDistanceTo*/,
+      "Position": {
+        "X": 976.59106,
+        "Y": 1743.2859
+      }
+    }
+  ],
+  "SymbolChildUis": [
+    {
+      "ChildId": "0e9cf875-14ea-4c60-bb55-06fd2df4f496"/*GetBufferComponents*/,
+      "Position": {
+        "X": 609.7932,
+        "Y": 1143.6428
+      }
+    },
+    {
+      "ChildId": "199acd60-750e-4318-9b74-d18d27cbb5af"/*CalcDispatchCount*/,
+      "Position": {
+        "X": 1080.0497,
+        "Y": 996.2279
+      }
+    },
+    {
+      "ChildId": "28b0bc00-bece-4bbb-a5cd-ca8bf685b322"/*GenerateShaderGraphCode*/,
+      "Position": {
+        "X": 609.7932,
+        "Y": 978.14343
+      }
+    },
+    {
+      "ChildId": "3b54eb66-5140-4d67-9d07-79199c24d867"/*StructuredBufferWithViews*/,
+      "Position": {
+        "X": 1113.8281,
+        "Y": 1232.0168
+      }
+    },
+    {
+      "ChildId": "57df33fe-49b1-4716-91f6-a45a389f9d6b"/*AddInts*/,
+      "Position": {
+        "X": 560.3209,
+        "Y": 1536.26
+      }
+    },
+    {
+      "ChildId": "638a1a42-552c-4d9f-bddf-1f3d09f379c1"/*FloatsToBuffer*/,
+      "Position": {
+        "X": 1113.8281,
+        "Y": 1439.262
+      }
+    },
+    {
+      "ChildId": "6fd012bc-2803-4704-9ec7-e6ef7f5bd4f9"/*MultiplyInt*/,
+      "Position": {
+        "X": 863.6961,
+        "Y": 1308.8024
+      }
+    },
+    {
+      "ChildId": "746bb4e1-f9b8-43b0-bbf5-3340095eb1eb"/*GetBufferComponents*/,
+      "Position": {
+        "X": 1113.8281,
+        "Y": 1337.0168
+      }
+    },
+    {
+      "ChildId": "7c89345a-e15a-4319-afe8-283bc14afd2d"/*IntsToBuffer*/,
+      "Position": {
+        "X": 1116.5911,
+        "Y": 1638.2859
+      }
+    },
+    {
+      "ChildId": "8ba42cbc-d49f-421c-a4c9-3ef08d496516"/*ComputeShaderStage*/,
+      "Position": {
+        "X": 1317.85,
+        "Y": 968.7345
+      }
+    },
+    {
+      "ChildId": "934a5851-8d2d-42f6-9540-a55c71d146dc"/*ClampInt*/,
+      "Position": {
+        "X": 304.88193,
+        "Y": 1903.8231
+      }
+    },
+    {
+      "ChildId": "aa22042c-ac64-405d-a2b1-e04da7dcd506"/*ClampInt*/,
+      "Position": {
+        "X": 976.5911,
+        "Y": 1638.2859
+      }
+    },
+    {
+      "ChildId": "af08d201-be60-4851-872b-3ffc168d7008"/*CountForALine*/,
+      "Comment": "+1 for separator",
+      "Position": {
+        "X": 535.29956,
+        "Y": 1430.7887
+      }
+    },
+    {
+      "ChildId": "b510a46c-6165-46ba-b5f6-d0cb3a688408"/*Execute*/,
+      "Position": {
+        "X": 1467.85,
+        "Y": 968.7345
+      }
+    },
+    {
+      "ChildId": "b573f4c6-1a39-4f30-8e87-33a64c4ebda9"/*ReadFile*/,
+      "Position": {
+        "X": 469.7932,
+        "Y": 1013.1433
+      }
+    },
+    {
+      "ChildId": "d3e02a60-a6de-4669-93c2-8c0be6c127b3"/*ComputeShaderFromSource*/,
+      "Position": {
+        "X": 940.0497,
+        "Y": 961.2279
+      }
+    },
+    {
+      "ChildId": "df787169-44d6-4ccb-817d-829f4e8810a2"/*CompareInt*/,
+      "Position": {
+        "X": 395.2995,
+        "Y": 1360.7887
+      }
+    },
+    {
+      "ChildId": "e406f221-8878-4752-b261-4aec027149aa"/*CountWithReflections*/,
+      "Position": {
+        "X": 700.3209,
+        "Y": 1501.26
+      }
+    },
+    {
+      "ChildId": "f49ed106-01b5-47fe-91e4-b338dd6c7305"/*ExecuteBufferUpdate*/,
+      "Position": {
+        "X": 1617.85,
+        "Y": 968.7345
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "8b815a36-f585-454e-b3b0-126200994c60"/*Result2*/,
+      "Position": {
+        "X": 1767.85,
+        "Y": 968.7345
+      }
+    }
+  ]
+}
