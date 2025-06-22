@@ -5,10 +5,16 @@ using T3.Core.Utils.Geometry;
 namespace Lib.field.space;
 
 [Guid("c44d23c7-bfac-403d-b49e-49d00001a316")]
-internal sealed class TransformField : Instance<TransformField>, IGraphNodeOp
+internal sealed class TransformField : Instance<TransformField>, IGraphNodeOp, ITransformable
 {
     [Output(Guid = "9b12e766-9dcd-4c8f-83ee-2a0b78beae43")]
     public readonly Slot<ShaderGraphNode> Result = new();
+    
+    IInputSlot ITransformable.TranslationInput => Translation;
+    IInputSlot ITransformable.RotationInput => Rotation;
+    IInputSlot ITransformable.ScaleInput => Scale;
+    
+    public Action<Instance, EvaluationContext> TransformCallback { get; set; }
 
     public TransformField()
     {
@@ -21,6 +27,8 @@ internal sealed class TransformField : Instance<TransformField>, IGraphNodeOp
 
     private void Update(EvaluationContext context)
     {
+        TransformCallback?.Invoke(this, context);
+        
         ShaderNode.Update(context);
 
         // Get parameters 
