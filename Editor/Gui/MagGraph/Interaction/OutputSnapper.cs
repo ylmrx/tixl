@@ -78,7 +78,7 @@ internal static class OutputSnapper
         return didSomething;
     }
 
-    public const float SnapThreshold = 50;
+    public const float SnapThreshold = 30;
 
     public sealed record OutputMatch(MagGraphItem? Item = null, MagGraphItem.OutputAnchorPoint Anchor = default, float Distance = SnapThreshold);
 
