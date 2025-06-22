@@ -419,6 +419,15 @@ public sealed class NdiInput : Instance<NdiInput>, IStatusProvider, ICustomDropd
 
         _exitThread = true;
 
+        try
+        {
+            Task.Run(() => _ndiInputFinder.Dispose()).Wait(TimeSpan.FromSeconds(2));
+        }
+        catch (Exception ex)
+        {
+            Log.Warning("NDI Input Finder dispose timed out or failed: " + ex.Message);
+        }
+        
         // wait for it to exit
         if (_receiveThread != null)
         {
@@ -435,7 +444,7 @@ public sealed class NdiInput : Instance<NdiInput>, IStatusProvider, ICustomDropd
 
         DisposeTextures();
 
-        _ndiInputFinder.Dispose();
+
 
         if (_initialized)
         {
