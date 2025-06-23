@@ -1,6 +1,7 @@
 #nullable enable
 using System.Diagnostics;
 using System.IO;
+using System.Windows.Forms.VisualStyles;
 using T3.Core.Compilation;
 using T3.Core.Operator;
 using T3.Core.Resource;
@@ -26,6 +27,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
         CsProjectFile = csProjectFile;
         Log.Info($"Adding project {csProjectFile.Name}...");
         _csFileWatcher = new CodeFileWatcher(this, OnFileChanged, OnCodeFileRenamed);
+        _csFileWatcher.EnableRaisingEvents = true;
         DisplayName = $"{csProjectFile.Name} ({CsProjectFile.RootNamespace})";
         SymbolUpdated += OnSymbolUpdated;
         SymbolRemoved += OnSymbolRemoved;
@@ -98,7 +100,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
     }
 
 
-    private string ExcludeFolder => Path.Combine(Folder, "bin");
+    private static readonly string[] FolderExclusions = { "bin", "obj", "dependencies" };
 
     protected override IEnumerable<string> SymbolUiSearchFiles => FindFilesOfType(SymbolUiExtension);
 
@@ -108,10 +110,11 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
 
     private IEnumerable<string> FindFilesOfType(string fileExtension)
     {
-        return Directory.EnumerateDirectories(Folder)
-                        .Where(x => !x.StartsWith(ExcludeFolder))
-                        .SelectMany(x => Directory.EnumerateFiles(x, $"*{fileExtension}", SearchOption.AllDirectories))
-                        .Concat(Directory.EnumerateFiles(Folder, $"*{fileExtension}"));
+        var directoryInfo = new DirectoryInfo(Folder);
+        return directoryInfo.EnumerateDirectories()
+                        .Where(x => !FolderExclusions.Contains(x.Name))
+                        .SelectMany(x => x.EnumerateFiles($"*{fileExtension}", SearchOption.AllDirectories))
+                        .Concat(directoryInfo.EnumerateFiles($"*{fileExtension}")).Select(x => x.FullName);
     }
 
     protected override void InitializeResources()

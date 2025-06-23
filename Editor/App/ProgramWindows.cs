@@ -226,7 +226,7 @@ internal static class ProgramWindows
 
     private static void OnCloseMainWindow(object sender, CancelEventArgs args)
     {
-        if (EditableSymbolProject.IsSaving)
+        if (EditableSymbolProject.AllProjects.Any(x => x.IsSaving))
         {
             args.Cancel = true;
             Log.Debug($"Cancel closing because save-operation is in progress.");

@@ -310,6 +310,7 @@ internal class EditorSymbolPackage : SymbolPackage
         get
         {
             var dir = Path.Combine(Folder, SourceCodeSubFolder);
+            
             if (!Directory.Exists(dir))
             {
                 Log.Warning($"Source code folder {dir} does not exist");

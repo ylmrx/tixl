@@ -237,13 +237,14 @@ internal sealed partial class EditableSymbolProject
         if(name.EndsWith("AssemblyInfo.cs"))
             return;
 
+        Log.Info($"{DisplayName}: Code file changed: {name}");
         CodeExternallyModified = true;
         //TryRecompile(true); // don't recompile here - we need to make sure this happens on the main thread
     }
 
     private void OnCodeFileRenamed(object sender, RenamedEventArgs args)
     {
-        Log.Error($"File {args.OldFullPath} renamed to {args.FullPath}. Please do not do this while the editor is running.");
+        Log.Error($"{DisplayName}: File {args.OldFullPath} renamed to {args.FullPath}. Please do not do this while the editor is running.");
         CodeExternallyModified = true;
         //TryRecompile(true); // don't recompile here - we need to make sure this happens on the main thread
     }
@@ -255,8 +256,8 @@ internal sealed partial class EditableSymbolProject
         UnmarkAsSaving();
     }
 
-    public static bool IsSaving => Interlocked.Read(ref _savingCount) > 0;
-    private static long _savingCount;
+    public bool IsSaving => Interlocked.Read(ref _savingCount) > 0;
+    private long _savingCount;
     private static readonly FileStreamOptions _saveOptions = new() { Mode = FileMode.Create, Access = FileAccess.ReadWrite };
 
     private const bool AutoOrganizeOnStartup = false;
