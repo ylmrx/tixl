@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyModel;
 
 namespace T3.Core.Compilation;
 
-internal sealed partial class T3AssemblyLoadContext
+internal sealed partial class TixlAssemblyLoadContext
 {
     private static readonly Lock _nugetLock = new();
     private static readonly AssemblyLoadContext _nugetContext = new("NuGet", true);

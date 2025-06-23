@@ -17,7 +17,7 @@ namespace T3.Core.Compilation;
 /// <summary>
 /// This class is used as the primary entry point for loading assemblies and extracting information about the types within them.
 /// This is where we find all of the operators and their slots, as well as any other type implementations that are relevant to tooll.
-/// This is also where C# dependencies need to be resolved, which is why each instance of this class has a reference to a <see cref="T3AssemblyLoadContext"/>.
+/// This is also where C# dependencies need to be resolved, which is why each instance of this class has a reference to a <see cref="TixlAssemblyLoadContext"/>.
 /// </summary>
 public sealed partial class AssemblyInformation
 {
@@ -44,8 +44,8 @@ public sealed partial class AssemblyInformation
     private readonly HashSet<string> _namespaces = [];
 
     internal bool ShouldShareResources;
-    internal T3AssemblyLoadContext? LoadContext => _loadContext;
-    private T3AssemblyLoadContext? _loadContext;
+    internal TixlAssemblyLoadContext? LoadContext => _loadContext;
+    private TixlAssemblyLoadContext? _loadContext;
     private readonly Lock _assemblyLock = new();
 
     public static AssemblyInformation CreateUninitialized()
@@ -81,7 +81,7 @@ public sealed partial class AssemblyInformation
 
     /// <summary>
     /// The entry point for loading the assembly and extracting information about the types within it - particularly the operators.
-    /// However, loading an assembly's types in this way will also trigger the <see cref="T3AssemblyLoadContext"/> so that its dependencies are resolved.
+    /// However, loading an assembly's types in this way will also trigger the <see cref="TixlAssemblyLoadContext"/> so that its dependencies are resolved.
     /// </summary>
     internal bool TryLoadTypes()
     {
@@ -352,7 +352,7 @@ public sealed partial class AssemblyInformation
                     throw new Exception($"Failed to load release info from {_directory} - does it need to be compiled?");
                 }
 
-                _loadContext = new T3AssemblyLoadContext(releaseInfo.AssemblyFileName, Directory);
+                _loadContext = new TixlAssemblyLoadContext(releaseInfo.AssemblyFileName, Directory);
 
                 var asm = _loadContext.Root!.Assembly;
                 _asmReference = new WeakReference(asm, true);
