@@ -9,12 +9,14 @@
     <AssemblyName>$(RootNamespace)</AssemblyName>
     <Configurations>Debug;Release</Configurations>
     <Platforms>AnyCPU</Platforms>
-    <VersionPrefix>1.223.635</VersionPrefix>
+    <VersionPrefix>1.666.999</VersionPrefix>
     <HomeGuid>00000000-0000-0000-0000-000000000000</HomeGuid>
     <EditorVersion>$(TixlVersion)</EditorVersion>
     <IsEditorOnly>false</IsEditorOnly>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <Deterministic>true</Deterministic>
+    <!-- Set the output path based on the version and release mode -->
+    <OutputPath>bin/$(Configuration)/$(VersionPrefix)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="System" />

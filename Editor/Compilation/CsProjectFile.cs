@@ -102,43 +102,47 @@ internal sealed class CsProjectFile
             // todo - additional version checks
             var needsUpgrade = !targetFramework.Contains(currentFramework);
             NeedsUpgrade = needsUpgrade;
-            NeedsRecompile = needsUpgrade;
             
-            #region Hotfix 6-2-2025
+            #region Hotfix June-2-2025
             // This will correct an issue with earlier project files that had an attribute set that would copy unnecessary dlls to the output directory.
             // That would cause issues with custom Uis and whatnot.
             // This is just an automated way to revert the issue in pre-existing projects.
             // This can be safely removed at some point in the future when we all forget this ever happened :)
             
-            var changed = false;
             foreach(var group in file._projectRootElement.ItemGroups)
             {
                 foreach(var item in group.Items)
                 {
-                    if (item.ItemType != "Reference" || !item.Include.Contains(ProjectSetup.EnvironmentVariableName)) continue;
-                    foreach (var metadata in item.Metadata)
+                    if (item.ItemType == "Reference" && item.Include.Contains(ProjectSetup.EnvironmentVariableName))
                     {
-                        if (!metadata.ExpressedAsAttribute || metadata.Name != "Private") continue;
-                        if (metadata.Value == "false")
-                            continue;
-                        
-                        metadata.Value = "false"; // ensure that the T3 assemblies are not copied to the output directory
-                        var warning = $"Modified {item} ({item.Include}) to set {metadata.Name} to {metadata.Value}";
-                        Warnings.Add(warning);
-                        Log.Warning(warning);
-                        changed = true;
+                        foreach (var metadata in item.Metadata)
+                        {
+                            if (!metadata.ExpressedAsAttribute || metadata.Name != "Private") continue;
+                            if (metadata.Value == "false")
+                                continue;
+
+                            metadata.Value = "false"; // ensure that the T3 assemblies are not copied to the output directory
+                            var warning = $"Modified {item} ({item.Include}) to set {metadata.Name} to {metadata.Value}";
+                            Warnings.Add(warning);
+                            Log.Warning(warning);
+                        }
                     }
                 }
             }
+            
+            #endregion
+            
+            #region Project updates post-June-23-2026 Project file correction - OutputPath
+            // try to get OutputPath from the project file. if it doesn't exist, add it.
+            _ = file._projectRootElement.GetOrAddProperty(PropertyType.OutputPath);
+            #endregion
 
-            if (changed)
+            if (file._projectRootElement.HasUnsavedChanges)
             {
                 Log.Debug($"Saving corrections to {file.FullPath}");
                 file._projectRootElement.Save();
                 NeedsRecompile = true;
             }
-            
-            #endregion
         }
     }
 
@@ -173,9 +177,10 @@ internal sealed class CsProjectFile
     /// Returns the directory where the primary dll for this project is built. This directory may or may not exist, as this is simply a "functional"
     /// way to generate the directory path.
     /// </summary>
-    public string GetBuildTargetDirectory()
+    public string GetBuildTargetDirectory(Compiler.BuildMode buildMode = EditorBuildMode)
     {
-        return Path.Combine(GetRootDirectory(EditorBuildMode), VersionSubfolder, TargetFramework);
+        // this functionality should mirror the way that <OutputPath> is defined in the csproj files
+        return Path.Combine(GetRootDirectory(buildMode), VersionSubfolder, TargetFramework);
     }
     
     /// <summary>
@@ -199,7 +204,7 @@ internal sealed class CsProjectFile
     /// <returns>True if successful</returns>
     public bool TryRecompile(bool nugetRestore)
     {
-        if (!Compiler.TryCompile(this, EditorBuildMode, nugetRestore, GetBuildTargetDirectory()))
+        if (!Compiler.TryCompile(this, EditorBuildMode, nugetRestore))
         {
             return false;
         }
@@ -229,9 +234,9 @@ internal sealed class CsProjectFile
     /// <param name="externalDirectory">Output directory</param>
     /// <param name="nugetRestore">True if NuGet packages should be restored</param>
     /// <returns>True if successful</returns>
-    public bool TryCompileRelease(string externalDirectory, bool nugetRestore)
+    public bool TryCompileRelease(bool nugetRestore)
     {
-        return Compiler.TryCompile(this, PlayerBuildMode, nugetRestore, targetDirectory: externalDirectory);
+        return Compiler.TryCompile(this, PlayerBuildMode, nugetRestore);
     }
 
     // todo- use Microsoft.Build.Construction and Microsoft.Build.Evaluation
@@ -327,8 +332,8 @@ internal sealed class CsProjectFile
                        });
     }
 
-    private const Compiler.BuildMode EditorBuildMode = Compiler.BuildMode.Debug;
-    private const Compiler.BuildMode PlayerBuildMode = Compiler.BuildMode.Release;
+    internal const Compiler.BuildMode EditorBuildMode = Compiler.BuildMode.Debug;
+    internal const Compiler.BuildMode PlayerBuildMode = Compiler.BuildMode.Release;
 
     private readonly string _releaseRootDirectory;
     private readonly string _debugRootDirectory;

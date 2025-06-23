@@ -15,6 +15,7 @@
     <IsEditorOnly>false</IsEditorOnly>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <Deterministic>true</Deterministic>
+    <OutputPath>bin/$(Configuration)/$(VersionPrefix)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="System" />

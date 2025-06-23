@@ -295,7 +295,8 @@ internal static partial class ProjectXml
                     (Type: PropertyType.EditorVersion, Value: Program.Version.ToBasicVersionString()),
                     (Type: PropertyType.IsEditorOnly, Value: "false"),
                     (Type: PropertyType.ImplicitUsings, Value: "disabled"),
-                    (Type: PropertyType.Deterministic, Value: "true")
+                    (Type: PropertyType.Deterministic, Value: "true"),
+                    (Type: PropertyType.OutputPath, Value: "bin/$(Configuration)/" + UnevaluatedVariable(PropertyType.VersionPrefix.GetItemName()))
                 }
            .ToFrozenDictionary(keySelector: x => x.Type, elementSelector: x => x.Value);
 
@@ -437,7 +438,8 @@ internal enum PropertyType
     AssemblyName,
     IsEditorOnly,
     ImplicitUsings,
-    Deterministic
+    Deterministic, 
+    OutputPath
 }
 
 internal enum ItemType
@@ -448,7 +450,7 @@ internal enum ItemType
 
     /// <summary>
     /// Not technically a type seen in MSBuild, but used in T3 to refer to assemblies references from the t3 editor at runtime
-    /// using <see cref="RuntimeAssemblies.EnvironmentVariableName"/>. See <see cref="ProjectXml._itemTypeNames"/>.
+    /// using <see cref="ProjectSetup.EnvironmentVariableName"/>. See <see cref="ProjectXml._itemTypeNames"/>.
     /// </summary>
     EditorReference,
     OperatorPackage,

@@ -2,8 +2,7 @@
   "profiles": {
     "t3": {
       "commandName": "Project",
-      "nativeDebugging": false,
-      "commandLineArgs" : "--force-recompile"
+      "nativeDebugging": false
     }
   }
 }

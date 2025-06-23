@@ -11,6 +11,7 @@ using T3.Core.Operator.Slots;
 using T3.Core.Resource;
 using T3.Core.SystemUi;
 using T3.Core.UserData;
+using T3.Editor.Compilation;
 using T3.Editor.Gui;
 using T3.Editor.Gui.InputUi.SimpleInputUis;
 using T3.Editor.Gui.Interaction.Timing;
@@ -149,6 +150,7 @@ internal static partial class PlayerExporter
     // todo - can we handle resource references here too?
     private static bool TryExportPackages(out string reason, IEnumerable<SymbolPackage> symbolPackages, string operatorDir)
     {
+        // note: I think this is only intended to export dll files? if so, this should make use of TixlAssemblyLoadContexts instead to get specific dlls in use
         string[] excludeSubdirectories = [EditorSymbolPackage.SymbolUiSubFolder, EditorSymbolPackage.SourceCodeSubFolder, ".git", ResourceManager.ResourcesSubfolder];
         foreach (var package in symbolPackages)
         {
@@ -166,28 +168,18 @@ internal static partial class PlayerExporter
             if (package is EditableSymbolProject project)
             {
                 project.SaveModifiedSymbols();
-                var compiled = project.CsProjectFile.TryCompileRelease(targetDirectory, false);
-                if (!compiled)
+                if (!project.CsProjectFile.TryCompileRelease(false))
                 {
                     reason = $"Failed to compile project \"{packageName}\"";
                     return false;
                 }
-
-                // delete extraneous folders
-                var symbolUiDir = Path.Combine(targetDirectory, EditorSymbolPackage.SymbolUiSubFolder);
-                var sourceCodeDir = Path.Combine(targetDirectory, EditorSymbolPackage.SourceCodeSubFolder);
-                var gitDir = Path.Combine(targetDirectory, ".git");
-                    
-                try
-                {
-                    Directory.Delete(symbolUiDir, true);
-                    Directory.Delete(sourceCodeDir, true);
-                    Directory.Delete(gitDir, true);
-                }
-                catch (Exception e)
-                {
-                    Log.Warning($"Failed to delete extraneous folders in {targetDirectory}. Exception:\n{e}");
-                }
+                
+                // copy the resulting directory into the target directory
+                var sourceDir = project.CsProjectFile.GetBuildTargetDirectory(CsProjectFile.PlayerBuildMode);
+                
+                // copy contents recursively into the target directory
+                if (!TryCopyDirectory(sourceDir, targetDirectory, out reason, excludeSubdirectories))
+                    return false;
             }
             else
             {
@@ -208,6 +200,16 @@ internal static partial class PlayerExporter
         return true;
     }
 
+    /// <summary>
+    /// Recursively copies a directory to a target directory, excluding specified subfolders, files, and file extensions.
+    /// </summary>
+    /// <param name="directoryToCopy"></param>
+    /// <param name="targetDirectory"></param>
+    /// <param name="reason"></param>
+    /// <param name="excludeSubFolders"></param>
+    /// <param name="excludeFiles"></param>
+    /// <param name="excludeFileExtensions"></param>
+    /// <returns></returns>
     private static bool TryCopyDirectory(string directoryToCopy, string targetDirectory, out string reason, string[]? excludeSubFolders = null, string[]? excludeFiles = null, string[]? excludeFileExtensions = null)
     {
         try
