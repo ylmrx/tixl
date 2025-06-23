@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
-using Microsoft.Extensions.DependencyModel;
 using T3.Core.IO;
 using T3.Core.Logging;
 
@@ -18,7 +17,7 @@ namespace T3.Core.Compilation;
 /// Inheriting from <see cref="AssemblyLoadContext"/> allows us to load assemblies in a custom way, which is required
 /// as assemblies are loaded from different locations for each package.
 ///
-/// Each package has its own <see cref="T3AssemblyLoadContext"/> that is used to load the assemblies of that package. If a package relies on another package
+/// Each package has its own <see cref="TixlAssemblyLoadContext"/> that is used to load the assemblies of that package. If a package relies on another package
 /// from a CSProj-level, the dependency's load context and dlls are added to the dependent's load context such that the dependent's dlls can be loaded
 /// referencing the types provided by the dependency.
 ///
@@ -27,7 +26,7 @@ namespace T3.Core.Compilation;
 ///
 /// Unfortunately this process is very complex, and is not thoroughly tested with large dependency chains.
 /// </summary>
-internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
+internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
 {
     public event EventHandler? UnloadBegan;
     internal event EventHandler? UnloadBeganInternal;
@@ -38,11 +37,11 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
     private readonly List<AssemblyLoadContext> _dependencyContexts = [];
     private static readonly List<AssemblyTreeNode> _coreNodes = [];
 
-    private static readonly List<T3AssemblyLoadContext> _loadContexts = [];
+    private static readonly List<TixlAssemblyLoadContext> _loadContexts = [];
     private static readonly Lock _loadContextLock = new();
     private static readonly DllImportResolver _dllImportResolver = NativeDllResolver; // todo - this likely violates the encapsulation of assembly load contexts
     private bool _unloaded;
-    static T3AssemblyLoadContext()
+    static TixlAssemblyLoadContext()
     {
         (AssemblyLoadContext Context, (Assembly Assembly, AssemblyName name)[] assemblies)[]? allAssemblies = All
            .Select(ctx => (
@@ -112,7 +111,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
     private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
     private readonly string _mainDirectory;
 
-    internal T3AssemblyLoadContext(string assemblyName, string directory) :
+    internal TixlAssemblyLoadContext(string assemblyName, string directory) :
         base(assemblyName, true)
     {
         Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
@@ -159,7 +158,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
             var asm = LoadFromAssemblyPath(path);
             Root = new AssemblyTreeNode(asm, this, true, true, _dllImportResolver);
             Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
-            _dependencyContext = DependencyContext.Load(Root!.Assembly);
+            _dependencyContext = Microsoft.Extensions.DependencyModel.DependencyContext.Load(Root!.Assembly);
         }
         catch (Exception e)
         {
@@ -363,7 +362,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
             if (!_dependencyContexts.Contains(ctx))
             {
                 // subscribe to the unload event of the dependency context
-                if (ctx is T3AssemblyLoadContext tixlCtx)
+                if (ctx is TixlAssemblyLoadContext tixlCtx)
                 {
                     tixlCtx.UnloadBeganInternal += OnDependencyUnloaded;
                 }
@@ -386,7 +385,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
 
     private void OnDependencyUnloaded(object? sender, EventArgs e)
     {
-        var ctx = (T3AssemblyLoadContext)sender!;
+        var ctx = (TixlAssemblyLoadContext)sender!;
         ctx.UnloadBeganInternal -= OnDependencyUnloaded;
         RemoveDependency(ctx);
     }
@@ -424,7 +423,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
             for (int i = _dependencyContexts.Count - 1; i >= 0; i--)
             {
                 var ctx = _dependencyContexts[i];
-                if (ctx is T3AssemblyLoadContext tixlCtx)
+                if (ctx is TixlAssemblyLoadContext tixlCtx)
                 {
                     tixlCtx.UnloadBeganInternal -= OnDependencyUnloaded;
                 }
