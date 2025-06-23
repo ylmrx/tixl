@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
+using Microsoft.Extensions.DependencyModel;
 using T3.Core.IO;
 using T3.Core.Logging;
 
@@ -109,7 +110,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
     }
 
     private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
-    private readonly string _nativeDllDirectory;
+    private readonly string _mainDirectory;
 
     internal T3AssemblyLoadContext(string assemblyName, string directory) :
         base(assemblyName, true)
@@ -149,7 +150,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
             _loadContexts.Add(this);
         }
 
-        _nativeDllDirectory = directory;
+        _mainDirectory = directory;
 
         var path = Path.Combine(directory, Name!) + ".dll";
 
@@ -158,6 +159,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
             var asm = LoadFromAssemblyPath(path);
             Root = new AssemblyTreeNode(asm, this, true, true, _dllImportResolver);
             Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
+            _dependencyContext = DependencyContext.Load(Root!.Assembly);
         }
         catch (Exception e)
         {
@@ -303,11 +305,11 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
         }
         else if (!unmanagedDllName.EndsWith(".dll"))
         {
-            fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName + ".dll");
+            fullPath = Path.Combine(_mainDirectory, unmanagedDllName + ".dll");
         }
         else
         {
-            fullPath = Path.Combine(_nativeDllDirectory, unmanagedDllName);
+            fullPath = Path.Combine(_mainDirectory, unmanagedDllName);
         }
 
         if (File.Exists(fullPath))
@@ -329,7 +331,7 @@ internal sealed partial class T3AssemblyLoadContext : AssemblyLoadContext
         {
             var unixPath = pathFullyQualified
                                ? Path.ChangeExtension(fullPath, ".so")
-                               : Path.Combine(_nativeDllDirectory, unmanagedDllName + ".so");
+                               : Path.Combine(_mainDirectory, unmanagedDllName + ".so");
 
             if (File.Exists(unixPath))
             {
