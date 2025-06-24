@@ -32,6 +32,9 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
 {
     private IntPtr _imguiContext;
     private object _contextLock;
+    private ShaderResourceView _customImageView = new ShaderResourceView(IntPtr.Zero);
+
+
     public void Initialize(Device device, int width, int height, object contextLock, out IntPtr imguiContext)
     {
         if (device == null)
@@ -264,6 +267,8 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.UnmapSubresource(_ib, 0);
     }
 
+    
+
     private void DrawData(ImDrawDataPtr drawData)
     {
         // Setup orthographic projection matrix into our constant buffer
@@ -347,20 +352,15 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
                     _deviceContext.Rasterizer.SetScissorRectangle((int)(cmd.ClipRect.X - pos.X), (int)(cmd.ClipRect.Y - pos.Y),
                                                                   (int)(cmd.ClipRect.Z - pos.X), (int)(cmd.ClipRect.W - pos.Y));
 
-                    using (ShaderResourceView srv = new ShaderResourceView(cmd.TextureId))
-                    {
-                        //does an addref since as soon as it's GC ed it will call release in SharpDX (note : in Silk it is not doing this)
-                        srv.QueryInterface<ShaderResourceView>();
-                        try
-                        {
-                            _deviceContext.PixelShader.SetShaderResource(0, srv);
-                            _deviceContext.DrawIndexed((int)cmd.ElemCount, idxOffset, vtxOffset);
-                        }
-                        catch (SharpDXException e)
-                        {
-                            Log.Error(e.Message);
-                        }
-                    }
+                    //This set native pointer without using QueryInterface or new, which allows a "GC free" cast
+
+                    _customImageView.NativePointer = cmd.TextureId;
+                    _deviceContext.PixelShader.SetShaderResource(0, _customImageView);
+                    _deviceContext.DrawIndexed((int)cmd.ElemCount, idxOffset, vtxOffset);
+
+                    //Set to IntPtr.Zero since that would create issue when disposing (on application Exit)
+                    //Internally it only resets the pointer and deref the device if it was queried (which in this case, did not)
+                    _customImageView.NativePointer = IntPtr.Zero;
                 }
 
                 idxOffset += (int)cmd.ElemCount;
