@@ -418,10 +418,11 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
             var stackTrace = new System.Diagnostics.StackTrace();
             var frames = stackTrace.GetFrames();
 
-            if (frames != null && frames.Any(f =>
+            if (frames is {Length: > 0} && frames.Any(f =>
                                                  f.GetMethod()?.DeclaringType?.FullName == "System.Runtime.Loader.AssemblyLoadContext"
                                                  && f.GetMethod()?.Name == "OnProcessExit"))
             {
+                Log.Debug($"{Name}: BeginUnload called during shutdown but was already unloaded.");
                 return; // Suppress exception during shutdown
             }
             
