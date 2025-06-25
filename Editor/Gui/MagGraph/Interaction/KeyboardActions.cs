@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.MagGraph.Model;
 using T3.Editor.Gui.MagGraph.States;
 using T3.Editor.Gui.UiHelpers;
@@ -19,14 +20,14 @@ internal static class KeyboardActions
         var compositionOp = context.CompositionInstance;
         //var compositionUi = compositionOp.GetSymbolUi();
 
-        if (KeyboardBinding.Triggered(UserActions.FocusSelection))
+        if (KeyActionHandling.Triggered(UserActions.FocusSelection))
         {
             // TODO: Implement
             Log.Debug("Not implemented yet");
             context.Canvas.FocusViewToSelection(context);
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyboardBinding.Triggered(UserActions.Duplicate))
+        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.Duplicate))
         {
             NodeActions.CopySelectedNodesToClipboard(context.Selector, compositionOp);
             NodeActions.PasteClipboard(context.Selector, context.Canvas, compositionOp);
@@ -35,22 +36,22 @@ internal static class KeyboardActions
             result |= ChangeSymbol.SymbolModificationResults.StructureChanged;
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyboardBinding.Triggered(UserActions.DeleteSelection))
+        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.DeleteSelection))
         {
             result |= Modifications.DeleteSelection(context);
         }
 
-        if (KeyboardBinding.Triggered(UserActions.ToggleDisabled))
+        if (KeyActionHandling.Triggered(UserActions.ToggleDisabled))
         {
             NodeActions.ToggleDisabledForSelectedElements(context.Selector);
         }
 
-        if (KeyboardBinding.Triggered(UserActions.ToggleBypassed))
+        if (KeyActionHandling.Triggered(UserActions.ToggleBypassed))
         {
             NodeActions.ToggleBypassedForSelectedElements(context.Selector);
         }
 
-        if (KeyboardBinding.Triggered(UserActions.PinToOutputWindow))
+        if (KeyActionHandling.Triggered(UserActions.PinToOutputWindow))
         {
             if (UserSettings.Config.FocusMode)
             {
@@ -68,7 +69,7 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyboardBinding.Triggered(UserActions.DisplayImageAsBackground))
+        if (KeyActionHandling.Triggered(UserActions.DisplayImageAsBackground))
         {
             var selectedImage = context.Selector.GetFirstSelectedInstance();
             if (selectedImage != null)
@@ -79,7 +80,7 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyboardBinding.Triggered(UserActions.DisplayImageAsBackground))
+        if (KeyActionHandling.Triggered(UserActions.DisplayImageAsBackground))
         {
             var selectedImage = context.Selector.GetFirstSelectedInstance();
             if (selectedImage != null && ProjectView.Focused != null)
@@ -89,18 +90,18 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CopyToClipboard))
+        if (KeyActionHandling.Triggered(UserActions.CopyToClipboard))
         {
             NodeActions.CopySelectedNodesToClipboard(context.Selector, compositionOp);
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyboardBinding.Triggered(UserActions.PasteFromClipboard))
+        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.PasteFromClipboard))
         {
             NodeActions.PasteClipboard(context.Selector, context.Canvas, compositionOp);
             context.Layout.FlagStructureAsChanged();
         }
         
-        if (!T3Ui.IsCurrentlySaving && KeyboardBinding.Triggered(UserActions.PasteValues))
+        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.PasteValues))
         {
             NodeActions.PasteValues(context.Selector, context.Canvas, context.CompositionInstance);
             context.Layout.FlagStructureAsChanged();
@@ -111,7 +112,7 @@ internal static class KeyboardActions
         //     _nodeGraphLayouting.ArrangeOps(compositionOp);
         // }
 
-        if (!T3Ui.IsCurrentlySaving && KeyboardBinding.Triggered(UserActions.AddAnnotation))
+        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.AddAnnotation))
         {
             var newAnnotation = NodeActions.AddAnnotation(context.Selector, context.Canvas, compositionOp);
             context.ActiveAnnotationId = newAnnotation.Id;
@@ -156,7 +157,7 @@ internal static class KeyboardActions
         //     NodeNavigation.SelectBelow();
         // }
 
-        if (KeyboardBinding.Triggered(UserActions.AddComment))
+        if (KeyActionHandling.Triggered(UserActions.AddComment))
         {
             context.EditCommentDialog.ShowNextFrame();
         }
@@ -164,7 +165,7 @@ internal static class KeyboardActions
         if (context.StateMachine.CurrentState == GraphStates.Default)
         {
             var oneSelected = context.Selector.Selection.Count == 1;
-            if (oneSelected && KeyboardBinding.Triggered(UserActions.RenameChild))
+            if (oneSelected && KeyActionHandling.Triggered(UserActions.RenameChild))
             {
                 if (context.Layout.Items.TryGetValue(context.Selector.Selection[0].Id, out var item)
                                                      && item.Variant == MagGraphItem.Variants.Operator)

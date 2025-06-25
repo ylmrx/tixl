@@ -14,6 +14,7 @@ using T3.Editor.Compilation;
 using T3.Editor.Gui;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Camera;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.StartupCheck;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
@@ -138,8 +139,8 @@ internal static class Program
         SharedResources.Initialize();
 
         Log.Debug("Initialize User Interface...");
-        KeyboardBinding.Initialize();
-        KeyBindingHandling.Initialize();
+        KeyActionHandling.InitializeFrame();
+        KeyMapSwitching.Initialize();
 
         bool forceRecompileProjects;
             

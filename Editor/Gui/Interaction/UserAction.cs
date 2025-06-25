@@ -1,4 +1,4 @@
-#nullable enable
+﻿#nullable enable
 
 namespace T3.Editor.Gui.Interaction;
 
@@ -6,8 +6,9 @@ namespace T3.Editor.Gui.Interaction;
 /// UserAction represents single atomic commands that can be mapped to keyboard shortcuts
 /// This enum list order will be the same as displayed in the shortcut editor. 
 /// </summary>
-internal enum UserActions
+public enum UserActions
 {
+    None,
     TapBeatSync,
     TapBeatSyncMeasure,
     // General

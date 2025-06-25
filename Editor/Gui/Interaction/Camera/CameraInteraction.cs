@@ -2,6 +2,7 @@
 using ImGuiNET;
 using T3.Core.Operator.Interfaces;
 using T3.Core.Utils.Geometry;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.TransformGizmos;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
@@ -317,50 +318,50 @@ internal sealed class CameraInteraction
         var acc = CameraInteractionParameters.CameraAcceleration * UserSettings.Config.CameraSpeed * _deltaTime * 60;
         var wasModified = false;
 
-        if (KeyboardBinding.Triggered(UserActions.CameraLeft))
+        if (KeyActionHandling.Triggered(UserActions.CameraLeft))
         {   
             _moveVelocity += _viewAxis.Left * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraRight))
+        if (KeyActionHandling.Triggered(UserActions.CameraRight))
         {
             _moveVelocity -= _viewAxis.Left * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraForward))
+        if (KeyActionHandling.Triggered(UserActions.CameraForward))
         {
             _moveVelocity += Vector3.Normalize(_viewAxis.ViewDistance) * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraBackward))
+        if (KeyActionHandling.Triggered(UserActions.CameraBackward))
         {
             _moveVelocity -= Vector3.Normalize(_viewAxis.ViewDistance) * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraUp))
+        if (KeyActionHandling.Triggered(UserActions.CameraUp))
         {
             _moveVelocity += _viewAxis.Up * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraDown))
+        if (KeyActionHandling.Triggered(UserActions.CameraDown))
         {
             _moveVelocity -= _viewAxis.Up * acc;
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraReset))
+        if (KeyActionHandling.Triggered(UserActions.CameraReset))
         {
             _moveVelocity = Vector3.Zero;
             _intendedSetup.Reset();
             wasModified = true;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.CameraFocusSelection))
+        if (KeyActionHandling.Triggered(UserActions.CameraFocusSelection))
         {
             _moveVelocity = Vector3.Zero;
             _intendedSetup.Target = TransformGizmoHandling.GetLatestSelectionCenter();
