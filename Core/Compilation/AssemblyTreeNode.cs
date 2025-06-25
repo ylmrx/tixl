@@ -126,7 +126,7 @@ internal sealed class AssemblyTreeNode
                             continue;
                         }
 
-                        var newAssembly = LoadContext.LoadFromAssemblyPath(dll.Path);
+                        var newAssembly = TixlAssemblyLoadContext.LoadAssembly(dll.Path, LoadContext);
                         assembly = new AssemblyTreeNode(newAssembly, LoadContext, false, false, _nativeResolver);
                         AddReferenceTo(assembly);
                         return true;

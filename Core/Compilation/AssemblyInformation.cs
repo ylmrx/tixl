@@ -7,7 +7,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
-using System.Text;
 using System.Threading;
 using T3.Core.Logging;
 using T3.Serialization;

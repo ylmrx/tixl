@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
@@ -41,6 +42,9 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     private static readonly Lock _loadContextLock = new();
     private static readonly DllImportResolver _dllImportResolver = NativeDllResolver; // todo - this likely violates the encapsulation of assembly load contexts
     private bool _unloaded;
+
+    private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
+    private readonly string _mainDirectory;
     static TixlAssemblyLoadContext()
     {
         (AssemblyLoadContext Context, (Assembly Assembly, AssemblyName name)[] assemblies)[]? allAssemblies = All
@@ -108,9 +112,6 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         }
     }
 
-    private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
-    private readonly string _mainDirectory;
-
     internal TixlAssemblyLoadContext(string assemblyName, string directory) :
         base(assemblyName, true)
     {
@@ -155,7 +156,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
 
         try
         {
-            var asm = LoadFromAssemblyPath(path);
+            var asm = LoadAssembly(path, this);
             Root = new AssemblyTreeNode(asm, this, true, true, _dllImportResolver);
             Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
             _dependencyContext = Microsoft.Extensions.DependencyModel.DependencyContext.Load(Root!.Assembly);
@@ -165,6 +166,17 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
             Log.Error($"{Name!}: Failed to load root assembly {Name}: {e}");
         }
     }
+
+    /// <summary>
+    /// A single place to define how we're loading managed assemblies.
+    /// An unnecessary abstraction, but useful for testing different loading strategies.
+    /// </summary>
+    /// <param name="path">The path to the managed dll</param>
+    /// <param name="ctx">The context to load the dll into</param>
+    /// <returns>The loaded assembly</returns>
+    /// <inheritdoc cref="AssemblyLoadContext.LoadFromAssemblyPath"/>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static Assembly LoadAssembly(string path, AssemblyLoadContext ctx) => ctx.LoadFromAssemblyPath(path);
 
     // called if Load method returns null - searches other contexts and nuget packages
     private Assembly? OnResolving(AssemblyName asmName)
