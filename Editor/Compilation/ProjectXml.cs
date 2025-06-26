@@ -7,6 +7,7 @@ using Microsoft.Build.Construction;
 using T3.Core.Compilation;
 using T3.Core.Model;
 using T3.Core.Resource;
+using T3.Core.UserData;
 using T3.Editor.UiModel;
 
 namespace T3.Editor.Compilation;
@@ -320,24 +321,24 @@ internal static partial class ProjectXml
             [CreateIncludePath(args: ["bin", IncludeAllStr]), CreateIncludePath(args: ["obj", IncludeAllStr])];
 
     private const string FileIncludeFmt = IncludeAllStr + @"{0}";
-    internal const string DependenciesFolder = ResourceManager.DependenciesFolder;
+    internal const string DependenciesFolder = FileLocations.DependenciesFolder;
 
     private static readonly ContentInclude.Group[] _defaultContent =
         [
             new ContentInclude.Group(Condition: null, Content: new ContentInclude(include: CreateIncludePath(args: [".", DependenciesFolder, IncludeAllStr]))),
             new ContentInclude.Group(Condition: _releaseConfigCondition, Content:
                 [
-                    new ContentInclude(include: CreateIncludePath(args: [ResourceManager.ResourcesSubfolder, IncludeAllStr]),
-                                       linkDirectory: ResourceManager.ResourcesSubfolder,
+                    new ContentInclude(include: CreateIncludePath(args: [FileLocations.ResourcesSubfolder, IncludeAllStr]),
+                                       linkDirectory: FileLocations.ResourcesSubfolder,
                                        exclude: _excludeFoldersFromOutput),
                     new ContentInclude(include: string.Format(format: FileIncludeFmt, arg0: SymbolPackage.SymbolExtension),
-                                       linkDirectory: SymbolPackage.SymbolsSubfolder,
+                                       linkDirectory: FileLocations.SymbolsSubfolder,
                                        exclude: _excludeFoldersFromOutput),
                     new ContentInclude(include: string.Format(format: FileIncludeFmt, arg0: EditorSymbolPackage.SymbolUiExtension),
-                                       linkDirectory: EditorSymbolPackage.SymbolUiSubFolder,
+                                       linkDirectory: FileLocations.SymbolUiSubFolder,
                                        exclude: _excludeFoldersFromOutput),
                     new ContentInclude(include: string.Format(format: FileIncludeFmt, arg0: EditorSymbolPackage.SourceCodeExtension),
-                                       linkDirectory: EditorSymbolPackage.SourceCodeSubFolder,
+                                       linkDirectory: FileLocations.SourceCodeSubFolder,
                                        exclude: _excludeFoldersFromOutput)
                 ])
         ];

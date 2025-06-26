@@ -121,7 +121,7 @@ internal static partial class ProjectSetup
                                   
                                   var csProjFile = loadInfo.CsProjectFile!;
 
-                                  var needsCompile = forceRecompile || !Directory.Exists(csProjFile.GetBuildTargetDirectory());
+                                  var needsCompile = forceRecompile || loadInfo.NeedsRecompile || !Directory.Exists(csProjFile.GetBuildTargetDirectory());
 
                                   if (needsCompile && !csProjFile.TryRecompile(true))
                                   {

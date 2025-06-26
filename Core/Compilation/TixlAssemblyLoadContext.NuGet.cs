@@ -114,7 +114,7 @@ internal sealed partial class TixlAssemblyLoadContext
                                         continue;
                                     }
 
-                                    var assembly = TixlAssemblyLoadContext.LoadAssembly(fullPath, _nugetContext);
+                                    var assembly = LoadAssembly(fullPath, _nugetContext);
                                     var newNode = new AssemblyTreeNode(assembly, _nugetContext, true, true, _dllImportResolver);
                                     AddDependency(newNode);
                                     _loadedNuGetAssemblies.Add(newNode);

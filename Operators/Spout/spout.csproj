@@ -15,7 +15,6 @@
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <NoWarn>0108;9084</NoWarn>
-      <OutputPath>bin/$(Configuration)/$(VersionPrefix)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Using Include="System" />

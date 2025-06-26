@@ -23,7 +23,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
     /// </summary>
     public EditableSymbolProject(CsProjectFile csProjectFile) : base(assembly: AssemblyInformation.CreateUninitialized(), directory: csProjectFile.Directory, false)
     {
-        AssemblyInformation.Initialize(csProjectFile.GetBuildTargetDirectory());
+        AssemblyInformation.Initialize(csProjectFile.GetBuildTargetDirectory(), false);
         CsProjectFile = csProjectFile;
         Log.Info($"Adding project {csProjectFile.Name}...");
         _csFileWatcher = new CodeFileWatcher(this, OnFileChanged, OnCodeFileRenamed);

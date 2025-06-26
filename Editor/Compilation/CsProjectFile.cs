@@ -82,7 +82,7 @@ internal sealed class CsProjectFile
         public readonly CsProjectFile? CsProjectFile;
         public readonly bool NeedsUpgrade;
         public readonly bool NeedsRecompile;
-        public readonly List<string> Warnings = new();
+        public readonly List<string> Warnings = [];
 
         internal CsProjectLoadInfo(CsProjectFile? file, string? error)
         {
@@ -101,18 +101,19 @@ internal sealed class CsProjectFile
 
             // todo - additional version checks
             var needsUpgrade = !targetFramework.Contains(currentFramework);
-            NeedsUpgrade = needsUpgrade;
-            
-            #region Hotfix June-2-2025
-            // This will correct an issue with earlier project files that had an attribute set that would copy unnecessary dlls to the output directory.
-            // That would cause issues with custom Uis and whatnot.
-            // This is just an automated way to revert the issue in pre-existing projects.
-            // This can be safely removed at some point in the future when we all forget this ever happened :)
-            
-            foreach(var group in file._projectRootElement.ItemGroups)
+            NeedsUpgrade = needsUpgrade; // is this necessary? :shrugs:
+
+            var csProjContents = file._projectRootElement;
+            // check items for correctness
+            foreach(var group in csProjContents.ItemGroups)
             {
                 foreach(var item in group.Items)
                 {
+                    #region Hotfix June-2-2025
+                    // This will correct an issue with earlier project files that had an attribute set that would copy unnecessary dlls to the output directory.
+                    // That would cause issues with custom Uis and whatnot.
+                    // This is just an automated way to revert the issue in pre-existing projects.
+                    // This can be safely removed at some point in the future when we all forget this ever happened :)
                     if (item.ItemType == "Reference" && item.Include.Contains(ProjectSetup.EnvironmentVariableName))
                     {
                         foreach (var metadata in item.Metadata)
@@ -127,21 +128,63 @@ internal sealed class CsProjectFile
                             Log.Warning(warning);
                         }
                     }
+                    #endregion
                 }
             }
             
-            #endregion
-            
-            #region Project updates post-June-23-2026 Project file correction - OutputPath
-            // try to get OutputPath from the project file. if it doesn't exist, add it.
-            _ = file._projectRootElement.GetOrAddProperty(PropertyType.OutputPath);
-            #endregion
-
-            if (file._projectRootElement.HasUnsavedChanges)
+            // Check properties for correctness
+            var outputPathPropertyName = PropertyType.OutputPath.GetItemName();
+            foreach (var group in csProjContents.PropertyGroups)
             {
-                Log.Debug($"Saving corrections to {file.FullPath}");
-                file._projectRootElement.Save();
+                foreach (var property in group.Properties)
+                {
+                    if (property == null)
+                        continue;
+                    
+                    #region Project updates post-June-26-2025 Project file correction - OutputPath
+                    // remove the OutputPath property if it exists, as it is not needed and can cause issues with the build process.
+                    if(property.Name == outputPathPropertyName )
+                    {
+                        Log.Debug($"Removing OutputPath property from {file.FullPath}");
+                        group.RemoveChild(property);
+                        Warnings.Add($"Removed OutputPath property from {file.FullPath}");
+                        // according to the group.RemoveChild docs, we can continue to enumerate the properties after removing one.
+                    }
+                    #endregion
+                }
+            }
+
+            if (csProjContents.HasUnsavedChanges)
+            {
+                Warnings.Add($"Saving corrections to {file.FullPath}");
+                try
+                {
+                    csProjContents.Save();
+                }
+                catch (Exception e)
+                {
+                    Warnings.Add($"Failed to save project file {file.FullPath}: {e.Message}");
+                    Log.Error($"Failed to save project file {file.FullPath}: {e}");
+                }
+
                 NeedsRecompile = true;
+            }
+
+            if (!NeedsRecompile)
+            {
+                // check if the project needs to be compiled due to just not being built
+                // we do this by checking the csproj file's version against that of the op package json
+                var versionInfoDirectory = file.GetBuildTargetDirectory();
+                if(!AssemblyInformation.TryLoadReleaseInfo(versionInfoDirectory, out var releaseInfo))
+                {
+                    NeedsRecompile = true;
+                    Warnings.Add($"{file.Name} needs to be compiled because the version info file does not exist.");
+                }
+                else if (releaseInfo.Version != file.Version)
+                {
+                    NeedsRecompile = true;
+                    Warnings.Add($"{file.Name} needs to be compiled because the existing build is a different version from our project file: ({releaseInfo.Version}) vs ({file.Version}).");
+                }
             }
         }
     }
@@ -153,24 +196,39 @@ internal sealed class CsProjectFile
     /// <returns>True if successful</returns>
     public static bool TryLoad(string filePath, out CsProjectLoadInfo loadInfo)
     {
+        bool success;
         try
         {
-            var root = ProjectRootElement.Open(filePath);
-            if (root == null)
+            var fileContents = ProjectRootElement.Open(filePath);
+            if (fileContents == null)
             {
                 loadInfo = new CsProjectLoadInfo(null, $"Failed to open project file at \"{filePath}\"");
-                return false;
+                success = false;
             }
-
-            loadInfo = new CsProjectLoadInfo(new CsProjectFile(root), null);
-            return true;
+            else
+            {
+                loadInfo = new CsProjectLoadInfo(new CsProjectFile(fileContents), null);
+                success = true;
+            }
         }
         catch (Exception e)
         {
             var error = $"Failed to open project file at \"{filePath}\":\n{e}";
             loadInfo = new CsProjectLoadInfo(null, error);
-            return false;
+            success = false;
         }
+        
+        // log any warnings that were generated during the load
+        if (loadInfo.Warnings.Count > 0)
+        {
+            var name = loadInfo.CsProjectFile?.Name ?? Path.GetFileName(filePath);
+            foreach (var warning in loadInfo.Warnings)
+            {
+                Log.Warning($"{name} {warning}");
+            }
+        }
+
+        return success;
     }
 
     /// <summary>
@@ -180,14 +238,8 @@ internal sealed class CsProjectFile
     public string GetBuildTargetDirectory(Compiler.BuildMode buildMode = EditorBuildMode)
     {
         // this functionality should mirror the way that <OutputPath> is defined in the csproj files
-        return Path.Combine(GetRootDirectory(buildMode), VersionSubfolder, TargetFramework);
+        return Path.Combine(GetRootDirectory(buildMode), TargetFramework);
     }
-    
-    /// <summary>
-    /// We separate out builds by version so we can attempt to reload a new version before the old one is fully unloaded since we cannot guarantee
-    /// when the old version will be unloaded. This is a simple property to ensure the way we generate these directories is consistent.
-    /// </summary>
-    private string VersionSubfolder => Version.ToBasicVersionString();
 
     /// <summary>
     /// Returns the debug & release build directories for this project.
@@ -220,18 +272,22 @@ internal sealed class CsProjectFile
     private void ModifyBuildVersion(int majorModify, int minorModify, int buildModify)
     {
         _projectRootElement.SetOrAddProperty(PropertyType.EditorVersion, Program.Version.ToBasicVersionString());
-
         var version = Version;
         var newVersion = new Version(version.Major + majorModify, version.Minor + minorModify, version.Build + buildModify);
         _projectRootElement.SetOrAddProperty(PropertyType.VersionPrefix, newVersion.ToBasicVersionString());
-
-        _projectRootElement.Save();
+        try
+        {
+            _projectRootElement.Save();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{Name}: Failed to save project file {_projectRootElement.FullPath} after modifying version: {e}");
+        }
     }
 
     /// <summary>
     /// For building release-mode assemblies for use in the Player. All other runtime-compilation is done in debug mode.
     /// </summary>
-    /// <param name="externalDirectory">Output directory</param>
     /// <param name="nugetRestore">True if NuGet packages should be restored</param>
     /// <returns>True if successful</returns>
     public bool TryCompileRelease(bool nugetRestore)
@@ -266,7 +322,7 @@ internal sealed class CsProjectFile
         var dependenciesDirectory = Path.Combine(destinationDirectory, ProjectXml.DependenciesFolder);
         System.IO.Directory.CreateDirectory(dependenciesDirectory);
 
-        var resourcesDirectory = Path.Combine(destinationDirectory, ResourceManager.ResourcesSubfolder);
+        var resourcesDirectory = Path.Combine(destinationDirectory, FileLocations.ResourcesSubfolder);
         System.IO.Directory.CreateDirectory(resourcesDirectory);
 
         string placeholderDependencyPath = Path.Combine(dependenciesDirectory, "PlaceNativeDllDependenciesHere.txt");
@@ -306,30 +362,6 @@ internal sealed class CsProjectFile
         projRoot.FullPath = Path.Combine(destinationDirectory, $"{projectName}.csproj");
         projRoot.Save(Encoding.UTF8);
         return new CsProjectFile(projRoot);
-    }
-
-    /// <summary>
-    /// Deletes all build directories that are not the current version of the specified <see cref="Compiler.BuildMode"/>
-    /// </summary>
-    public void RemoveOldBuilds(Compiler.BuildMode buildMode)
-    {
-        var versionSubfolder = VersionSubfolder;
-        var rootDir = new DirectoryInfo(GetRootDirectory(buildMode));
-
-        rootDir.EnumerateDirectories("*", SearchOption.TopDirectoryOnly)
-               .AsParallel()
-               .Where(x => !x.FullName.Contains(versionSubfolder)) // ignore our current version
-               .ForAll(directory =>
-                       {
-                           try
-                           {
-                               directory.Delete(recursive: true);
-                           }
-                           catch (Exception e)
-                           {
-                               Log.Error($"Could not delete directory \"{directory.FullName}\": {e}");
-                           }
-                       });
     }
 
     internal const Compiler.BuildMode EditorBuildMode = Compiler.BuildMode.Debug;

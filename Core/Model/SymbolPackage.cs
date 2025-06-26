@@ -12,6 +12,7 @@ using T3.Core.Logging;
 using T3.Core.Operator;
 using T3.Core.Resource;
 using T3.Core.Stats;
+using T3.Core.UserData;
 
 // ReSharper disable RedundantNameQualifier
 
@@ -37,14 +38,13 @@ public abstract partial class SymbolPackage : IResourcePackage
     {
         get
         {
-            var dir = Path.Combine(Folder, SymbolsSubfolder);
+            var dir = Path.Combine(Folder, FileLocations.SymbolsSubfolder);
             if (!Directory.Exists(dir))
                 return [];
             return Directory.EnumerateFiles(dir, $"*{SymbolExtension}", SearchOption.AllDirectories);
         }
     }
 
-    public const string SymbolsSubfolder = "Symbols";
     protected event Action<string?, Symbol>? SymbolAdded;
     protected event Action<Symbol>? SymbolUpdated;
     protected event Action<Guid>? SymbolRemoved;
@@ -91,7 +91,7 @@ public abstract partial class SymbolPackage : IResourcePackage
 
     protected virtual void InitializeResources()
     {
-        ResourcesFolder = Path.Combine(Folder, ResourceManager.ResourcesSubfolder);
+        ResourcesFolder = Path.Combine(Folder, FileLocations.ResourcesSubfolder);
         Directory.CreateDirectory(ResourcesFolder);
         ResourceManager.AddSharedResourceFolder(this, AssemblyInformation.ShouldShareResources);
     }

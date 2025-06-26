@@ -74,7 +74,7 @@ internal static partial class PlayerExporter
         RecursivelyCollectExportData(output, exportInfo);
         exportInfo.PrintInfo();
 
-        var resourceDir = Path.Combine(exportDir, ResourceManager.ResourcesSubfolder);
+        var resourceDir = Path.Combine(exportDir, FileLocations.ResourcesSubfolder);
         Directory.CreateDirectory(resourceDir);
 
         if (TryFindSoundtrack(exportedInstance, symbol, out var file, out var relativePath))
@@ -151,7 +151,7 @@ internal static partial class PlayerExporter
     private static bool TryExportPackages(out string reason, IEnumerable<SymbolPackage> symbolPackages, string operatorDir)
     {
         // note: I think this is only intended to export dll files? if so, this should make use of TixlAssemblyLoadContexts instead to get specific dlls in use
-        string[] excludeSubdirectories = [EditorSymbolPackage.SymbolUiSubFolder, EditorSymbolPackage.SourceCodeSubFolder, ".git", ResourceManager.ResourcesSubfolder];
+        string[] excludeSubdirectories = [FileLocations.SymbolUiSubFolder, FileLocations.SourceCodeSubFolder, ".git", FileLocations.ResourcesSubfolder];
         foreach (var package in symbolPackages)
         {
             Log.Debug($"Exporting package {package.AssemblyInformation?.Name}");

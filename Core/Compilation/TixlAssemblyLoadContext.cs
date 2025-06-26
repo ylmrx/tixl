@@ -10,6 +10,8 @@ using System.Runtime.Loader;
 using System.Threading;
 using T3.Core.IO;
 using T3.Core.Logging;
+using T3.Core.Model;
+using T3.Core.UserData;
 
 namespace T3.Core.Compilation;
 
@@ -44,9 +46,27 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     private bool _unloaded;
 
     private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
-    private readonly string _mainDirectory;
+    public readonly string MainDirectory;
+    private static readonly string _rootShadowCopyDir = Path.Combine(FileLocations.TempFolder, "ShadowCopy");
+    private readonly string _shadowCopyDirectory;
+    private readonly bool _shouldCopyBinaries;
+    
     static TixlAssemblyLoadContext()
     {
+        try
+        {
+            if (Directory.Exists(_rootShadowCopyDir))
+            {
+                Directory.Delete(_rootShadowCopyDir, true);
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to delete shadow copy directory {_rootShadowCopyDir}: {e}");
+        }
+        
+        Directory.CreateDirectory(_rootShadowCopyDir);
+
         (AssemblyLoadContext Context, (Assembly Assembly, AssemblyName name)[] assemblies)[]? allAssemblies = All
            .Select(ctx => (
                               ctx: ctx,
@@ -112,7 +132,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         }
     }
 
-    internal TixlAssemblyLoadContext(string assemblyName, string directory) :
+    internal TixlAssemblyLoadContext(string assemblyName, string directory, bool isReadOnly) :
         base(assemblyName, true)
     {
         Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
@@ -150,7 +170,9 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
             _loadContexts.Add(this);
         }
 
-        _mainDirectory = directory;
+        MainDirectory = directory;
+        _shadowCopyDirectory = Path.Combine(_rootShadowCopyDir, Name!, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
+        _shouldCopyBinaries = !isReadOnly;
 
         var path = Path.Combine(directory, Name!) + ".dll";
 
@@ -176,7 +198,76 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     /// <returns>The loaded assembly</returns>
     /// <inheritdoc cref="AssemblyLoadContext.LoadFromAssemblyPath"/>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    internal static Assembly LoadAssembly(string path, AssemblyLoadContext ctx) => ctx.LoadFromAssemblyPath(path);
+    internal static Assembly LoadAssembly(string path, AssemblyLoadContext ctx)
+    {
+        // try a shadow copy first
+        if (ctx is not TixlAssemblyLoadContext { _shouldCopyBinaries: true } tixlCtx) 
+            return ctx.LoadFromAssemblyPath(path);
+        
+        var shadowCopyDirectory = tixlCtx._shadowCopyDirectory;
+        if (tixlCtx._shouldCopyBinaries && !Directory.Exists(shadowCopyDirectory))
+        {
+            Directory.CreateDirectory(shadowCopyDirectory);
+            Log.Debug($"{tixlCtx.Name!}: Created shadow copy directory at {shadowCopyDirectory}");
+            // copy all dlls recursively in the main directory to the shadow copy directory
+            // being sure to ignore symbol and resource folders
+            CopyFilesInDirectory(tixlCtx.MainDirectory, tixlCtx.MainDirectory, shadowCopyDirectory, false);
+
+            // now search subfolders, excluding ignored folders
+            foreach (var dir in Directory.EnumerateDirectories(tixlCtx.MainDirectory, "*", SearchOption.TopDirectoryOnly))
+            {
+                var directoryName = Path.GetFileName(dir);
+                if (directoryName.StartsWith('.') ||
+                    directoryName.Equals("bin", StringComparison.Ordinal) ||
+                    directoryName.Equals("obj", StringComparison.Ordinal) ||
+                    directoryName.Equals(FileLocations.SymbolsSubfolder, StringComparison.Ordinal) ||
+                    directoryName.Equals(FileLocations.SymbolUiSubFolder, StringComparison.Ordinal) ||
+                    directoryName.Equals(FileLocations.ResourcesSubfolder, StringComparison.Ordinal) ||
+                    directoryName.Equals(FileLocations.SourceCodeSubFolder, StringComparison.Ordinal))
+                {
+                    continue; // skip hidden, bin, obj and resources folders
+                }
+
+                CopyFilesInDirectory(tixlCtx.MainDirectory, dir, shadowCopyDirectory, true);
+            }
+        }
+
+        // replace path with the shadow copy directory
+        var relativePath = Path.GetRelativePath(tixlCtx.MainDirectory, path);
+        path = Path.Combine(shadowCopyDirectory, relativePath);
+
+        return ctx.LoadFromAssemblyPath(path);
+        
+        static void CopyFilesInDirectory(string rootDirectory, string directory, string shadowCopyDirectory, bool recursive)
+        {
+            var newDirectory = directory != rootDirectory 
+                                   ? Path.Combine(shadowCopyDirectory, Path.GetRelativePath(rootDirectory, directory)) 
+                                   : shadowCopyDirectory;
+            Directory.CreateDirectory(newDirectory);
+            foreach (var file in Directory.EnumerateFiles(directory, "*", SearchOption.TopDirectoryOnly))
+            {
+                if (!file.EndsWith(".dll") &&
+                    !file.EndsWith(".exe") &&
+                    !file.EndsWith(".pdb") &&
+                    !file.EndsWith(".so") &&
+                    !file.EndsWith(".xml") &&
+                    !file.EndsWith(".json"))
+                {
+                    continue;
+                }
+                    
+                var newPath = Path.Combine(newDirectory, Path.GetFileName(file));
+                File.Copy(file, newPath, true);
+            }
+            if (!recursive)
+                return;
+                
+            foreach (var subDir in Directory.EnumerateDirectories(directory, "*", SearchOption.TopDirectoryOnly))
+            {
+                CopyFilesInDirectory(rootDirectory, subDir, shadowCopyDirectory, true);
+            }
+        }
+    }
 
     // called if Load method returns null - searches other contexts and nuget packages
     private Assembly? OnResolving(AssemblyName asmName)
@@ -236,7 +327,6 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
 
         // check nuget packages
         return SearchNugetForAssemblies(asmName, name);
-       
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
@@ -316,11 +406,11 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         }
         else if (!unmanagedDllName.EndsWith(".dll"))
         {
-            fullPath = Path.Combine(_mainDirectory, unmanagedDllName + ".dll");
+            fullPath = Path.Combine(MainDirectory, unmanagedDllName + ".dll");
         }
         else
         {
-            fullPath = Path.Combine(_mainDirectory, unmanagedDllName);
+            fullPath = Path.Combine(MainDirectory, unmanagedDllName);
         }
 
         if (File.Exists(fullPath))
@@ -342,7 +432,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         {
             var unixPath = pathFullyQualified
                                ? Path.ChangeExtension(fullPath, ".so")
-                               : Path.Combine(_mainDirectory, unmanagedDllName + ".so");
+                               : Path.Combine(MainDirectory, unmanagedDllName + ".so");
 
             if (File.Exists(unixPath))
             {

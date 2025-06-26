@@ -14,7 +14,6 @@
     <IsEditorOnly>true</IsEditorOnly>
     <DisableTransitiveProjectReferences>true</DisableTransitiveProjectReferences>
     <Deterministic>true</Deterministic>
-      <OutputPath>bin/$(Configuration)/$(VersionPrefix)</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core.csproj" Private="false"  />

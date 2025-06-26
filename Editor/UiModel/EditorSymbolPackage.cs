@@ -8,6 +8,7 @@ using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Resource;
 using T3.Core.SystemUi;
+using T3.Core.UserData;
 using T3.Core.Utils;
 using T3.Editor.Compilation;
 using T3.Editor.External;
@@ -294,7 +295,7 @@ internal class EditorSymbolPackage : SymbolPackage
     {
         get
         {
-            var dir = Path.Combine(Folder, SymbolUiSubFolder);
+            var dir = Path.Combine(Folder, FileLocations.SymbolUiSubFolder);
             if (!Directory.Exists(dir))
             {
                 Log.Warning($"Symbol UI folder {dir} does not exist");
@@ -309,7 +310,7 @@ internal class EditorSymbolPackage : SymbolPackage
     {
         get
         {
-            var dir = Path.Combine(Folder, SourceCodeSubFolder);
+            var dir = Path.Combine(Folder, FileLocations.SourceCodeSubFolder);
             
             if (!Directory.Exists(dir))
             {
@@ -327,8 +328,6 @@ internal class EditorSymbolPackage : SymbolPackage
 
     internal const string SourceCodeExtension = ".cs";
     public const string SymbolUiExtension = ".t3ui";
-    public const string SymbolUiSubFolder = "SymbolUis";
-    public const string SourceCodeSubFolder = "SourceCode";
 
     public static IEnumerable<Symbol> AllSymbols => AllPackages
                                                    .Cast<EditorSymbolPackage>()

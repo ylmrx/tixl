@@ -39,4 +39,9 @@ public static class FileLocations
                      );
     
     public static readonly string DefaultProjectFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), AppSubFolder);
+    public const string ResourcesSubfolder = "Resources";
+    public const string DependenciesFolder = "dependencies";
+    public const string SymbolsSubfolder = "Symbols";
+    public const string SymbolUiSubFolder = "SymbolUis";
+    public const string SourceCodeSubFolder = "SourceCode";
 }

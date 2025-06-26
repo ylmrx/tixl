@@ -26,7 +26,6 @@
         <!-- Ensure there's a git commit hash in the version field for the about dialog -->
         <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
 
-
         <!-- <Authors>TiXL</Authors>
     <Owners>TiXL</Owners>
     <Company>TiXL</Company>
@@ -143,7 +142,7 @@
         <PackageNames Include="examples"/>
         <PackageNames Include="TypeOperators"/>
         <PackageNames Include="LibEditor"/>
-       <!-- <PackageNames Include="pixtur"/>-->
+        <!-- <PackageNames Include="pixtur"/>-->
         <PackageNames Include="unsplash"/>
         <PackageNames Include="spout"/>
         <PackageNames Include="ndi"/>
@@ -171,18 +170,18 @@
         <Message Importance="high" Text="Attempting to copy $(PackageName)..."/>
 
         <!-- Use XmlPeek to extract the version from the csproj file of the package -->
-        <XmlPeek XmlInputPath="$(SourceDir)/$(PackageName).csproj" Query="//VersionPrefix/text()">
-            <Output TaskParameter="Result" ItemName="projVersion"/>
-        </XmlPeek>
-
-        <Message Importance="high" Text="Found version for $(PackageName): @(projVersion)"/>
+        <!-- Left here as an example in case we need to use it for extracting the target framework in the future -->
+        <!-- <XmlPeek XmlInputPath="$(SourceDir)/$(PackageName).csproj" Query="//VersionPrefix/text()">
+             <Output TaskParameter="Result" ItemName="projVersion"/>
+         </XmlPeek>
+        <Message Importance="high" Text="Found version for $(PackageName): @(projVersion)"/>-->
 
         <!-- Define the package build directory based on the version found
             This should match the OutputPath defined by the project -->
         <PropertyGroup>
-            <PackageBuildDirectory>$(SourceDir)/bin/$(Configuration)/@(projVersion)/$(TixlNetFrameworkVersion)</PackageBuildDirectory>
+            <PackageBuildDirectory>$(SourceDir)/bin/$(Configuration)/$(TixlNetFrameworkVersion)</PackageBuildDirectory>
         </PropertyGroup>
-        
+
         <Message Importance="high" Text="Path for $(PackageName): $(PackageBuildDirectory)"/>
 
         <ItemGroup>
@@ -197,45 +196,16 @@
     </Target>
 
     <!-- Invokes the above target for all of the packages defined by the PackageNames property -->
-     <Target Name="CopyTixlOperators" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
-         <MSBuild Projects="$(MSBuildProjectFullPath)"
-                  Targets="CopyTixlOpProject"
-                  Properties="PackageName=%(PackageNames.Identity);ParentFolder=$(OperatorDirectoryName)" />
-     </Target>
-
-    <!-- special case for pixtur project being nested under Operators/user/ -->
-    <Target Name="CopyUserOperators" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
+    <Target Name="CopyTixlOperators" AfterTargets="AfterBuild" Condition="'$(Configuration)' == 'Release'">
         <MSBuild Projects="$(MSBuildProjectFullPath)"
                  Targets="CopyTixlOpProject"
-                 Properties="PackageName=pixtur;ParentFolder=$(OperatorDirectoryName)/user" />
+                 Properties="PackageName=%(PackageNames.Identity);ParentFolder=$(OperatorDirectoryName)"/>
+
+        <!-- special case for pixtur project being nested under Operators/user/ -->
+        <MSBuild Projects="$(MSBuildProjectFullPath)"
+                 Targets="CopyTixlOpProject"
+                 Properties="PackageName=pixtur;ParentFolder=$(OperatorDirectoryName)/user"/>
     </Target>
 
     <!-- =========================//================================ -->
-    
-    <!-- ======================== Preferred method ========================== -->
-    <!-- 
-    The preferred method of doing this, rather than all of the complexity above, would be to use MSBuild directly to evaluate each project's
-    "OutputPath" property without compiling.
-    
-    From the MSBuild CLI this seems to be a straightforward thing with the -getProperty:PropertyName option. But I have not been able to get this to work 
-    via the MSBuild task in the csproj file. -->
-<!--
-    <Target Name="CopyTixlOperators2" AfterTargets="AfterBuild">
-        <PropertyGroup>
-            <PackageName>lib</PackageName>
-            <SourceDir>$(SolutionDir)/$(OperatorDirectoryName)/$(PackageName)</SourceDir>
-        </PropertyGroup>
-        
-        <Message Importance="high" Text="Testing operator package: $(PackageName)"/>
-        <MSBuild Projects="$(SourceDir)/$(PackageName).csproj "
-                 BuildInParallel="false"
-                 Targets="-getProperty:OutputPath"
-                 Properties="Configuration=$(Configuration);TixlNetFrameworkVersion=$(TixlNetFrameworkVersion)"
-                 RunEachTargetSeparately="true">
-            <Output TaskParameter="OutputPath" PropertyName="PackageBuildDirectory"/>
-        </MSBuild>
-        <Message Importance="high" Text="Output path for $(PackageName): $(PackageBuildDirectory)"/>
-    </Target>
--->
-
 </Project>

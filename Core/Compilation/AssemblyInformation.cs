@@ -53,25 +53,35 @@ public sealed partial class AssemblyInformation
     }
     
     private string? _directory;
+    private bool _isReadOnly;
     private bool _initialized;
     private ReleaseInfo? _releaseInfo;
 
+    /// <summary>
+    /// Constructor used for creating an uninitialized instance of <see cref="AssemblyInformation"/>.
+    /// Useful for creating an instance without initializing it immediately - at time of writing, this is how editable symbol projects are created.
+    /// </summary>
     private AssemblyInformation()
     {
         Name = null!;
     }
     
+    /// <summary>
+    /// Constructor used for creating a read-only instance of <see cref="AssemblyInformation"/> with the given directory.
+    /// </summary>
+    /// <param name="directory"></param>
     public AssemblyInformation(string directory)
     {
         ArgumentNullException.ThrowIfNull(directory);
-        Initialize(directory);
+        Initialize(directory, true);
     }
 
-    public void Initialize(string directory)
+    public void Initialize(string directory, bool isReadOnly)
     {
         if(_initialized)
             throw new InvalidOperationException($"Cannot initialize assembly information for {Name} - already initialized");
         
+        _isReadOnly = isReadOnly;
         _directory = directory;
         _initialized = true;
         Log.Debug($"{Name}: Assembly information initialized");
@@ -282,7 +292,7 @@ public sealed partial class AssemblyInformation
         return releaseInfo != null;
     }
 
-    private static bool TryLoadReleaseInfo(string directory, [NotNullWhen(true)] out ReleaseInfo? releaseInfo)
+    public static bool TryLoadReleaseInfo(string directory, [NotNullWhen(true)] out ReleaseInfo? releaseInfo)
     {
         var filePath = Path.Combine(directory, ReleaseInfo.FileName);
         if (!JsonUtils.TryLoadingJson<ReleaseInfoSerialized>(filePath, out var releaseInfoSerialized))
@@ -351,7 +361,7 @@ public sealed partial class AssemblyInformation
                     throw new Exception($"Failed to load release info from {_directory} - does it need to be compiled?");
                 }
 
-                _loadContext = new TixlAssemblyLoadContext(releaseInfo.AssemblyFileName, Directory);
+                _loadContext = new TixlAssemblyLoadContext(releaseInfo.AssemblyFileName, Directory, _isReadOnly);
 
                 var asm = _loadContext.Root!.Assembly;
                 _asmReference = new WeakReference(asm, true);
