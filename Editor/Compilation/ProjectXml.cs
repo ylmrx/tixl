@@ -296,8 +296,7 @@ internal static partial class ProjectXml
                     (Type: PropertyType.EditorVersion, Value: Program.Version.ToBasicVersionString()),
                     (Type: PropertyType.IsEditorOnly, Value: "false"),
                     (Type: PropertyType.ImplicitUsings, Value: "disabled"),
-                    (Type: PropertyType.Deterministic, Value: "true"),
-                    (Type: PropertyType.OutputPath, Value: "bin/$(Configuration)/" + UnevaluatedVariable(PropertyType.VersionPrefix.GetItemName()))
+                    (Type: PropertyType.Deterministic, Value: "true")
                 }
            .ToFrozenDictionary(keySelector: x => x.Type, elementSelector: x => x.Value);
 
