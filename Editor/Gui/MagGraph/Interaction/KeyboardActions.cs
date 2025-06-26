@@ -36,12 +36,22 @@ internal static class KeyboardActions
             result |= ChangeSymbol.SymbolModificationResults.StructureChanged;
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.DeleteSelection))
+        if (!T3Ui.IsCurrentlySaving && UserActions.DeleteSelection.Triggered()
+                                    && context.Selector.Selection.Count > 0
+                                    && context.StateMachine.CurrentState == GraphStates.Default)
         {
             result |= Modifications.DeleteSelection(context);
         }
 
-        if (KeyActionHandling.Triggered(UserActions.ToggleDisabled))
+        if (!T3Ui.IsCurrentlySaving 
+            && UserActions.AlignSelectionLeft.Triggered()
+            && context.Selector.Selection.Count > 1
+            && context.StateMachine.CurrentState == GraphStates.Default)
+        {
+            result |= Modifications.AlignSelectionToLeft(context);
+        }
+        
+        if (UserActions.ToggleDisabled.Triggered())
         {
             NodeActions.ToggleDisabledForSelectedElements(context.Selector);
         }

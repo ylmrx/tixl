@@ -1,0 +1,54 @@
+{
+  "Id": "85b5a198-deb9-4bea-b760-dad211e16ee6"/*AnimInt*/,
+  "Description": "Animates an integer value.",
+  "InputUis": [
+    {
+      "InputId": "1bc7d002-1483-48bd-b419-cccfcb38aa2f"/*Rate*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 225.0
+      },
+      "Min": -5.0,
+      "Max": 5.0,
+      "Clamp": true
+    },
+    {
+      "InputId": "5b3d75c9-aac5-44d7-9e68-828cd87cdc0c"/*Phase*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 180.0
+      }
+    },
+    {
+      "InputId": "72da2976-f1a6-4b3e-a8f0-b43e278e5056"/*AllowSpeedFactor*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 135.0
+      }
+    },
+    {
+      "InputId": "e037f3b2-c5eb-4d89-bcbc-ad80aca1cd36"/*OverrideTime*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 90.0
+      }
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "e1c176ab-0375-42b2-b222-b971aa6ce889"/*WasHit*/,
+      "Position": {
+        "X": 149.09799,
+        "Y": 93.17799
+      }
+    },
+    {
+      "OutputId": "081308ea-fc71-43ae-b0dd-23de38343af3"/*Result*/,
+      "Position": {
+        "X": 149.09799,
+        "Y": 193.178
+      }
+    }
+  ]
+}

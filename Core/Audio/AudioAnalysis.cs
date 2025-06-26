@@ -133,8 +133,9 @@ public static class AudioAnalysis
         return r;
     }
 
-    private const float AudioUpdatesPerSecond = (float)(60000.0 / 48000);
-    private const int FrequencyBandHistoryLength = (int)(120 * AudioUpdatesPerSecond);
+    //private const float AudioUpdatesPerFrame = (float)(60000.0 / 48000);
+    private const float EstimatedAudioUpdatePeriod = 0.003f;
+    private const int FrequencyBandHistoryLength = (int)(1/EstimatedAudioUpdatePeriod);
     
     private static void UpdateSlidingWindowAverages()
     {

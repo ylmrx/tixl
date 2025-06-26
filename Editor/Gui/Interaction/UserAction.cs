@@ -63,6 +63,9 @@ public enum UserActions
     ScrollDown,
     ZoomIn,
     ZoomOut,
+
+    AlignSelectionLeft,
+    
     NavigateBackwards,
     NavigateForward,
     SelectToAbove,

@@ -217,8 +217,8 @@ public static class StringUtils
         nextChar = default;
         return -1;
     }
-    
-    public static int LineCount(this string  input)
+
+    public static int LineCount(this string input)
     {
         if (string.IsNullOrEmpty(input))
             return 0;
@@ -229,8 +229,9 @@ public static class StringUtils
             if (input[i] == '\n')
                 count++;
         }
+
         return count;
-    }    
+    }
 
     public static int IndexOf(this ReadOnlySpan<char> span, char c, bool ignoreCase)
     {
@@ -425,7 +426,6 @@ public static class StringUtils
             return "seconds ago";
         }
 
-        
         var minutes = timeSpan.Value.TotalMinutes;
         if (minutes < 120)
         {

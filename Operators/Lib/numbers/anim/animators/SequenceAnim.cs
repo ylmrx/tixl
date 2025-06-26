@@ -64,10 +64,20 @@ public sealed class SequenceAnim : Instance<SequenceAnim>
         }
     }
 
+    private double _lastUpdateTime = 0;
+
 
         
     private void Update(EvaluationContext context)
     {
+        if (Math.Abs(context.LocalFxTime - _lastUpdateTime) < 0.0001f)
+        {
+            return;
+        }
+
+        _lastUpdateTime = context.LocalFxTime;
+        
+        
         _minValue = MinValue.GetValue(context);
         _maxValue = MaxValue.GetValue(context);
         _bias = Bias.GetValue(context);

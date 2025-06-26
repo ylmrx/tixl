@@ -1,0 +1,17 @@
+{
+  "Id": "2572b5f2-40af-442c-9354-7a9fa5bd378f"/*CombineFloatLists*/,
+  "Inputs": [
+    {
+      "Id": "2101b2b6-da50-486e-b117-e533ad754fa3"/*Input*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    },
+    {
+      "Id": "6961a03e-aed8-46e0-b3e4-b4ec1befde91"/*Index*/,
+      "DefaultValue": 0
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

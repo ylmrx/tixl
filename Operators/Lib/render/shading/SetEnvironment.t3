@@ -10,6 +10,10 @@
       "DefaultValue": 1.0
     },
     {
+      "Id": "486f4f09-2e4e-43b8-bfbc-2722e77d5dbd"/*Orientation*/,
+      "DefaultValue": 0.0
+    },
+    {
       "Id": "4f573afe-8815-4fd3-a655-89ec40bf3c22"/*RenderBackground*/,
       "DefaultValue": true
     },

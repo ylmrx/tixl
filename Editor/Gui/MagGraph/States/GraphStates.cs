@@ -444,71 +444,7 @@ internal static class GraphStates
               Exit: _ => { }
              );
 
-    internal static State DragConnectionEnd
-        = new(
-              Enter: _ => { },
-              Update: context =>
-                      {
-                          if (ImGui.IsKeyDown(ImGuiKey.Escape))
-                          {
-                              context.StateMachine.SetState(Default, context);
-                              return;
-                          }
-
-                          var posOnCanvas = context.Canvas.InverseTransformPositionFloat(ImGui.GetMousePos());
-                          context.PeekAnchorInCanvas = posOnCanvas;
-
-                          var mouseReleased = context.StateMachine.StateTime > 0 && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
-                          if (!mouseReleased)
-                              return;
-
-                          if (InputSnapper.TryToReconnect(context))
-                          {
-                              context.Layout.FlagStructureAsChanged();
-                              context.CompleteMacroCommand();
-                              context.StateMachine.SetState(Default, context);
-                              return;
-                          }
-
-                          var hasDisconnections = context.TempConnections.Any(c => c.WasDisconnected);
-
-                          var droppedOnItem = InputPicking.TryInitializeAtPosition(context, posOnCanvas);
-                          if (droppedOnItem)
-                          {
-                              context.StateMachine.SetState(PickInput, context);
-                          }
-                          else if (hasDisconnections)
-                          {
-                              // Ripped off input -> Avoid open placeholder
-                              //UndoRedoStack.Add(context.MacroCommand);
-                              context.CompleteMacroCommand();
-                              context.StateMachine.SetState(Default, context);
-                          }
-                          else
-                          {
-                              // Was dropped on operator or background...
-                              context.Placeholder.OpenOnCanvas(context, posOnCanvas, context.DraggedPrimaryOutputType);
-                              context.StateMachine.SetState(Placeholder, context);
-                          }
-                      },
-              Exit: _ => { }
-             );
-
-    internal static State PickInput
-        = new(
-              Enter: InputPicking.Init,
-              Update: InputPicking.DrawHiddenInputSelector,
-              Exit: InputPicking.Reset
-             );
-
-    internal static State PickOutput
-        = new(
-              Enter: OutputPicking.Init,
-              Update => { }, //OutputPicking.DrawHiddenOutputSelector,
-              Exit: OutputPicking.Reset
-             );
-
-    internal static State HoldingConnectionEnd
+        internal static State HoldingConnectionEnd
         = new(
               Enter: _ => { },
               Update: context =>
@@ -575,6 +511,72 @@ internal static class GraphStates
                       },
               Exit: _ => { }
              );
+
+    
+    internal static State DragConnectionEnd
+        = new(
+              Enter: _ => { },
+              Update: context =>
+                      {
+                          if (ImGui.IsKeyDown(ImGuiKey.Escape))
+                          {
+                              context.StateMachine.SetState(Default, context);
+                              return;
+                          }
+
+                          var posOnCanvas = context.Canvas.InverseTransformPositionFloat(ImGui.GetMousePos());
+                          context.PeekAnchorInCanvas = posOnCanvas;
+
+                          var mouseReleased = context.StateMachine.StateTime > 0 && ImGui.IsMouseReleased(ImGuiMouseButton.Left);
+                          if (!mouseReleased)
+                              return;
+
+                          if (InputSnapper.TryToReconnect(context))
+                          {
+                              context.Layout.FlagStructureAsChanged();
+                              context.CompleteMacroCommand();
+                              context.StateMachine.SetState(Default, context);
+                              return;
+                          }
+
+                          var hasDisconnections = context.TempConnections.Any(c => c.WasDisconnected);
+
+                          var droppedOnItem = InputPicking.TryInitializeAtPosition(context, posOnCanvas);
+                          if (droppedOnItem)
+                          {
+                              context.StateMachine.SetState(PickInput, context);
+                          }
+                          else if (hasDisconnections)
+                          {
+                              // Ripped off input -> Avoid open placeholder
+                              //UndoRedoStack.Add(context.MacroCommand);
+                              context.CompleteMacroCommand();
+                              context.StateMachine.SetState(Default, context);
+                          }
+                          else
+                          {
+                              // Was dropped on operator or background...
+                              context.Placeholder.OpenOnCanvas(context, posOnCanvas, context.DraggedPrimaryOutputType);
+                              context.StateMachine.SetState(Placeholder, context);
+                          }
+                      },
+              Exit: _ => { }
+             );
+
+    internal static State PickInput
+        = new(
+              Enter: InputPicking.Init,
+              Update: InputPicking.DrawHiddenInputSelector,
+              Exit: InputPicking.Reset
+             );
+
+    internal static State PickOutput
+        = new(
+              Enter: OutputPicking.Init,
+              Update => { }, //OutputPicking.DrawHiddenOutputSelector,
+              Exit: OutputPicking.Reset
+             );
+
 
     internal static State HoldingConnectionBeginning
         = new(

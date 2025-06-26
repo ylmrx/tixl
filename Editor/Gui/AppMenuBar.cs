@@ -183,8 +183,6 @@ internal static class AppMenuBar
 
     private static void DrawMainMenu()
     {
-        ImGui.PushStyleColor(ImGuiCol.Header, UiColors.BackgroundActive.Fade(0.5f).Rgba);
-        ImGui.PushStyleColor(ImGuiCol.HeaderHovered, UiColors.BackgroundActive.Rgba);
         if (ImGui.BeginMenu("TiXL"))
         {
             UserSettings.Config.ShowMainMenu = true;
@@ -472,8 +470,6 @@ internal static class AppMenuBar
 
             ImGui.EndMenu();
         }
-        ImGui.PopStyleColor();
-        ImGui.PopStyleColor();
     }
 
     private sealed class HelpLink(string title, string url, string toolTip = "")

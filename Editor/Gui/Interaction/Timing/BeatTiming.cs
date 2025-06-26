@@ -1,5 +1,6 @@
 ﻿using T3.Core.Animation;
 using T3.Core.Audio;
+using T3.Core.IO;
 
 namespace T3.Editor.Gui.Interaction.Timing;
 
@@ -149,7 +150,7 @@ public static class BeatTiming
 
             if (_resynced)
             {
-                BeatTime = _barTimeAverage.UpdateAndCompute(BeatSynchronizer.BarProgress) + 0.05f;
+                BeatTime = _barTimeAverage.UpdateAndCompute(BeatSynchronizer.BarProgress) + ProjectSettings.Config.BeatSyncOffsetMs / 1000;
                 _beatDuration =   (float)(60f / BeatSynchronizer.CurrentBpm);
             }
             else

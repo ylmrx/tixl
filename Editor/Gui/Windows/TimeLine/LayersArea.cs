@@ -44,6 +44,12 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             
             DrawAllLayers(_clipSelection.AllClips, compositionOp);
             DrawContextMenu(compositionOp);
+            if (_clipSelection.AllClips.Count > 0)
+            {
+                FormInputs.AddVerticalSpace(15);
+                ImGui.TextUnformatted("");  // Enforce application of space. Not sure why imgui requires that
+            }
+            
         }
         ImGui.EndGroup();
     }
@@ -202,7 +208,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         var layerArea = new ImRect(min, max);
         LastHeight = max.Y - min.Y + 5;
         _drawList.AddRectFilled(new Vector2(min.X, max.Y - 2),
-                                new Vector2(max.X, max.Y - 1), UiColors.ForegroundFull.Fade(0.1f));
+                                new Vector2(max.X, max.Y - 0), UiColors.BackgroundFull.Fade(0.6f));
         
         var compositionSymbolUi = compositionOp.GetSymbolUi();
         foreach (var clip in clips)
@@ -216,7 +222,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     private void DrawClip(ITimeClip timeClip, ImRect layerArea, int minLayerIndex, Instance compositionOp, SymbolUi compositionSymbolUi)
     {
         var xStartTime = _timelineCanvas.TransformX(timeClip.TimeRange.Start) + 1;
-        var xEndTime = _timelineCanvas.TransformX(timeClip.TimeRange.End);
+        var xEndTime = _timelineCanvas.TransformX(timeClip.TimeRange.End)+1;
         var position = new Vector2(xStartTime,
                                    layerArea.Min.Y + (timeClip.LayerIndex - minLayerIndex ) * LayerHeight);
             

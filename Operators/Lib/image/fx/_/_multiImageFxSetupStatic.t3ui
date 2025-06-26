@@ -1,6 +1,6 @@
 {
   "Id": "cc34a183-3978-4b6b-8ef1-dd8102410816"/*_multiImageFxSetupStatic*/,
-  "Description": "Setup for an image effect with two incoming textures that do not have any animated references.\nThe used with a fixed resolution this can be cached automatically.",
+  "Description": "Setup for an image effect with two incoming textures that do not have any animated references.\nUsed with a fixed resolution this can be cached automatically.",
   "SymbolTags": "16",
   "InputUis": [
     {
@@ -30,8 +30,8 @@
       "InputId": "55126bff-8c94-415d-96dd-3c16e216e663"/*ImageA*/,
       "Relevancy": "Required",
       "Position": {
-        "X": 144.81728,
-        "Y": 339.25833
+        "X": -23.854584,
+        "Y": 271.9284
       }
     },
     {

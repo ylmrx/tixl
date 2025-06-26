@@ -1,11 +1,24 @@
 namespace Lib.point.generate;
 
 [Guid("4ae9e2f5-7cb3-40b0-a662-0662e8cb7c68")]
-internal sealed class LinePoints : Instance<LinePoints>
+internal sealed class LinePoints : Instance<LinePoints>, ITransformable
 {
-
+    
     [Output(Guid = "68514ced-4368-459a-80e9-463a808bff0b")]
-    public readonly Slot<BufferWithViews> OutBuffer = new();
+    public readonly TransformCallbackSlot<BufferWithViews> OutBuffer = new();    
+    
+    
+    public LinePoints()
+    {
+        OutBuffer.TransformableOp = this;
+    }
+    
+    IInputSlot ITransformable.TranslationInput => Center;
+    IInputSlot ITransformable.RotationInput => null;
+    IInputSlot ITransformable.ScaleInput => null;
+    
+    public Action<Instance, EvaluationContext> TransformCallback { get; set; }
+
 
         [Input(Guid = "951a1792-e607-4595-b211-97be7d27694c")]
         public readonly InputSlot<int> Count = new InputSlot<int>();

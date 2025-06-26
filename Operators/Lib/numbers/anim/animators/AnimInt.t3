@@ -1,0 +1,23 @@
+{
+  "Id": "85b5a198-deb9-4bea-b760-dad211e16ee6"/*AnimInt*/,
+  "Inputs": [
+    {
+      "Id": "1bc7d002-1483-48bd-b419-cccfcb38aa2f"/*Rate*/,
+      "DefaultValue": 1.0
+    },
+    {
+      "Id": "5b3d75c9-aac5-44d7-9e68-828cd87cdc0c"/*Phase*/,
+      "DefaultValue": 0.0
+    },
+    {
+      "Id": "72da2976-f1a6-4b3e-a8f0-b43e278e5056"/*AllowSpeedFactor*/,
+      "DefaultValue": 1
+    },
+    {
+      "Id": "e037f3b2-c5eb-4d89-bcbc-ad80aca1cd36"/*OverrideTime*/,
+      "DefaultValue": 0.0
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

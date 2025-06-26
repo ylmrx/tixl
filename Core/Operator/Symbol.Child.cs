@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,6 +11,7 @@ using T3.Core.DataTypes;
 using T3.Core.DataTypes.ShaderGraph;
 using T3.Core.Logging;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using Texture2D = T3.Core.DataTypes.Texture2D;
 
 namespace T3.Core.Operator;
@@ -160,7 +161,7 @@ public partial class Symbol
 
         public sealed class Input
         {
-            public Symbol.InputDefinition InputDefinition { get; }
+            public InputDefinition InputDefinition { get; }
             public Guid Id => InputDefinition.Id;
             public bool IsMultiInput => InputDefinition.IsMultiInput;
             public InputValue DefaultValue => InputDefinition.DefaultValue;

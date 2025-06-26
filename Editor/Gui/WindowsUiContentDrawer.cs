@@ -289,8 +289,13 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         var prevPsSampler = _deviceContext.PixelShader.GetSamplers(0, 1);
         var prevPs = _deviceContext.PixelShader.Get();
         var prevVs = _deviceContext.VertexShader.Get();
+        var prevHs = _deviceContext.HullShader.Get();
+        var prevGs = _deviceContext.GeometryShader.Get();
+        var prevDs = _deviceContext.DomainShader.Get();
         var prevVsConstantBuffer = _deviceContext.VertexShader.GetConstantBuffers(0, 1);
         var prevPrimitiveTopology = _deviceContext.InputAssembler.PrimitiveTopology;
+
+
         _deviceContext.InputAssembler.GetIndexBuffer(out var prevIndexBuffer, out var prevIndexBufferFormat, out var prevIndexBufferOffset);
         Buffer[] prevVertexBuffer = new Buffer[1];
         int[] prevVertexBufferOffset = new int[1], prevVertexBufferStride = new int[1];
@@ -311,6 +316,11 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.VertexShader.SetConstantBuffer(0, _vertexConstantBuffer);
         _deviceContext.PixelShader.SetShader(_pixelShader, null, 0);
         _deviceContext.PixelShader.SetSampler(0, _fontSampler);
+
+        //make sure we have no tessel/gs
+        _deviceContext.HullShader.Set(null);
+        _deviceContext.DomainShader.Set(null);
+        _deviceContext.GeometryShader.Set(null);
 
         // Setup render state
         _deviceContext.OutputMerger.BlendState = _blendState;
@@ -336,20 +346,20 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
                 {
                     _deviceContext.Rasterizer.SetScissorRectangle((int)(cmd.ClipRect.X - pos.X), (int)(cmd.ClipRect.Y - pos.Y),
                                                                   (int)(cmd.ClipRect.Z - pos.X), (int)(cmd.ClipRect.W - pos.Y));
-                    if (!_srvCache.TryGetValue(cmd.TextureId, out var srv))
-                    {
-                        srv = new ShaderResourceView(cmd.TextureId);
-                        _srvCache.Add(cmd.TextureId, srv);
-                    }
 
-                    try
+                    using (ShaderResourceView srv = new ShaderResourceView(cmd.TextureId))
                     {
-                        _deviceContext.PixelShader.SetShaderResource(0, srv);
-                        _deviceContext.DrawIndexed((int)cmd.ElemCount, idxOffset, vtxOffset);
-                    }
-                    catch (SharpDXException e)
-                    {
-                        Log.Error(e.Message);
+                        //does an addref since as soon as it's GC ed it will call release in SharpDX (note : in Silk it is not doing this)
+                        srv.QueryInterface<ShaderResourceView>();
+                        try
+                        {
+                            _deviceContext.PixelShader.SetShaderResource(0, srv);
+                            _deviceContext.DrawIndexed((int)cmd.ElemCount, idxOffset, vtxOffset);
+                        }
+                        catch (SharpDXException e)
+                        {
+                            Log.Error(e.Message);
+                        }
                     }
                 }
 
@@ -372,6 +382,9 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.PixelShader.SetSamplers(0, prevPsSampler);
         _deviceContext.PixelShader.Set(prevPs);
         _deviceContext.VertexShader.Set(prevVs);
+        _deviceContext.DomainShader.Set(prevDs);
+        _deviceContext.HullShader.Set(prevHs);
+        _deviceContext.GeometryShader.Set(prevGs);
         _deviceContext.VertexShader.SetConstantBuffers(0, prevVsConstantBuffer);
         _deviceContext.InputAssembler.PrimitiveTopology = prevPrimitiveTopology;
         _deviceContext.InputAssembler.SetIndexBuffer(prevIndexBuffer, prevIndexBufferFormat, prevIndexBufferOffset);
@@ -687,7 +700,6 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
     private BlendState _blendState;
     private DepthStencilState _depthStencilState;
     private int _vertexBufferSize = 5000, _indexBufferSize = 1000;
-    private readonly Dictionary<IntPtr, ShaderResourceView> _srvCache = new();
 
     private int _windowWidth;
     private int _windowHeight;
