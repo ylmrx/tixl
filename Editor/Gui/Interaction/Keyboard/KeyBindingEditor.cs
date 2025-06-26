@@ -61,8 +61,10 @@ internal static class KeyBindingEditor
             _somethingChanged = true;
         }
 
-        if (CurrentKeyMap.ReadOnly)
+        
+        if (!CurrentKeyMap.ReadOnly)
         {
+            ImGui.SameLine();
             if (CustomComponents.DisablableButton("Save", _somethingChanged))
             {
                 // TODO: and check if saving worked
@@ -71,6 +73,7 @@ internal static class KeyBindingEditor
                 _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
 
                 UserSettings.Config.KeyBindingName = KeyMapSwitching.CurrentKeymap.Name;
+                _somethingChanged = false;
             }
         }
         
