@@ -49,9 +49,17 @@ public sealed partial class Symbol
                     Log.Warning($"Parent mismatch for {childId} in {Name}");
                     if (parent != null)
                     {
+                        // todo - refactor this for readability
+                        if (parent.Id == child.Parent?.Id) 
+                        {
+                            // this should never happen, but if it does, we are assuming that 
+                            throw new Exception($"Duplicate parent id {parent.Id} for {Name}, but different parent objects. This is an error that should be reported.");
+                        }
+
                         child = CreateWithNewId(child, parent);
                         _childrenCreatedFromMe.TryAdd(child.Id, child);
                         replacedId = true;
+
                         return child;
                     }
 
@@ -73,7 +81,7 @@ public sealed partial class Symbol
 
         Child CreateWithNewId(Child original, Symbol? childsParent)
         {
-            var newId = Guid.NewGuid();
+            var newId = Child.CreateIdDeterministically(original.Symbol, childsParent, original.Id);
             var originalId = original.Id;
             var newChild = new Child(this, newId, childsParent, original.Name, original.IsBypassed, _creationLock, originalId);
             _childrenCreatedFromMe.TryAdd(newId, newChild);

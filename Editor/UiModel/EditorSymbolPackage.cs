@@ -364,17 +364,22 @@ internal class EditorSymbolPackage : SymbolPackage
         // reload single ui
         var symbolJson = JsonFileResult<Symbol>.ReadAndCreate(symbolPath);
         var result = SymbolJson.ReadSymbolRoot(symbol.Id, symbolJson.JToken, symbol.InstanceType, this);
-        var newSymbol = result.Symbol;
-
-        if (!TryReadAndApplyChildren(result))
+        if (result.Symbol == null)
         {
-            symbol.ReplaceWithContentsOf(symbol); // ugly but necessary to make sure the right symbol is in the registry
+            Log.Error($"Failed to reload read-only symbol {symbol} for {id} from {symbolPath}");
+            return;
+        }
+        
+        symbol.ReplaceWithContentsOf(result.Symbol);
+        
+        // hacky workaround to avoid creating duplicate children in the next step
+        var fakeResult = result with { Symbol = symbol };
+
+        if (!TryReadAndApplyChildren(fakeResult))
+        {
             Log.Error($"Failed to reload symbol for symbol {id}");
             return;
         }
-
-        // transfer instances over to the new symbol and update them
-        symbol.ReplaceWithContentsOf(newSymbol);
 
         UpdateSymbolInstances(symbol, forceTypeUpdate: true);
 

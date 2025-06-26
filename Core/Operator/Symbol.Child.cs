@@ -316,15 +316,26 @@ public partial class Symbol
             return Parent?.Name + ">" + ReadableName;
         }
 
-        internal static Guid CreateIdDeterministically(Symbol symbol, Symbol? parent)
+        internal static unsafe Guid CreateIdDeterministically(Symbol symbol, Symbol? parent, Guid? extra = null)
         {
             //deterministically create a new guid from the symbol id
             using var hashComputer = IncrementalHash.CreateHash(HashAlgorithmName.SHA1);
-            hashComputer.AppendData(symbol.Id.ToByteArray(), 0, 16);
+            var symbolId = symbol.Id;
+            var symbolIdBytes = new ReadOnlySpan<byte>(&symbolId, 16);
+            hashComputer.AppendData(symbolIdBytes);
 
             if (parent != null)
             {
-                hashComputer.AppendData(parent.Id.ToByteArray(), 0, 16);
+                var parentId = parent.Id;
+                var parentIdBytes = new ReadOnlySpan<byte>(&parentId, 16);
+                hashComputer.AppendData(parentIdBytes);
+            }
+
+            if (extra != null)
+            {
+                var val = extra.Value;
+                var bytes = new ReadOnlySpan<byte>(&val, 16);
+                hashComputer.AppendData(bytes);
             }
 
             // SHA1 is 20 bytes long, but we only need 16 bytes for a guid
@@ -931,6 +942,18 @@ public partial class Symbol
                 foreach (var inst in _instancesOfSelf.Values)
                 {
                     inst.ReconnectChildren();
+                }
+            }
+        }
+
+        internal void DestroyAllInstances()
+        {
+            lock (_creationLock)
+            {
+                // toArray as a defensive copy - these instances will be removed from the dictionary as a result of calling this func
+                foreach(var instance in _instancesOfSelf.Values.ToArray())
+                {
+                    instance.Dispose(null);
                 }
             }
         }

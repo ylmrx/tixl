@@ -269,17 +269,20 @@ public sealed partial class Symbol
 
     public void ReplaceWithContentsOf(Symbol newSymbol)
     {
-        if (newSymbol == this)
+        // clear instances of self and any nested operators that may have been read-only and modified
+        lock (_creationLock)
         {
-            // todo: ugly - the other one replaced this value with itself when it was created
-            ApplyInstanceType(InstanceType);
-            return;
+            foreach (var child in _childrenCreatedFromMe.Values)
+            {
+                child.DestroyAllInstances();
+            }
         }
 
-        var otherChildren = newSymbol._children;
-        foreach (var child in otherChildren)
+        // clear our children
+        foreach (var child in _children.Values.ToArray())
         {
-            _children.TryAdd(child.Key, child.Value);
+            child.Dispose();
+            _children.Remove(child.Id, out _);
         }
 
         Connections.Clear();
