@@ -14,18 +14,18 @@ internal static class KeyActionHandling
 
     private static bool _initialized;
     private static bool _anyKeysPressed;
-    
+
     internal static void InitializeFrame()
     {
         if (!_initialized)
         {
+            InitializeActionOptions();
             _initialized = true;
         }
-    
+
         _anyKeysPressed = ImGui.GetIO().KeysDown.Count > 0;
     }
-    
-    
+
     internal static bool Triggered(this UserActions action)
     {
         if (!_anyKeysPressed || !UserSettings.Config.EnableKeyboardShortCuts)
@@ -54,9 +54,14 @@ internal static class KeyActionHandling
 
     internal static string ListKeyboardShortcutsForAction(this UserActions action, bool showLabel = true)
     {
-        if (!KeyMapSwitching.CurrentKeymap.ShortcutLabels.TryGetValue(action, out var shortcuts))
+        var currentKeymapShortCutsLabelsForActions = KeyMapSwitching.CurrentKeymap.ShortCutsLabelsForActions;
+        var index = (int)action;
+        if (index >= currentKeymapShortCutsLabelsForActions.Length)
+        {
             return string.Empty;
+        }
 
+        var shortcuts = currentKeymapShortCutsLabelsForActions[index];
         if (!showLabel)
             return shortcuts;
 
@@ -64,101 +69,97 @@ internal static class KeyActionHandling
         return label + shortcuts;
     }
 
+    internal static Flags GetActionFlags(UserActions action)
+    {
+        var index = (int)action;
+        return index >= _flagsForActions.Length ? Flags.None : _flagsForActions[index];
+    }
+    
+    [Flags]
+    public enum Flags
+    {
+        None = 0,
+        NeedsWindowFocus = 1 << 1,
+        NeedsWindowHover = 1 << 2,
+        KeyPressOnly = 1 << 3,
+        KeyHoldOnly = 1 << 4,
+    }
+
     /// <summary>
-    /// Saves the current bindings to a custom file with specified name and author
+    /// Register special flags for user actions
     /// </summary>
-    // public static void SaveCustomBindings(string fileName, string name, string author)
-    // {
-    //     CurrentBindingSetName = name;
-    //     CurrentBindingSetAuthor = author;
-    //
-    //     var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
-    //     var customPath = Path.Combine(folder, fileName.EndsWith(".json") ? fileName : fileName + ".json");
-    //
-    //     SaveBindingsToFile(customPath);
-    // }
+    private static void InitializeActionOptions()
+    {
+        RegisterActionsFlags(UserActions.Save, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.FocusSelection, Flags.NeedsWindowHover);
+        RegisterActionsFlags(UserActions.Duplicate, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.DeleteSelection, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.DeleteSelection, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.CopyToClipboard, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.PasteFromClipboard, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.PasteValues, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.Undo, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.Redo, Flags.KeyPressOnly);
 
-    // public static bool LoadCustomBindings(string fileName)
-    // {
-    //     try
-    //     {
-    //         var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
-    //         var customPath = Path.Combine(folder, fileName.EndsWith(".json") ? fileName : fileName + ".json");
-    //         if (!File.Exists(customPath))
-    //             return false;
-    //         var json = File.ReadAllText(customPath);
-    //         // Use the shared options
-    //         var jsonBindings = JsonSerializer.Deserialize<KeyboardBindingsJson>(json, JsonOptions);
-    //         ParseJsonBindings(jsonBindings);
-    //         InitializeShortcutLabels();
-    //         return true;
-    //     }
-    //     catch
-    //     {
-    //         return false;
-    //     }
-    // }
-    //
-    // private static void SaveBindingsToFile(string path)
-    // {
-    //     var jsonBindings = new KeyboardBindingsJson
-    //     {
-    //         Name = CurrentBindingSetName,
-    //         Author = CurrentBindingSetAuthor,
-    //         KeyboardBindings = [.. _bindings.Select(b => new KeyboardBindingJson
-    //     {
-    //         Action = b.Action.ToString(),
-    //         Key = b.Combination.Key.ToString(),
-    //         Ctrl = b.Combination.Ctrl ? true : null,
-    //         Alt = b.Combination.Alt ? true : null,
-    //         Shift = b.Combination.Shift ? true : null,
-    //         NeedsWindowFocus = b.NeedsWindowFocus ? true : null,
-    //         NeedsWindowHover = b.NeedsWindowHover ? true : null,
-    //         KeyPressOnly = b.KeyPressOnly ? true : null,
-    //         KeyHoldOnly = b.KeyHoldOnly ? true : null
-    //     })]
-    //     };
-    //
-    //     var directory = Path.GetDirectoryName(path);
-    //     if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-    //     {
-    //         Directory.CreateDirectory(directory);
-    //         Thread.Sleep(100); // Ensure directory is created before writing
-    //     }
-    //
-    //     // Use the same shared options
-    //     File.WriteAllText(path, JsonSerializer.Serialize(jsonBindings, JsonOptions));
-    // }
+        // Playback controls
+        RegisterActionsFlags(UserActions.PlaybackForward, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.PlaybackForwardHalfSpeed, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.PlaybackBackwards, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.PlaybackStop, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.PlaybackToggle, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.PlaybackJumpToStartTime, Flags.KeyPressOnly);
 
-    // private static void InitializeDefaultBindings()
-    // {
-    //     _bindings.Clear();
-    //     _bindings.AddRange(CreateDefaultBindings());
-    // }
+        // Timeline actions
+        RegisterActionsFlags(UserActions.InsertKeyframe, Flags.NeedsWindowFocus | Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.SetStartTime, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.SetEndTime, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.TapBeatSync, Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.TapBeatSyncMeasure, Flags.KeyPressOnly);
 
+        // Graph window actions
+        RegisterActionsFlags(UserActions.ToggleDisabled, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.ToggleBypassed, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.PinToOutputWindow, Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.ClearBackgroundImage, Flags.NeedsWindowFocus);
 
+        RegisterActionsFlags(UserActions.AddAnnotation, Flags.NeedsWindowFocus | Flags.KeyPressOnly);
+        RegisterActionsFlags(UserActions.AddComment, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.OpenOperator, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.CloseOperator, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.RenameChild, Flags.NeedsWindowFocus);
 
-    // #region JSON Classes
-    // private class KeyboardBindingJson
-    // {
-    //     public string Action { get; set; } = string.Empty;
-    //     public string Key { get; set; } = string.Empty;
-    //     public bool? Ctrl { get; set; }
-    //     public bool? Alt { get; set; }
-    //     public bool? Shift { get; set; }
-    //     public bool? NeedsWindowFocus { get; set; }
-    //     public bool? NeedsWindowHover { get; set; }
-    //     public bool? KeyPressOnly { get; set; }
-    //     public bool? KeyHoldOnly { get; set; }
-    // }
-    //
-    // private class KeyboardBindingsJson
-    // {
-    //     public string Name { get; set; } = "QWERTY";
-    //     public string Author { get; set; } = "Community";
-    //     public List<KeyboardBindingJson> KeyboardBindings { get; set; } = new();
-    // }
-    // #endregion
+        // Navigation
+        RegisterActionsFlags(UserActions.SelectToAbove, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.SelectToRight, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.SelectToBelow, Flags.NeedsWindowFocus);
+        RegisterActionsFlags(UserActions.SelectToLeft, Flags.NeedsWindowFocus);
 
+        // Camera controls
+        RegisterActionsFlags(UserActions.CameraLeft, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraRight, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraForward, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraBackward, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraUp, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraDown, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        // Camera reset and focus
+        RegisterActionsFlags(UserActions.CameraReset, Flags.NeedsWindowHover);
+        RegisterActionsFlags(UserActions.CameraFocusSelection, Flags.NeedsWindowHover);
 
+        return;
+
+        void RegisterActionsFlags(UserActions action, Flags flags)
+        {
+            var index = (int)action;
+            if (index >= _flagsForActions.Length)
+            {
+                Log.Warning($"Action index {index} for {action} exceeds expected max index {_flagsForActions.Length}");
+                return;
+            }
+
+            _flagsForActions[index] = flags;
+        }
+    }
+
+    private const int UserActionsCount = (int)UserActions.__Count;
+    private static readonly Flags[] _flagsForActions = new Flags[UserActionsCount];
 }

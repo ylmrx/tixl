@@ -100,6 +100,9 @@ public enum UserActions
     LoadBookmark5, LoadBookmark6, LoadBookmark7, LoadBookmark8, LoadBookmark9,
     SaveBookmark0, SaveBookmark1, SaveBookmark2, SaveBookmark3, SaveBookmark4,
     SaveBookmark5, SaveBookmark6, SaveBookmark7, SaveBookmark8, SaveBookmark9,
+    
+    // ReSharper disable once InconsistentNaming
+    __Count,     
 }
 
 internal static class UserActionRegistry

@@ -1,23 +1,26 @@
 ﻿#nullable enable
-using System.IO;
-using T3.Core.UserData;
-
 namespace T3.Editor.Gui.Interaction.Keyboard;
 
 /// <summary>
 /// Defines a complete set of <see cref="KeyBinding"/> 
 /// </summary>
 /// <remarks>Note: Some of these are public to enable serialization to json</remarks>
-public sealed class KeyMap
+internal sealed class KeyMap
 {
-    public List<KeyBinding> Bindings = [];
+    internal List<KeyBinding> Bindings = [];
 
-    public string Name = "untitled";
-    public string Author = "unknown";
+    internal string Name = "untitled";
+    internal string Author = "unknown";
     
-    private void InitializeShortcutLabels()
+    /** Prevent factory setting from being modified */
+    internal bool IsLocked;
+
+    internal void UpdateShortcutLabels()
     {
-        ShortcutLabels.Clear();
+        for (var index = 0; index < ShortCutsLabelsForActions.Length; index++)
+        {
+            ShortCutsLabelsForActions[index] = string.Empty;
+        }
 
         foreach (var action in Enum.GetValues<UserActions>())
         {
@@ -28,14 +31,14 @@ public sealed class KeyMap
 
             if (shortcuts.Count > 0)
             {
-                ShortcutLabels[action] = string.Join(" and ", shortcuts);
+                ShortCutsLabelsForActions[(int)action] = string.Join(" and ", shortcuts);
             }
         }
     }
 
-    public readonly Dictionary<UserActions, string> ShortcutLabels = new();
+    internal readonly string[] ShortCutsLabelsForActions = new string[(int)UserActions.__Count];
 
-    public KeyMap Clone()
+    internal KeyMap Clone()
     {
         var newKeyMap = new KeyMap
                             {
@@ -47,16 +50,16 @@ public sealed class KeyMap
         return newKeyMap;
     }
 
-    
-    public void ClearKeyboardShortcut(UserActions action)
+    internal void ClearKeyboardShortcut(UserActions action)
     {
-        // FIXME: Implement
-        
+        // TODO: Implement
+        Log.Warning("Clearing not implemented yet");
     }
-    
-    // FIXME: Implement
+
     public void SetKeyboardShortcut(UserActions action, string shortcut, string bindingName)
     {
+        // TODO: Implement
+        Log.Warning("Clearing not implemented yet");
         // try
         // {
         //     var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
@@ -133,76 +136,5 @@ public sealed class KeyMap
         // {
         //     Log.Error($"Failed to update shortcut: {e.Message}");
         // }
-    }    
-    
-    // private static void LoadBindingsFromJson()
-    // {
-    //     var folder = Path.Combine(FileLocations.ReadOnlySettingsPath, FileLocations.KeyBindingSubFolder);
-    //     var jsonPath = Path.Combine(folder, "QWERTY.json");
-    //
-    //     try
-    //     {
-    //         if (!File.Exists(jsonPath))
-    //         {
-    //             CreateDefaultBindingsFile(jsonPath);
-    //         }
-    //
-    //         var json = File.ReadAllText(jsonPath);
-    //         // var options = new JsonSerializerOptions
-    //         //                   {
-    //         //                       PropertyNameCaseInsensitive = true,
-    //         //                       ReadCommentHandling = JsonCommentHandling.Skip
-    //         //                   };
-    //
-    //         var jsonBindings = JsonSerializer.Deserialize<KeyBinding>(json, options);
-    //         ParseJsonBindings(jsonBindings);
-    //     }
-    //     catch
-    //     {
-    //         // Fall back to default bindings if loading fails
-    //         InitializeDefaultBindings();
-    //     }
-    // }
-    //
-    // private static void ParseJsonBindings(KeyboardBindingsJson? jsonBindings)
-    // {
-    //     if (jsonBindings?.KeyboardBindings == null)
-    //     {
-    //         InitializeDefaultBindings();
-    //         return;
-    //     }
-    //
-    //     // Load metadata
-    //     CurrentBindingSetName = jsonBindings.Name ?? "QWERTY";
-    //     CurrentBindingSetAuthor = jsonBindings.Author ?? "Community";
-    //
-    //     _bindings.Clear();
-    //
-    //     foreach (var binding in jsonBindings.KeyboardBindings)
-    //     {
-    //         if (!Enum.TryParse<Key>(binding.Key, out var key) ||
-    //             !Enum.TryParse<UserActions>(binding.Action, out var action))
-    //             continue;
-    //
-    //         var combination = new KeyCombination(key,
-    //                                              binding.Ctrl ?? false,
-    //                                              binding.Alt ?? false,
-    //                                              binding.Shift ?? false);
-    //
-    //         _bindings.Add(new KeyActionHandling(
-    //                                             action,
-    //                                             combination,
-    //                                             binding.NeedsWindowFocus ?? false,
-    //                                             binding.NeedsWindowHover ?? false,
-    //                                             binding.KeyPressOnly ?? false,
-    //                                             binding.KeyHoldOnly ?? false
-    //                                            ));
-    //     }
-    // }
-    //
-    // private static void CreateDefaultBindingsFile(string path)
-    // {
-    //     InitializeDefaultBindings();
-    //     SaveBindingsToFile(path);
-    // }
+    }
 }

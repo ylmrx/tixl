@@ -8,61 +8,45 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// <summary>
 /// Controls the assignment of <see cref="Keyboard.KeyCombination"/> to <see cref="UserActions"/>
 /// </summary>
-public sealed class KeyBinding
+internal sealed class KeyBinding
 {
-    internal KeyBinding(UserActions action, KeyCombination combination,
-                        bool needsWindowFocus = false,
-                        bool needsWindowHover = false,
-                        bool keyPressOnly = false,
-                        bool keyHoldOnly = false)
+    internal KeyBinding(UserActions action, KeyCombination combination)
     {
         Action = action;
         KeyCombination = combination;
-        NeedsWindowFocus = needsWindowFocus;
-        NeedsWindowHover = needsWindowHover;
-        KeyPressOnly = keyPressOnly;
-        KeyHoldOnly = keyHoldOnly;
+        _flags = KeyActionHandling.GetActionFlags(action);
     }
     
     [JsonConverter(typeof(SafeEnumConverter<UserActions>))]
-    public UserActions Action { get; }
+    internal UserActions Action { get; }
     
-    
-    public KeyCombination KeyCombination { get; }
-    
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public bool NeedsWindowFocus { get; }
-    
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public bool NeedsWindowHover { get; }
-    
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public bool KeyPressOnly { get; }
-    
-    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
-    public bool KeyHoldOnly { get; } //
+    internal KeyCombination KeyCombination { get; }
 
+    private KeyActionHandling.Flags _flags;
     
-    public bool IsContextValid()
+    
+    internal bool IsContextValid()
     {
-        if (NeedsWindowFocus && !ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
+        if ((_flags & KeyActionHandling.Flags.NeedsWindowFocus) != 0
+            && !ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             return false;
 
-        if (NeedsWindowHover && !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
+        if ((_flags & KeyActionHandling.Flags.NeedsWindowHover) != 0
+            && !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
             return false;
 
         return true;
     }
 
-    public bool IsTriggered(ImGuiIOPtr io)
+    internal bool IsTriggered(ImGuiIOPtr io)
     {
         if (!KeyCombination.ModifiersMatch(io))
             return false;
 
-        if (KeyHoldOnly)
+        if ((_flags & KeyActionHandling.Flags.KeyHoldOnly) != 0)
             return ImGui.IsKeyDown((ImGuiKey)KeyCombination.Key);
 
-        if (KeyPressOnly)
+        if ((_flags & KeyActionHandling.Flags.KeyPressOnly) != 0)
             return ImGui.IsKeyPressed((ImGuiKey)KeyCombination.Key, false);
 
         // Default behavior (works for both press and hold)

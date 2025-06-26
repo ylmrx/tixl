@@ -29,6 +29,8 @@ internal static class KeyBindingEditor
             if (KeyMapSwitching.TrySetKeyMap(userSelection))
             {
                 UserSettings.Config.KeyBindingName = userSelection;
+                UserSettings.Save();
+                
                 _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
             }
             else
@@ -63,9 +65,12 @@ internal static class KeyBindingEditor
         {
             // TODO: and check if saving worked
             //KeyBindingHandling.SaveKeyBinding(_currentKeyBinding);
+            KeyMapSwitching.SaveKeyMap(CurrentKeyMap);
+            _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
             
             UserSettings.Config.KeyBindingName = KeyMapSwitching.CurrentKeymap.Name;
-            KeyMapSwitching.Initialize(); // Reloads all
+            
+            //KeyMapSwitching.Initialize(); // Reloads all
             //CurrentKeymap = GetUserOrFactoryKeyMap()
             
             // var currentFromName = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
@@ -111,7 +116,7 @@ internal static class KeyBindingEditor
         // Center the controls horizontally
         //ImGui.SetCursorPosX((availableWidth - 400) * 0.5f);
 
-        
+        var needUpdate = false;
         if (_selectedAction != UserActions.None)
         {
             ImGui.Text($"Editing: {CustomComponents.HumanReadablePascalCase(Enum.GetName(_selectedAction))}");
@@ -123,6 +128,7 @@ internal static class KeyBindingEditor
             // Action buttons
             if (ImGui.Button("Assign", new Vector2(80, 0)))
             {
+                needUpdate = true;
                 CurrentKeyMap.SetKeyboardShortcut(_selectedAction, _editingShortcut, KeyMapSwitching.CurrentKeymap.Name);
                 _selectedAction = UserActions.None;
                 _somethingChanged = true;
@@ -137,6 +143,7 @@ internal static class KeyBindingEditor
             ImGui.SameLine();
             if (ImGui.Button("Clear", new Vector2(80, 0)))
             {
+                needUpdate = true;
                 _editingShortcut = string.Empty;
                 CurrentKeyMap.ClearKeyboardShortcut(_selectedAction);
                 _selectedAction = UserActions.None;
@@ -166,6 +173,8 @@ internal static class KeyBindingEditor
             ImGui.Button("Clear", new Vector2(80, 0));
             ImGui.EndDisabled();
         }
+        if(needUpdate)
+            CurrentKeyMap.UpdateShortcutLabels();
 
         ImGui.EndChild();
         ImGui.Spacing();
@@ -188,7 +197,7 @@ internal static class KeyBindingEditor
 
                 ImGui.TableSetColumnIndex(0);
                 var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(value));
-                var shortcuts = KeyActionHandling.ListKeyboardShortcutsForAction(value, false);
+                var shortcuts = value.ListKeyboardShortcutsForAction(false);
 
                 if (ImGui.Selectable(actionName, _selectedAction == value,
                                      ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))

@@ -90,7 +90,7 @@ public static class T3Ui
         
         FitViewToSelectionHandling.ProcessNewFrame();
         SrvManager.RemoveForDisposedTextures();
-        
+        KeyActionHandling.InitializeFrame();
         
         CompatibleMidiDeviceHandling.UpdateConnectedDevices();
 
