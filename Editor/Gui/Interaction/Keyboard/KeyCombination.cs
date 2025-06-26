@@ -6,13 +6,12 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// <summary>
 /// Defines a combination that can be saved with a keymap
 /// </summary>
-internal readonly struct KeyCombination(Key key, bool ctrl = false, bool alt = false, bool shift = false)
+internal  struct KeyCombination(Key key, bool ctrl = false, bool alt = false, bool shift = false)
 {
-    internal Key Key { get; } = key;
-    private bool Ctrl { get; } = ctrl;
-    private bool Alt { get; } = alt;
-    private bool Shift { get; } = shift;
-
+    internal Key Key { get; set; } = key;
+    internal bool Ctrl { get; set;} = ctrl;
+    internal bool Alt { get; set;} = alt;
+    internal bool Shift { get; set;} = shift;
     
     internal bool ModifiersMatch(ImGuiIOPtr io)
     {
@@ -40,6 +39,14 @@ internal readonly struct KeyCombination(Key key, bool ctrl = false, bool alt = f
             return null;
         }
     }
+
+    public  bool Matches(ref  KeyCombination  other)
+    {
+        return Key == other.Key &&
+           Ctrl == other.Ctrl &&
+           Shift == other.Shift &&
+           Alt == other.Alt;
+    }
     
     public override string ToString()
     {
@@ -50,5 +57,8 @@ internal readonly struct KeyCombination(Key key, bool ctrl = false, bool alt = f
         parts.Add(Key.ToString());
 
         return string.Join("+", parts);
-    }    
+    }
+
+    internal static KeyCombination None => new(Key.Undefined);
+
 }

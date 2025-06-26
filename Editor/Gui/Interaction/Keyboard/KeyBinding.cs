@@ -2,6 +2,7 @@
 using ImGuiNET;
 using Newtonsoft.Json;
 using T3.Serialization;
+using T3.SystemUi;
 
 namespace T3.Editor.Gui.Interaction.Keyboard;
 
@@ -16,15 +17,12 @@ internal sealed class KeyBinding
         KeyCombination = combination;
         _flags = KeyActionHandling.GetActionFlags(action);
     }
-    
+
     [JsonConverter(typeof(SafeEnumConverter<UserActions>))]
     internal UserActions Action { get; }
-    
+
     internal KeyCombination KeyCombination { get; }
 
-    private KeyActionHandling.Flags _flags;
-    
-    
     internal bool IsContextValid()
     {
         if ((_flags & KeyActionHandling.Flags.NeedsWindowFocus) != 0
@@ -52,4 +50,15 @@ internal sealed class KeyBinding
         // Default behavior (works for both press and hold)
         return ImGui.IsKeyPressed((ImGuiKey)KeyCombination.Key, true);
     }
+
+    public KeyBinding Clone()
+    {
+        return new KeyBinding(Action, KeyCombination)
+                   {
+                       _flags = KeyActionHandling.Flags.None
+                   };
+    }
+
+    private KeyActionHandling.Flags _flags; // This is of caching to speed up
+    public static readonly KeyBinding None = new(UserActions.None, new KeyCombination());
 }

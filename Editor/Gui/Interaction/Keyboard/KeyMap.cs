@@ -1,4 +1,6 @@
 ﻿#nullable enable
+using T3.SystemUi;
+
 namespace T3.Editor.Gui.Interaction.Keyboard;
 
 /// <summary>
@@ -13,7 +15,7 @@ internal sealed class KeyMap
     internal string Author = "unknown";
     
     /** Prevent factory setting from being modified */
-    internal bool IsLocked;
+    internal bool ReadOnly;
 
     internal void UpdateShortcutLabels()
     {
@@ -36,30 +38,79 @@ internal sealed class KeyMap
         }
     }
 
+    internal bool TryGetBinding(UserActions action, out KeyBinding binding)
+    {
+        foreach (var b in Bindings)
+        {
+            if (b.Action != action)
+                continue;
+
+            binding = b;
+            return true;
+        }
+
+        binding = KeyBinding.None;
+        return false;
+    }
+    
+    internal bool TryGetConflictingBinding(UserActions selectedAction, KeyCombination keyCombination, out KeyBinding binding)
+    {
+        foreach (var b in Bindings)
+        {
+            if (b.Action == selectedAction)
+                continue;
+            
+            if (!b.KeyCombination.Matches(ref keyCombination)) 
+                continue;
+            
+            binding = b;
+            return true;
+        }
+
+        binding = KeyBinding.None;
+        return false;
+    }
+    
+    
+    internal bool DoesBindingMatchCombo(UserActions action, KeyCombination combination)
+    {
+        return TryGetBinding(action, out var binding) 
+               && binding.KeyCombination.Matches(ref combination);
+    }
+
     internal readonly string[] ShortCutsLabelsForActions = new string[(int)UserActions.__Count];
 
     internal KeyMap Clone()
     {
+        var clonedBindings = new List<KeyBinding>(Bindings.Count);
+        foreach (var b in Bindings)
+        {
+            clonedBindings.Add(b.Clone());    
+        }
+        
         var newKeyMap = new KeyMap
                             {
-                                Bindings = [..Bindings],
+                                Bindings = clonedBindings,
                                 Name = Name,
                                 Author = Author
                             };
 
+        newKeyMap.UpdateShortcutLabels();
         return newKeyMap;
     }
 
-    internal void ClearKeyboardShortcut(UserActions action)
+    internal void RemoveBinding(UserActions action)
     {
-        // TODO: Implement
-        Log.Warning("Clearing not implemented yet");
+        Bindings.RemoveAll(b => b.Action == action);
     }
 
-    public void SetKeyboardShortcut(UserActions action, string shortcut, string bindingName)
+    public void AddBinding(UserActions action, KeyCombination combination)
     {
+        Bindings.RemoveAll(b => b.Action == action);
+        Bindings.Add(new KeyBinding(action, combination));
+        
         // TODO: Implement
-        Log.Warning("Clearing not implemented yet");
+        //Log.Warning("Clearing not implemented yet");
         // try
         // {
         //     var folder = Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);

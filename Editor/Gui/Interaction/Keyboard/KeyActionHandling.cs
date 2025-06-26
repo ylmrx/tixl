@@ -37,6 +37,7 @@ internal static class KeyActionHandling
 
         var io = ImGui.GetIO();
 
+        // Todo: Refactor this with lookup list
         foreach (var binding in KeyMapSwitching.CurrentKeymap.Bindings)
         {
             if (binding.Action != action)

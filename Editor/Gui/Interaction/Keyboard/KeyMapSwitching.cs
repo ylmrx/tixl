@@ -77,8 +77,6 @@ internal static class KeyMapSwitching
 
     private static void LoadAllKeyMaps()
     {
-        KeyMaps.Clear();
-
         Directory.CreateDirectory(KeyMapFolder);
         Directory.CreateDirectory(DefaultKeyMapFolder);
 
@@ -110,7 +108,7 @@ internal static class KeyMapSwitching
         }
     }
     
-    internal static readonly List<KeyMap> KeyMaps = [];
+    internal static readonly List<KeyMap> KeyMaps = [_factoryKeymap];
     private static string KeyMapFolder => Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
     private static string DefaultKeyMapFolder => Path.Combine(FileLocations.ReadOnlySettingsPath, FileLocations.KeyBindingSubFolder);
 
@@ -228,10 +226,20 @@ internal static class KeyMapSwitching
                            ],
                        Name = "TiXL Default (QUERTY)",
                        Author = "TiXL Community",
-                       IsLocked = true,
+                       ReadOnly = true,
                    };
         
         map.UpdateShortcutLabels();
         return map;
+    }
+
+    public static void CloneCurrentKeymap()
+    {
+        var newKeymap = CurrentKeymap.Clone();
+
+        newKeymap.Name += "Custom";
+        newKeymap.Author = UserSettings.Config.UserName;
+        KeyMaps.Add(newKeymap);
+        CurrentKeymap = newKeymap;
     }
 }

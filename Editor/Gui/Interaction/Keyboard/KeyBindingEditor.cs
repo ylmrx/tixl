@@ -1,8 +1,11 @@
 #nullable enable
+using System.Windows.Forms;
 using ImGuiNET;
+using Silk.NET.GLFW;
 using T3.Core.UserData;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
+using T3.SystemUi;
 
 namespace T3.Editor.Gui.Interaction.Keyboard;
 
@@ -23,14 +26,14 @@ internal static class KeyBindingEditor
         var userSelection = UserSettings.Config.KeyBindingName;
         if (FormInputs.AddDropdown(ref userSelection,
                                    KeyMapSwitching.KeyMaps.Select(t => t.Name),
-                                   "KeyBinding",
+                                   "Key Map",
                                    $"Edit the shortcuts as you wish you'll find the {FileLocations.SettingsPath}."))
         {
             if (KeyMapSwitching.TrySetKeyMap(userSelection))
             {
                 UserSettings.Config.KeyBindingName = userSelection;
                 UserSettings.Save();
-                
+
                 _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
             }
             else
@@ -50,160 +53,67 @@ internal static class KeyBindingEditor
         FormInputs.ApplyIndent();
 
         // Add "Create New" button
-        if (ImGui.Button("Create New"))
+        if (ImGui.Button("Clone"))
         {
-            var newKeymap = KeyMapSwitching.CurrentKeymap.Clone();
-
-            newKeymap.Name += "Custom";
-            newKeymap.Author = UserSettings.Config.UserName;
-            KeyMapSwitching.CurrentKeymap = newKeymap;
+            KeyMapSwitching.CloneCurrentKeymap();
+            UserSettings.Config.KeyBindingName = CurrentKeyMap.Name;
+            UserSettings.Save();
             _somethingChanged = true;
         }
 
-        
-        if (CustomComponents.DisablableButton("Save", _somethingChanged))
+        if (CurrentKeyMap.ReadOnly)
         {
-            // TODO: and check if saving worked
-            //KeyBindingHandling.SaveKeyBinding(_currentKeyBinding);
-            KeyMapSwitching.SaveKeyMap(CurrentKeyMap);
-            _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
-            
-            UserSettings.Config.KeyBindingName = KeyMapSwitching.CurrentKeymap.Name;
-            
-            //KeyMapSwitching.Initialize(); // Reloads all
-            //CurrentKeymap = GetUserOrFactoryKeyMap()
-            
-            // var currentFromName = KeyBindingHandling.KeyBindings.FirstOrDefault(t => t.Name == UserSettings.Config.KeyBindingName);
-            // if (currentFromName == null)
-            // {
-            //     Log.Error("Saving KeyBinding failed");
-            //     return;
-            // }
-            //
-            // _currentKeyBinding = currentFromName;
-           // _currentKeyBindingWithoutChanges = currentFromName.Clone();
-        }
-
-        /*
-        ImGui.SameLine();
-        if (ImGui.Button("Delete"))
-        {
-            if (_currentKeyBinding != null && KeyMapSwitching.CurrentKeymap.Name != KeyBindingHandling.FactoryKeyBinding.Name)
+            if (CustomComponents.DisablableButton("Save", _somethingChanged))
             {
-                KeyBindingHandling.DeleteKeyBinding(_currentKeyBinding);
-                _currentKeyBinding = KeyBindingHandling.FactoryKeyBinding;
-                UserSettings.Config.KeyBindingName = KeyBindingHandling.FactoryKeyBinding.Name;
-                UserSettings.Save();
-                _somethingChanged = false;
+                // TODO: and check if saving worked
+                //KeyBindingHandling.SaveKeyBinding(_currentKeyBinding);
+                KeyMapSwitching.SaveKeyMap(CurrentKeyMap);
+                _currentKeyBindingWithoutChanges = CurrentKeyMap.Clone();
+
+                UserSettings.Config.KeyBindingName = KeyMapSwitching.CurrentKeymap.Name;
             }
-        }*/
+        }
+        
         FormInputs.AddVerticalSpace();
         ImGui.Separator();
         FormInputs.AddVerticalSpace();
-
-        _somethingChanged = false;
         DrawKeybindingEdits();
     }
 
     private static void DrawKeybindingEdits()
     {
-        // Calculate available width for centering
-        var availableWidth = ImGui.GetContentRegionAvail().X;
-
-        // Always show editing controls area
-        ImGui.BeginChild("EditingControls", new Vector2(availableWidth, ImGui.GetTextLineHeight() * 5), true);
-
-        // Center the controls horizontally
-        //ImGui.SetCursorPosX((availableWidth - 400) * 0.5f);
-
         var needUpdate = false;
-        if (_selectedAction != UserActions.None)
-        {
-            ImGui.Text($"Editing: {CustomComponents.HumanReadablePascalCase(Enum.GetName(_selectedAction))}");
-
-            // Input field for the shortcut
-            ImGui.SetNextItemWidth(242);
-            ImGui.InputText("##ShortcutInput", ref _editingShortcut, 256);
-
-            // Action buttons
-            if (ImGui.Button("Assign", new Vector2(80, 0)))
-            {
-                needUpdate = true;
-                CurrentKeyMap.SetKeyboardShortcut(_selectedAction, _editingShortcut, KeyMapSwitching.CurrentKeymap.Name);
-                _selectedAction = UserActions.None;
-                _somethingChanged = true;
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Cancel", new Vector2(80, 0)))
-            {
-                _selectedAction = UserActions.None;
-            }
-
-            ImGui.SameLine();
-            if (ImGui.Button("Clear", new Vector2(80, 0)))
-            {
-                needUpdate = true;
-                _editingShortcut = string.Empty;
-                CurrentKeyMap.ClearKeyboardShortcut(_selectedAction);
-                _selectedAction = UserActions.None;
-                _somethingChanged = true;
-            }
-        }
-        else
-        {
-            // Show placeholder state
-            ImGui.Text("No action selected");
-
-            // Disabled input field with placeholder text
-            ImGui.BeginDisabled();
-            ImGui.SetNextItemWidth(242);
-            var placeholderText = "Select an action in the list below";
-            var dummyText = "";
-            ImGui.InputTextWithHint("##ShortcutInput", placeholderText, ref dummyText, 256, ImGuiInputTextFlags.ReadOnly);
-            ImGui.EndDisabled();
-
-            // Disabled buttons
-            //ImGui.SameLine();
-            ImGui.BeginDisabled();
-            ImGui.Button("Save", new Vector2(80, 0));
-            ImGui.SameLine();
-            ImGui.Button("Cancel", new Vector2(80, 0));
-            ImGui.SameLine();
-            ImGui.Button("Clear", new Vector2(80, 0));
-            ImGui.EndDisabled();
-        }
-        if(needUpdate)
-            CurrentKeyMap.UpdateShortcutLabels();
-
-        ImGui.EndChild();
-        ImGui.Spacing();
-
+        
         // Draw the table of shortcuts (same as before)
         if (ImGui.BeginTable("Shortcuts", 2, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.ScrollY))
         {
             ImGui.TableSetupColumn("Action", ImGuiTableColumnFlags.WidthStretch, 0.65f);
             ImGui.TableSetupColumn("Shortcut", ImGuiTableColumnFlags.WidthStretch, 0.35f);
 
-            foreach (var value in Enum.GetValues<UserActions>())
+            foreach (var action in Enum.GetValues<UserActions>())
             {
+                if (action == UserActions.__Count)
+                    continue;
+
                 ImGui.TableNextRow();
 
-                if (_selectedAction == value)
+                if (_selectedAction == action)
                 {
                     ImGui.TableSetBgColor(ImGuiTableBgTarget.RowBg0,
                                           ImGui.GetColorU32(ImGuiCol.Header));
                 }
 
                 ImGui.TableSetColumnIndex(0);
-                var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(value));
-                var shortcuts = value.ListKeyboardShortcutsForAction(false);
+                var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(action));
+                var shortcuts = action.ListKeyboardShortcutsForAction(false);
 
-                if (ImGui.Selectable(actionName, _selectedAction == value,
+                if (ImGui.Selectable(actionName, _selectedAction == action,
                                      ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
                 {
-                    _selectedAction = value;
-                    _editingShortcut = shortcuts ?? "";
+                    _selectedAction = action;
+                    CurrentKeyMap.TryGetBinding(action, out var keyBinding);
+                    _selectedCombo = keyBinding.KeyCombination;
+                    ImGui.OpenPopup(actionName);
                 }
 
                 ImGui.TableSetColumnIndex(1);
@@ -214,19 +124,112 @@ internal static class KeyBindingEditor
                     ImGui.TextUnformatted(shortcuts);
                     ImGui.PopFont();
                 }
+
+                needUpdate |= DrawEditPopUp(action, actionName);
             }
 
             ImGui.EndTable();
         }
+
+        if (needUpdate)
+        {
+            _somethingChanged = true;
+            CurrentKeyMap.UpdateShortcutLabels();
+        }
+    }
+
+    private static KeyCombination _selectedCombo;
+
+    private static bool DrawEditPopUp(UserActions action, string actionName)
+    {
+        if (!ImGui.BeginPopup(actionName))
+            return false;
+
+        var needsUpdate = false;
+
+        if (DrawToggle("Ctrl", _selectedCombo.Ctrl))
+            _selectedCombo.Ctrl = !_selectedCombo.Ctrl;
+
+        ImGui.SameLine(0, 4);
+        if (DrawToggle("Alt", _selectedCombo.Alt))
+            _selectedCombo.Alt = !_selectedCombo.Alt;
+
+        ImGui.SameLine(0, 4);
+
+        if (DrawToggle("Shift", _selectedCombo.Shift))
+            _selectedCombo.Shift = !_selectedCombo.Shift;
+
+        ImGui.SameLine(0, 10);
+
+
+        if (ImGui.IsKeyPressed(ImGuiKey.Escape))
+        {
+            ImGui.CloseCurrentPopup();    
+        }
+        
+        var pressedKey = KeyHandler.GetPressedKey();
+        if (pressedKey != Key.Undefined)
+        {
+            _selectedCombo.Key = pressedKey;
+        }
+        
+        var k = _selectedCombo.Key;
+        
+        ImGui.SetNextItemWidth(100);
+        if (FormInputs.DrawEnumDropdown(ref k, "key"))
+            _selectedCombo.Key = k;
+
+        FormInputs.AddVerticalSpace(5);
+        
+        if (CurrentKeyMap.TryGetConflictingBinding(_selectedAction, _selectedCombo, out var conflictingBinding))
+        {
+            CustomComponents.StylizedText($"Already used for {conflictingBinding.Action}", Fonts.FontSmall, UiColors.StatusAttention);
+        }
+        FormInputs.AddVerticalSpace();
+        
+        // Action buttons
+        var isAssignValid = _selectedCombo.Key != Key.Undefined
+                            && !CurrentKeyMap.DoesBindingMatchCombo(_selectedAction, _selectedCombo);
+        if (CustomComponents.DisablableButton("Assign", isAssignValid))
+        {
+            CurrentKeyMap.AddBinding(_selectedAction, _selectedCombo);
+            ImGui.CloseCurrentPopup();
+            needsUpdate = true;
+        }
+
+        ImGui.SameLine();
+
+        var isRemoveValid = _selectedCombo.Key != Key.Undefined && _selectedAction != UserActions.None;
+        if (CustomComponents.DisablableButton("Remove", isRemoveValid))
+        {
+            CurrentKeyMap.RemoveBinding(_selectedAction);
+            _selectedAction = UserActions.None;
+            ImGui.CloseCurrentPopup();
+            needsUpdate = true;
+        }
+
+        ImGui.SameLine();
+        if (ImGui.Button("Cancel"))
+        {
+            ImGui.CloseCurrentPopup();
+        }
+
+        FormInputs.AddVerticalSpace();
+
+        ImGui.EndPopup();
+
+        return needsUpdate;
+    }
+
+    private static bool DrawToggle(string label, bool enabled)
+    {
+        return CustomComponents.ToggleButton(label, ref enabled, new Vector2(40, 0));
     }
 
     private static bool _somethingChanged;
 
     private static bool _initialized;
 
-    // private static KeyMapHandling.KeyBinding _currentKeyBinding = new();
-    // private static KeyMapHandling.KeyBinding _currentKeyBindingWithoutChanges = new();
     public static readonly object Dummy = new();
     private static UserActions _selectedAction = UserActions.None;
-    private static string _editingShortcut = "";
 }
