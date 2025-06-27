@@ -18,7 +18,6 @@ using GraphicsMath = T3.Core.Utils.Geometry.GraphicsMath;
 using Plane = System.Numerics.Plane;
 using Quaternion = System.Numerics.Quaternion;
 using Vector2 = System.Numerics.Vector2;
-
 using Vector4 = System.Numerics.Vector4;
 using Ray = T3.Core.Utils.Geometry.Ray;
 
@@ -76,16 +75,16 @@ internal static class TransformGizmoHandling
         {
             if (!ImGui.IsMouseDown(ImGuiMouseButton.Left))
             {
-                Log.Warning("Gizmo Drag not correctly stopped?");  
+                Log.Warning("Gizmo Drag not correctly stopped?");
                 _draggedGizmoPart = GizmoParts.None;
             }
+
             _dragNotStopped = false;
         }
         else if (_draggedGizmoPart != GizmoParts.None && !ImGui.IsMouseDown(ImGuiMouseButton.Left))
         {
             _dragNotStopped = true;
         }
-
     }
 
     // 
@@ -115,8 +114,6 @@ internal static class TransformGizmoHandling
     /// </summary>
     public static void TransformCallback(Instance instance, EvaluationContext context)
     {
-
-        
         if (!_isDrawListValid)
         {
             Log.Warning("can't draw gizmo without initialized draw list");
@@ -148,7 +145,7 @@ internal static class TransformGizmoHandling
 
         if (_canvas == null)
             return;
-        
+
         var gizmoScale = CalcGizmoScale(context, _localToObject, _viewport.Width, _viewport.Height, 45f, UserSettings.Config.GizmoSize);
         _centerPadding = 0.2f * gizmoScale / _canvas.Scale.X;
         _gizmoLength = 2f * gizmoScale / _canvas.Scale.Y;
@@ -163,6 +160,7 @@ internal static class TransformGizmoHandling
                 {
                     HandlePositionGizmos();
                 }
+
                 break;
 
             case TransformGizmoModes.Scale:
@@ -170,6 +168,15 @@ internal static class TransformGizmoHandling
                 {
                     HandleScaleGizmos();
                 }
+
+                break;
+
+            case TransformGizmoModes.Rotate:
+                if (_transformable.RotationInput != null)
+                {
+                    HandleRotationGizmos();
+                }
+
                 break;
         }
     }
@@ -203,8 +210,8 @@ internal static class TransformGizmoHandling
     {
         var axisStartInScreen = LocalPosToScreenPos(gizmoAxis * _centerPadding);
         var deltaScaleForAxis = (_draggedGizmoPart == GizmoParts.ScaleUniform || mode == _draggedGizmoPart)
-        ? _deltaScaleFactor
-        : 1;
+                                    ? _deltaScaleFactor
+                                    : 1;
         var axisEndInScreen = LocalPosToScreenPos(gizmoAxis * _gizmoLength * deltaScaleForAxis);
 
         // Draw scale handle as a cube at the end of the axis
@@ -281,7 +288,7 @@ internal static class TransformGizmoHandling
         {
             isHovering = true;
             UpdateUniformScaleDragging();
-            
+
             if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
             {
                 CompleteScaleDragging();
@@ -304,12 +311,12 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_instance?.Parent != null);
         Debug.Assert(_transformable != null);
-        
+
         _draggedGizmoPart = mode;
         _scaleCommandInFlight = new ChangeInputValueCommand(_instance.Parent.Symbol,
-                                                           _instance.SymbolChildId,
-                                                           _transformable.ScaleInput.Input,
-                                                           _transformable.ScaleInput.Input.Value);
+                                                            _instance.SymbolChildId,
+                                                            _transformable.ScaleInput.Input,
+                                                            _transformable.ScaleInput.Input.Value);
 
         _draggedTransformable = _transformable;
         _dragInteractionWindowId = ImGui.GetID("");
@@ -338,7 +345,7 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_scaleCommandInFlight != null);
         Debug.Assert(_transformable != null);
-        
+
         var rayInObject = GetPickRayInObject(_mousePosInScreen);
         var rayInLocal = rayInObject;
         rayInLocal.Direction = Vector3.TransformNormal(rayInObject.Direction, _initialObjectToLocal);
@@ -347,10 +354,10 @@ internal static class TransformGizmoHandling
         if (_plane.Normal != Vector3.Zero && _plane.Intersects(rayInLocal, out Vector3 intersectionPoint))
         {
             var deltaInLocal = intersectionPoint - _initialIntersectionPoint;
-            var scaleDelta = Vector3.Dot(deltaInLocal, axis); 
+            var scaleDelta = Vector3.Dot(deltaInLocal, axis);
 
             var newScale = _initialScale + axis * scaleDelta;
-            _deltaScaleFactor = 1+scaleDelta;
+            _deltaScaleFactor = 1 + scaleDelta;
 
             // Prevent negative or zero scaling
             //newScale.X = Math.Max(0.001f, newScale.X);
@@ -370,11 +377,11 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_scaleCommandInFlight != null);
         Debug.Assert(_transformable != null);
-        
+
         var mouseDelta = _mousePosInScreen - (_originInScreen + _initialOffsetToOrigin);
         var scaleDelta = 1 + mouseDelta.X * 0.01f; // Use X movement for uniform scaling
         _deltaScaleFactor = scaleDelta;
-        
+
         //var newScale = _initialScale + Vector3.One * scaleDelta;
 
         var newScale = _initialScale * scaleDelta;
@@ -400,7 +407,7 @@ internal static class TransformGizmoHandling
     private static void PrepareCalculations()
     {
         Debug.Assert(_transformable != null);
-        
+
         // Terminology of the matrices:
         // objectToClipSpace means in this context the transform without application of the ITransformable values. These are
         // named 'local'. So localToObject is the matrix of applying the ITransformable values and localToClipSpace to transform
@@ -408,23 +415,18 @@ internal static class TransformGizmoHandling
         // local here as the local values are only used for drawing, and therefore we don't want to draw anything scaled by this values.
         _mousePosInScreen = ImGui.GetIO().MousePos;
 
-        //var s = TryGetVectorFromInput(_transformable.ScaleInput, 1);
-        var rotation = TryGetVectorFromInput(_transformable.RotationInput);
         var translation = TryGetVectorFromInput(_transformable.TranslationInput);
-
-        var yaw = rotation.Y.ToRadians();
-        var pitch = rotation.X.ToRadians();
-        var roll = rotation.Z.ToRadians();
-
         var center = Vector3.TransformNormal(translation, _objectToWorld);
         _selectedCenter = center;
 
-        _localToObject = GraphicsMath.CreateTransformationMatrix(scalingCenter: Vector3.Zero,
+        _localToObject = GraphicsMath.CreateTransformationMatrix(
+                                                                 scalingCenter: Vector3.Zero,
                                                                  scalingRotation: Quaternion.Identity,
                                                                  scaling: Vector3.One,
                                                                  rotationCenter: Vector3.Zero,
-                                                                 rotation: Quaternion.CreateFromYawPitchRoll(yaw, pitch, roll),
+                                                                 rotation: Quaternion.Identity, // no rotation here
                                                                  translation: translation);
+
         _localToClipSpace = _localToObject * _objectToClipSpace;
 
         _originInClipSpace = GraphicsMath.TransformCoordinate(translation, _objectToClipSpace);
@@ -440,7 +442,7 @@ internal static class TransformGizmoHandling
         _canvas = ImageOutputCanvas.Current;
         if (_canvas == null)
             return;
-        
+
         var originInCanvas = _canvas.TransformDirection(originInViewport);
         _topLeftOnScreen = _canvas.TransformPosition(System.Numerics.Vector2.Zero);
         _originInScreen = _topLeftOnScreen + originInCanvas;
@@ -483,6 +485,7 @@ internal static class TransformGizmoHandling
                 var offsetInObject = Vector4.Transform(new Vector4(offsetInLocal, 1), _localToObject);
                 newOrigin = new Vector3(offsetInObject.X, offsetInObject.Y, offsetInObject.Z) / offsetInObject.W;
             }
+
             UpdatePositionDragging(newOrigin);
 
             if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
@@ -538,6 +541,7 @@ internal static class TransformGizmoHandling
                 var offsetInObject = GraphicsMath.TransformCoordinate(offsetInLocal, _localToObject);
                 newOrigin = offsetInObject;
             }
+
             UpdatePositionDragging(newOrigin);
 
             if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
@@ -552,6 +556,7 @@ internal static class TransformGizmoHandling
             color2.Rgba.W = isHovering ? 0.4f : 0.2f;
             _drawList.AddConvexPolyFilled(ref pointsOnScreen[0], 4, color2);
         }
+
         return isHovering;
     }
 
@@ -602,7 +607,7 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_instance?.Parent != null);
         Debug.Assert(_transformable != null);
-        
+
         _draggedGizmoPart = mode;
         if (createUndo)
         {
@@ -642,7 +647,7 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_inputValueCommandInFlight != null);
         Debug.Assert(_transformable != null);
-        
+
         TrySetVector3ToInput(_transformable.TranslationInput, newOrigin);
         InputValue value = _transformable.TranslationInput.Input.Value;
 
@@ -653,7 +658,7 @@ internal static class TransformGizmoHandling
     {
         Debug.Assert(_inputValueCommandInFlight != null);
         Debug.Assert(_transformable != null);
-        
+
         UndoRedoStack.Add(_inputValueCommandInFlight);
         _inputValueCommandInFlight = null;
 
@@ -666,7 +671,7 @@ internal static class TransformGizmoHandling
     private static Vector3 GetNewOffsetInObject()
     {
         Debug.Assert(_canvas != null);
-        
+
         Vector2 newOriginInScreen = _mousePosInScreen - _initialOffsetToOrigin;
         // transform back to object space
         Matrix4x4.Invert(_objectToClipSpace, out var clipSpaceToObject);
@@ -703,11 +708,366 @@ internal static class TransformGizmoHandling
         }
     }
 
+    private static bool HandleRotationGizmos()
+    {
+        if (_transformable?.RotationInput == null)
+            return false;
+
+        var rotation = TryGetVectorFromInput(_transformable.RotationInput);
+        float yaw = rotation.Y.ToRadians();
+        float pitch = rotation.X.ToRadians();
+        float roll = rotation.Z.ToRadians();
+
+        // Create individual quaternions
+        var yawQ = Quaternion.CreateFromAxisAngle(Vector3.UnitY, yaw);
+        var pitchQ = Quaternion.CreateFromAxisAngle(Vector3.UnitX, pitch);
+        var rollQ = Quaternion.CreateFromAxisAngle(Vector3.UnitZ, roll);
+
+        // Gimbal axes
+        Vector3 axisYaw = Vector3.UnitY;
+        Vector3 axisPitch = Vector3.Transform(Vector3.UnitX, yawQ);
+        var yawPitchQ = Quaternion.Concatenate(pitchQ, yawQ);
+        Vector3 axisRoll = Vector3.Transform(Vector3.UnitZ, yawPitchQ);
+
+        var isHovering = HandleRotationOnAxis(axisYaw, Color.Green, GizmoParts.RotationYAxis);
+        isHovering |= HandleRotationOnAxis(axisPitch, Color.Red, GizmoParts.RotationXAxis);
+        isHovering |= HandleRotationOnAxis(axisRoll, Color.Blue, GizmoParts.RotationZAxis);
+        isHovering |= HandleScreenRotation();
+
+        return isHovering;
+    }
+
+    private static bool HandleRotationOnAxis(Vector3 axis, Color color, GizmoParts mode)
+    {
+        const int circleSegments = 32;
+        const float circleRadius = 0.5f;
+
+        var circlePoints = new Vector2[circleSegments];
+        var circleCenter = _originInScreen;
+
+        // Create two perpendicular vectors to form the circle plane
+        Vector3 tangent1, tangent2;
+        if (MathF.Abs(Vector3.Dot(axis, Vector3.UnitZ)) > 0.999f)
+        {
+            tangent1 = Vector3.UnitX;
+            tangent2 = Vector3.UnitY;
+        }
+        else
+        {
+            tangent1 = Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitZ));
+            tangent2 = Vector3.Normalize(Vector3.Cross(axis, tangent1));
+        }
+
+        // Calculate circle points in 3D space then project to screen
+        for (int i = 0; i < circleSegments; i++)
+        {
+            float angle = (float)i / circleSegments * MathF.PI * 2;
+            Vector3 point3D = tangent1 * MathF.Cos(angle) * circleRadius +
+                              tangent2 * MathF.Sin(angle) * circleRadius;
+
+            circlePoints[i] = LocalPosToScreenPos(point3D);
+        }
+
+        var isHovering = false;
+
+        if (!IsDragging)
+        {
+            isHovering = IsPointNearPolygon(_mousePosInScreen, circlePoints);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartRotationDragging(mode, axis);
+            }
+        }
+        else if (_draggedGizmoPart == mode
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateRotationDragging(_draggedRotationAxis);
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteRotationDragging();
+            }
+            
+            
+        }
+
+        if (_renderGizmo)
+        {
+            var lineColor = color;
+            lineColor.Rgba.W = isHovering ? 1.0f : 0.8f;
+
+            for (int i = 0; i < circleSegments; i++)
+            {
+                int next = (i + 1) % circleSegments;
+                _drawList.AddLine(circlePoints[i], circlePoints[next], lineColor, isHovering ? 3 : 2);
+            }
+
+            if (_draggedGizmoPart == mode &&
+                _draggedTransformable == _transformable &&
+                _dragInteractionWindowId == ImGui.GetID(""))
+            {
+                Vector3 initialWorldPos = _initialOrigin + _initialRotationVector * circleRadius;
+                Vector3 currentWorldPos = _initialOrigin + _currentRotationVector * circleRadius;
+
+                Vector2 initialScreenPos = LocalPosToScreenPos(initialWorldPos);
+                Vector2 currentScreenPos = LocalPosToScreenPos(currentWorldPos);
+
+                float markerRadius = 5.0f;
+
+                _drawList.AddCircleFilled(initialScreenPos, markerRadius*0.6f, lineColor);
+                _drawList.AddCircleFilled(currentScreenPos, markerRadius, lineColor);
+            }
+        }
+
+        return isHovering;
+    }
+
+    // Add this method to handle screen space rotation
+    private static bool HandleScreenRotation()
+    {
+        const float outerRadius = 2.0f;
+        const float innerRadius = 1.8f;
+
+        var outerCirclePoints = new Vector2[32];
+        var innerCirclePoints = new Vector2[32];
+
+        // Calculate circle points in screen space
+        for (int i = 0; i < 32; i++)
+        {
+            float angle = (float)i / 32 * MathF.PI * 2;
+            outerCirclePoints[i] = _originInScreen + new Vector2(
+                                                                 MathF.Cos(angle) * outerRadius,
+                                                                 MathF.Sin(angle) * outerRadius);
+
+            innerCirclePoints[i] = _originInScreen + new Vector2(
+                                                                 MathF.Cos(angle) * innerRadius,
+                                                                 MathF.Sin(angle) * innerRadius);
+        }
+
+        var isHovering = false;
+
+        if (!IsDragging)
+        {
+            // Check if mouse is in the ring between inner and outer circles
+            isHovering = IsPointInRing(_mousePosInScreen, _originInScreen, innerRadius, outerRadius);
+
+            if (isHovering && ImGui.IsMouseClicked(ImGuiMouseButton.Left))
+            {
+                StartRotationDragging(GizmoParts.RotationScreen, Vector3.Zero);
+            }
+        }
+        else if (_draggedGizmoPart == GizmoParts.RotationScreen
+                 && _draggedTransformable == _transformable
+                 && _dragInteractionWindowId == ImGui.GetID(""))
+        {
+            isHovering = true;
+            UpdateScreenRotationDragging();
+
+            if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
+            {
+                CompleteRotationDragging();
+            }
+        }
+
+        if (_renderGizmo)
+        {
+            // Draw screen rotation ring
+            var color = UiColors.StatusAnimated;
+            color.Rgba.W = isHovering ? 0.8f : 0.6f;
+
+            for (int i = 0; i < 32; i++)
+            {
+                int next = (i + 1) % 32;
+                _drawList.AddQuad(
+                                  outerCirclePoints[i],
+                                  outerCirclePoints[next],
+                                  innerCirclePoints[next],
+                                  innerCirclePoints[i],
+                                  color);
+            }
+        }
+
+        return isHovering;
+    }
+
+    private static void StartRotationDragging(GizmoParts mode, Vector3 axis)
+    {
+        Debug.Assert(_instance?.Parent != null);
+        Debug.Assert(_transformable != null);
+
+        _draggedGizmoPart = mode;
+        _rotationCommandInFlight = new ChangeInputValueCommand(
+                                                               _instance.Parent.Symbol,
+                                                               _instance.SymbolChildId,
+                                                               _transformable.RotationInput.Input,
+                                                               _transformable.RotationInput.Input.Value);
+
+        _draggedTransformable = _transformable;
+        _dragInteractionWindowId = ImGui.GetID("");
+
+        _initialRotation = TryGetVectorFromInput(_transformable.RotationInput);
+        _rotationAxis = axis;
+        _draggedRotationAxis = axis;
+
+        // Get initial mouse pick ray in object space
+        var ray = GetPickRayInObject(_mousePosInScreen);
+
+        // Intersect with rotation plane
+        var plane = new Plane(axis, -Vector3.Dot(axis, _initialOrigin));
+        if (!PlaneIntersectRay(plane, ray, out var intersection))
+        {
+            Log.Warning("Couldn't intersect pick ray with rotation plane.");
+            _initialRotationVector = Vector3.UnitX; // fallback
+            return;
+        }
+
+        // Vector from gizmo origin to intersection, normalized
+        _initialRotationVector = Vector3.Normalize(intersection - _initialOrigin);
+    }
+
+    private static void UpdateRotationDragging(Vector3 axis)
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        Debug.Assert(_transformable != null);
+
+        var ray = GetPickRayInObject(_mousePosInScreen);
+        var plane = new Plane(axis, -Vector3.Dot(axis, _initialOrigin));
+
+        if (!PlaneIntersectRay(plane, ray, out var intersection))
+            return;
+
+        var currentVector = Vector3.Normalize(intersection - _initialOrigin);
+        _currentRotationVector = currentVector;
+        
+        // Compute signed angle between initial and current vectors
+        float angleRad = MathF.Atan2(
+                                     Vector3.Dot(axis, Vector3.Cross(_initialRotationVector, currentVector)),
+                                     Vector3.Dot(_initialRotationVector, currentVector)
+                                    );
+        float angleDeg = angleRad * (180f / MathF.PI);
+        Vector3 newRotation = _initialRotation;
+
+        switch (_draggedGizmoPart)
+        {
+            case GizmoParts.RotationXAxis:
+                newRotation.X += angleDeg;
+                break;
+            case GizmoParts.RotationYAxis:
+                newRotation.Y += angleDeg;
+                break;
+            case GizmoParts.RotationZAxis:
+                newRotation.Z += angleDeg;
+                break;
+            default:
+                Log.Debug("No valid gizmo part for rotation.");
+                break;
+        }
+
+        TrySetVector3ToInput(_transformable.RotationInput, newRotation);
+        _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
+    }
+
+    private static bool PlaneIntersectRay(Plane plane, Ray ray, out Vector3 intersection)
+    {
+        float denom = Vector3.Dot(plane.Normal, ray.Direction);
+        if (MathF.Abs(denom) < 1e-6f)
+        {
+            intersection = Vector3.Zero;
+            return false;
+        }
+
+        float t = -(Vector3.Dot(plane.Normal, ray.Origin) + plane.D) / denom;
+        intersection = ray.Origin + ray.Direction * t;
+        return t >= 0;
+    }
+
+    private static Vector3 _initialRotationVector;
+    private static Vector3 _draggedRotationAxis;
+
+    private static void UpdateScreenRotationDragging()
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        Debug.Assert(_transformable != null);
+
+        // For screen rotation, use circular motion around the gizmo center
+        Vector2 initialDir = Vector2.Normalize(_initialMousePos - _originInScreen);
+        Vector2 currentDir = Vector2.Normalize(_mousePosInScreen - _originInScreen);
+
+        // Calculate the angle between the two directions
+        float dot = Vector2.Dot(initialDir, currentDir);
+        float det = initialDir.X * currentDir.Y - initialDir.Y * currentDir.X;
+        float angleDelta = MathF.Atan2(det, dot) * (180f / MathF.PI);
+
+        // Apply to all axes equally for screen rotation, or choose one axis
+        Vector3 newRotation = _initialRotation;
+        newRotation.Z += angleDelta; // Apply to Z-axis for screen rotation
+
+        TrySetVector3ToInput(_transformable.RotationInput, newRotation);
+        _rotationCommandInFlight.AssignNewValue(_transformable.RotationInput.Input.Value);
+    }
+
+    private static void CompleteRotationDragging()
+    {
+        Debug.Assert(_rotationCommandInFlight != null);
+        UndoRedoStack.Add(_rotationCommandInFlight);
+        _rotationCommandInFlight = null;
+
+        _draggedGizmoPart = GizmoParts.None;
+        _draggedTransformable = null;
+        _dragInteractionWindowId = 0;
+        _dragNotStopped = false;
+    }
+
+    private static float GetMouseAngle(Vector2 mousePos)
+    {
+        Vector2 delta = mousePos - _originInScreen;
+        return MathF.Atan2(delta.Y, delta.X);
+    }
+
+    // Add this helper method to check if point is near a polygon
+    private static bool IsPointNearPolygon(Vector2 point, Vector2[] polygon, float threshold = 5f)
+    {
+        for (int i = 0; i < polygon.Length; i++)
+        {
+            int next = (i + 1) % polygon.Length;
+            if (IsPointOnLine(point, polygon[i], polygon[next], threshold))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Add this helper method to check if point is in a ring
+    private static bool IsPointInRing(Vector2 point, Vector2 center, float innerRadius, float outerRadius)
+    {
+        float distanceSquared = Vector2.DistanceSquared(point, center);
+        return distanceSquared >= innerRadius * innerRadius &&
+               distanceSquared <= outerRadius * outerRadius;
+    }
+
+    private static Vector3 GetPerpendicularVector(Vector3 axis)
+    {
+        // Find a vector not parallel to axis
+        if (MathF.Abs(Vector3.Dot(axis, Vector3.UnitX)) < 0.8f)
+        {
+            return Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitX));
+        }
+        else
+        {
+            return Vector3.Normalize(Vector3.Cross(axis, Vector3.UnitY));
+        }
+    }
+
     #region math
     private static Ray GetPickRayInObject(Vector2 posInScreen)
     {
-        Debug.Assert(_canvas != null);        
-        
+        Debug.Assert(_canvas != null);
+
         Matrix4x4.Invert(_objectToClipSpace, out var clipSpaceToObject);
         var newOriginInCanvas = posInScreen - _topLeftOnScreen;
         var newOriginInViewport = _canvas.InverseTransformDirection(newOriginInCanvas);
@@ -740,7 +1100,7 @@ internal static class TransformGizmoHandling
     private static Vector2 LocalPosToScreenPos(Vector3 posInLocal)
     {
         Debug.Assert(_canvas != null);
-        
+
         var homogenousPosInLocal = new Vector4(posInLocal.X, posInLocal.Y, posInLocal.Z, 1);
         Vector4 originInClipSpace = Vector4.Transform(homogenousPosInLocal, _localToClipSpace);
         Vector3 posInNdc = new Vector3(originInClipSpace.X, originInClipSpace.Y, originInClipSpace.Z) / originInClipSpace.W;
@@ -762,34 +1122,34 @@ internal static class TransformGizmoHandling
         {
             case GizmoParts.PositionXAxis:
             case GizmoParts.ScaleXAxis:
-                {
-                    firstAxis = Vector3.UnitX;
-                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitY)) <
-                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
-                                     ? Vector3.UnitY
-                                     : Vector3.UnitZ;
-                    break;
-                }
+            {
+                firstAxis = Vector3.UnitX;
+                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitY)) <
+                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
+                                 ? Vector3.UnitY
+                                 : Vector3.UnitZ;
+                break;
+            }
             case GizmoParts.PositionYAxis:
             case GizmoParts.ScaleYAxis:
-                {
-                    firstAxis = Vector3.UnitY;
-                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
-                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
-                                     ? Vector3.UnitX
-                                     : Vector3.UnitZ;
-                    break;
-                }
+            {
+                firstAxis = Vector3.UnitY;
+                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
+                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitZ))
+                                 ? Vector3.UnitX
+                                 : Vector3.UnitZ;
+                break;
+            }
             case GizmoParts.PositionZAxis:
             case GizmoParts.ScaleZAxis:
-                {
-                    firstAxis = Vector3.UnitZ;
-                    secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
-                                 Math.Abs(Vector3.Dot(normDir, Vector3.UnitY))
-                                     ? Vector3.UnitX
-                                     : Vector3.UnitY;
-                    break;
-                }
+            {
+                firstAxis = Vector3.UnitZ;
+                secondAxis = Math.Abs(Vector3.Dot(normDir, Vector3.UnitX)) <
+                             Math.Abs(Vector3.Dot(normDir, Vector3.UnitY))
+                                 ? Vector3.UnitX
+                                 : Vector3.UnitY;
+                break;
+            }
             case GizmoParts.PositionOnXyPlane:
             case GizmoParts.ScaleOnXyPlane:
                 firstAxis = Vector3.UnitX;
@@ -878,8 +1238,13 @@ internal static class TransformGizmoHandling
         ScaleOnXyPlane,
         ScaleOnXzPlane,
         ScaleOnYzPlane,
-    }
 
+        // Rotation gizmo parts
+        RotationXAxis,
+        RotationYAxis,
+        RotationZAxis,
+        RotationScreen,
+    }
 
     private static Instance? _instance;
     private static ITransformable? _transformable;
@@ -891,7 +1256,7 @@ internal static class TransformGizmoHandling
     private static float _centerPadding;
     private static float _gizmoLength;
     private static float _planeGizmoSize;
-    
+
     private static ImDrawListPtr _drawList = null;
     private static bool _isDrawListValid;
 
@@ -907,7 +1272,7 @@ internal static class TransformGizmoHandling
     private static Vector2 _originInScreen;
     private static Vector3 _originInClipSpace;
     private static bool _renderGizmo;
-
+    
     // Keep values when interaction started
     private static Vector3 _initialOrigin;
     private static Vector2 _initialOffsetToOrigin;
@@ -920,9 +1285,17 @@ internal static class TransformGizmoHandling
     private static Matrix4x4 _objectToWorld;
     private static Matrix4x4 _localToObject;
     private static Matrix4x4 _localToClipSpace;
-    
+
     // scale gizmo state
     //private static float _scaleDelta;
     private static Vector3 _initialScale;
     private static ChangeInputValueCommand? _scaleCommandInFlight;
+
+    private static Vector3 _currentRotationVector;
+    private static ChangeInputValueCommand? _rotationCommandInFlight;
+    private static Vector3 _initialRotation;
+    private static float _initialMouseAngle;
+    private static Vector3 _rotationAxis;
+    private static float _initialAngleOffset;
+    private static Vector2 _initialMousePos;
 }
