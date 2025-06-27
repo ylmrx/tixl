@@ -48,4 +48,8 @@
         <ProjectReference Include="..\SilkWindows\SilkWindows.csproj" />
     </ItemGroup>
 
+    <Target Name="ClearBuildOutput" BeforeTargets="BeforeBuild">
+        <!-- Clear previous files in the export folder -->
+        <RemoveDir Directories="bin/$(Configuration)"/>
+    </Target>
 </Project>

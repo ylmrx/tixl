@@ -27,6 +27,7 @@ internal static partial class ProjectXml
         rootElement.AddDefaultContent();
         rootElement.AddOpPackageItemGroup();
         rootElement.AddPackageInfoTarget();
+        rootElement.AddCleanBuildTarget();
         return rootElement;
     }
 
@@ -178,6 +179,28 @@ internal static partial class ProjectXml
         item.AddMetadata(nameof(OperatorPackageReference.ResourcesOnly), resourcesOnly.ToString(), true);
     }
 
+    internal static bool AddCleanBuildTarget(this ProjectRootElement project)
+    {
+        // find existing target
+        const string targetName = "ClearBuildOutput";
+        var target = project.Targets.FirstOrDefault(x => x.Name == targetName);
+        if (target != null)
+        {
+            return false;
+        }
+
+        // create new target
+        target = project.AddTarget(targetName);
+        target.BeforeTargets = "BeforeBuild";
+        target.AddTask("RemoveDir").SetParameter("Directories", "bin/$(Configuration)");
+        return true;
+        /*
+<Target Name="ClearBuildOutput" BeforeTargets="BeforeBuild">
+<!-- Clear previous files in the export folder -->
+<RemoveDir Directories="bin/$(Configuration)"/>
+</Target>  */
+    }
+    
     private static void AddPackageInfoTarget(this ProjectRootElement project)
     {
         var target = project.AddTarget("CreatePackageInfo");

@@ -153,6 +153,11 @@ internal sealed class CsProjectFile
                     #endregion
                 }
             }
+            
+            if(csProjContents.AddCleanBuildTarget())
+            {
+                Warnings.Add($"Added clean build target to {file.FullPath}");
+            }
 
             if (csProjContents.HasUnsavedChanges)
             {

@@ -188,8 +188,8 @@
             <ProjectFiles Include="$(PackageBuildDirectory)/**"/>
         </ItemGroup>
 
-        <!-- Clear previous files in the export folder -->
-        <RemoveDir Directories="$(DestinationDir)/$(PackageName)/"/>
+        <!-- Clear previous files in the export folder (redundant, so commented for example -->
+        <!--<RemoveDir Directories="$(DestinationDir)/$(PackageName)/"/>-->
 
         <!-- Copy the files from the project directory to the export folder -->
         <Copy SourceFiles="@(ProjectFiles)" DestinationFolder="$(DestinationDir)/$(PackageName)/%(RecursiveDir)" UseHardlinksIfPossible="true"/>
@@ -205,6 +205,12 @@
         <MSBuild Projects="$(MSBuildProjectFullPath)"
                  Targets="CopyTixlOpProject"
                  Properties="PackageName=pixtur;ParentFolder=$(OperatorDirectoryName)/user"/>
+    </Target>
+
+
+    <Target Name="ClearBuildOutput" BeforeTargets="BeforeBuild">
+        <!-- Clear previous files in the export folder -->
+        <RemoveDir Directories="bin/$(Configuration)"/>
     </Target>
 
     <!-- =========================//================================ -->
