@@ -404,7 +404,7 @@ internal sealed class SettingsWindow : Window
                     FormInputs.AddSectionHeader("Keyboard Shortcuts");
                     CustomComponents.HelpText("The keyboard layout can't be edited yet. Working on it");
 
-                    KeyBindingEditor.DrawEditor();
+                    KeyMapEditor.DrawEditor();
 
                     break;
                 case Categories.Profiling:

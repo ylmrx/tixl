@@ -12,7 +12,7 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// <summary>
 /// User interface switching and adjusting KeyBindings...
 /// </summary>
-internal static class KeyBindingEditor
+internal static class KeyMapEditor
 {
     private static KeyMap CurrentKeyMap => KeyMapSwitching.CurrentKeymap;
 
