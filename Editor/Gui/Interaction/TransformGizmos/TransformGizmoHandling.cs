@@ -141,7 +141,7 @@ internal static class TransformGizmoHandling
         _objectToWorld = context.ObjectToWorld;
         _objectToClipSpace = context.ObjectToWorld * context.WorldToCamera * context.CameraToClipSpace;
 
-        PrepareCalculations(context);
+        PrepareCalculations();
 
         if (_canvas == null)
             return;
@@ -174,7 +174,7 @@ internal static class TransformGizmoHandling
             case TransformGizmoModes.Rotate:
                 if (_transformable.RotationInput != null)
                 {
-                    HandleRotationGizmos(context);
+                    HandleRotationGizmos();
                 }
 
                 break;
@@ -404,7 +404,7 @@ internal static class TransformGizmoHandling
         _dragNotStopped = false;
     }
 
-    private static void PrepareCalculations(EvaluationContext context)
+    private static void PrepareCalculations()
     {
         Debug.Assert(_transformable != null);
 
@@ -428,18 +428,9 @@ internal static class TransformGizmoHandling
                                                                  translation: translation);
 
         _localToClipSpace = _localToObject * _objectToClipSpace;
-        
-        // Camera looks along negative Z in view space
-        // Camera looks along negative Z in world space
-        var viewDirWorld = -Vector3.UnitZ;
-        
-        // Bring to object space
-        _viewDirLocal = Vector3.TransformNormal(viewDirWorld, _initialObjectToLocal);
+
         _originInClipSpace = GraphicsMath.TransformCoordinate(translation, _objectToClipSpace);
 
-        // Compute gizmo center in world space
-        _initialOriginWorld = Vector3.Transform(_initialOrigin, _objectToWorld);
-        
         // Don't draw gizmo behind camera (view plane)
         _renderGizmo = Math.Abs(_originInClipSpace.Z) <= 1 && Math.Abs(_originInClipSpace.X) <= 2 && Math.Abs(_originInClipSpace.Y) <= 2;
 
@@ -458,8 +449,7 @@ internal static class TransformGizmoHandling
 
         Matrix4x4.Invert(_localToObject, out _initialObjectToLocal);
     }
-    private static Vector3 _viewDirLocal;
-    
+
     // Returns true if hovered or active
     private static bool HandleDragOnAxis(Vector3 gizmoAxis, Color color, GizmoParts mode)
     {
@@ -718,7 +708,7 @@ internal static class TransformGizmoHandling
         }
     }
 
-    private static bool HandleRotationGizmos(EvaluationContext context)
+    private static bool HandleRotationGizmos()
     {
         if (_transformable?.RotationInput == null)
             return false;
@@ -739,19 +729,18 @@ internal static class TransformGizmoHandling
         var yawPitchQ = Quaternion.Concatenate(pitchQ, yawQ);
         Vector3 axisRoll = Vector3.Transform(Vector3.UnitZ, yawPitchQ);
 
-        var isHovering = HandleRotationOnAxis(context, axisYaw, Color.Green, GizmoParts.RotationYAxis);
-        isHovering |= HandleRotationOnAxis(context,axisPitch, Color.Red, GizmoParts.RotationXAxis);
-        isHovering |= HandleRotationOnAxis(context,axisRoll, Color.Blue, GizmoParts.RotationZAxis);
+        var isHovering = HandleRotationOnAxis(axisYaw, Color.Green, GizmoParts.RotationYAxis);
+        isHovering |= HandleRotationOnAxis(axisPitch, Color.Red, GizmoParts.RotationXAxis);
+        isHovering |= HandleRotationOnAxis(axisRoll, Color.Blue, GizmoParts.RotationZAxis);
         isHovering |= HandleScreenRotation();
 
         return isHovering;
     }
 
-    private static bool HandleRotationOnAxis(EvaluationContext context, Vector3 axis, Color color, GizmoParts mode)
+    private static bool HandleRotationOnAxis(Vector3 axis, Color color, GizmoParts mode)
     {
         const int circleSegments = 32;
         const float circleRadius = 0.5f;
-        var gizmoRadius = _gizmoLength * 0.6f;
 
         var circlePoints = new Vector2[circleSegments];
         var circleCenter = _originInScreen;
@@ -773,8 +762,8 @@ internal static class TransformGizmoHandling
         for (int i = 0; i < circleSegments; i++)
         {
             float angle = (float)i / circleSegments * MathF.PI * 2;
-            Vector3 point3D = tangent1 * MathF.Cos(angle) * gizmoRadius +
-                              tangent2 * MathF.Sin(angle) * gizmoRadius;
+            Vector3 point3D = tangent1 * MathF.Cos(angle) * circleRadius +
+                              tangent2 * MathF.Sin(angle) * circleRadius;
 
             circlePoints[i] = LocalPosToScreenPos(point3D);
         }
@@ -807,41 +796,15 @@ internal static class TransformGizmoHandling
 
         if (_renderGizmo)
         {
-            Vector3[] points3D = new Vector3[circleSegments];
-            Vector2[] points2D = new Vector2[circleSegments];
-            // Recompute view vector every frame
-            
-            Matrix4x4.Invert(context.WorldToCamera, out var cameraToWorld);            
-            Vector3 cameraWorldPos = Vector3.Transform(Vector3.Zero, cameraToWorld); 
-            Vector3 dirWorld = Vector3.Normalize(_initialOriginWorld - cameraWorldPos);
-            _viewDirLocal = Vector3.TransformNormal(dirWorld, _initialObjectToLocal);
-            
-            for (int i = 0; i < circleSegments; i++)
-            {
-                float angle = i / (float)circleSegments * MathF.PI * 2;
-                float cos = MathF.Cos(angle);
-                float sin = MathF.Sin(angle);
-
-                Vector3 p3D = tangent1 * cos * gizmoRadius + tangent2 * sin * gizmoRadius;
-                points3D[i] = p3D;
-                points2D[i] = LocalPosToScreenPos(p3D);
-            }
+            var lineColor = color;
+            lineColor.Rgba.W = isHovering ? 1.0f : 0.8f;
 
             for (int i = 0; i < circleSegments; i++)
             {
                 int next = (i + 1) % circleSegments;
+                _drawList.AddLine(circlePoints[i], circlePoints[next], lineColor, isHovering ? 3 : 2);
+            }
 
-                Vector3 midPoint3D = (points3D[i] + points3D[next]) * 0.5f;
-                float facing = Vector3.Dot(midPoint3D, _viewDirLocal);
-
-                float alpha = facing >= 0 ? 0.3f : 1.0f;
-
-                var segColor = color;
-                segColor.Rgba.W = alpha;
-
-                _drawList.AddLine(points2D[i], points2D[next], segColor, isHovering ? 3 : 2);
-            }            
-            
             if (_draggedGizmoPart == mode &&
                 _draggedTransformable == _transformable &&
                 _dragInteractionWindowId == ImGui.GetID(""))
@@ -849,24 +812,19 @@ internal static class TransformGizmoHandling
                 Vector3 initialWorldPos = _initialOrigin + _initialRotationVector * circleRadius;
                 Vector3 currentWorldPos = _initialOrigin + _currentRotationVector * circleRadius;
 
-
-
                 Vector2 initialScreenPos = LocalPosToScreenPos(initialWorldPos);
                 Vector2 currentScreenPos = LocalPosToScreenPos(currentWorldPos);
 
                 float markerRadius = 5.0f;
 
-
-                _drawList.AddCircleFilled(initialScreenPos, markerRadius*0.6f, color);
-                _drawList.AddCircleFilled(currentScreenPos, markerRadius, color);
-            }  
+                _drawList.AddCircleFilled(initialScreenPos, markerRadius*0.6f, lineColor);
+                _drawList.AddCircleFilled(currentScreenPos, markerRadius, lineColor);
+            }
         }
 
         return isHovering;
     }
 
-    private static Vector3 _initialOriginWorld;
-    
     // Add this method to handle screen space rotation
     private static bool HandleScreenRotation()
     {
@@ -1026,27 +984,6 @@ internal static class TransformGizmoHandling
         return t >= 0;
     }
 
-    private static float CalcGizmoScale(in Vector3 gizmoPositionWorld,
-                                        in Matrix4x4 viewMatrix,
-                                        in Matrix4x4 projectionMatrix,
-                                        float desiredPixelSize,
-                                        float viewportHeight)
-    {
-        // Transform gizmo position to view space
-        Vector3 gizmoPosView = Vector3.Transform(gizmoPositionWorld, viewMatrix);
-
-        // Distance to camera along view direction
-        float distance = MathF.Abs(gizmoPosView.Z);
-
-        // Vertical field of view in radians (assuming perspective)
-        float fovY = 2 * MathF.Atan(1 / projectionMatrix.M22);
-
-        // World units per pixel at this distance
-        float worldUnitsPerPixel = 2 * distance * MathF.Tan(fovY / 2) / viewportHeight;
-
-        return worldUnitsPerPixel * desiredPixelSize;
-    }    
-    
     private static Vector3 _initialRotationVector;
     private static Vector3 _draggedRotationAxis;
 
