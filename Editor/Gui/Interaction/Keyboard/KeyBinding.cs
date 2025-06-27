@@ -11,7 +11,7 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// </summary>
 internal sealed class KeyBinding
 {
-    internal KeyBinding(UserActions action, KeyCombination combination)
+    public KeyBinding(UserActions action, KeyCombination combination)
     {
         Action = action;
         KeyCombination = combination;
@@ -19,9 +19,9 @@ internal sealed class KeyBinding
     }
 
     [JsonConverter(typeof(SafeEnumConverter<UserActions>))]
-    internal UserActions Action { get; }
+    public UserActions Action;
 
-    internal KeyCombination KeyCombination { get; }
+    public KeyCombination KeyCombination;
 
     internal bool IsContextValid()
     {

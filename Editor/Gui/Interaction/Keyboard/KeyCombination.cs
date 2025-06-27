@@ -8,10 +8,10 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// </summary>
 internal  struct KeyCombination(Key key, bool ctrl = false, bool alt = false, bool shift = false)
 {
-    internal Key Key { get; set; } = key;
-    internal bool Ctrl { get; set;} = ctrl;
-    internal bool Alt { get; set;} = alt;
-    internal bool Shift { get; set;} = shift;
+    public Key Key = key;
+    public bool Ctrl = ctrl;
+    public bool Alt = alt;
+    public bool Shift = shift;
     
     internal bool ModifiersMatch(ImGuiIOPtr io)
     {

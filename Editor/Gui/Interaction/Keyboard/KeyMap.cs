@@ -9,10 +9,10 @@ namespace T3.Editor.Gui.Interaction.Keyboard;
 /// <remarks>Note: Some of these are public to enable serialization to json</remarks>
 internal sealed class KeyMap
 {
-    internal List<KeyBinding> Bindings = [];
+    public List<KeyBinding> Bindings = [];
 
-    internal string Name = "untitled";
-    internal string Author = "unknown";
+    public string Name = "untitled";
+    public string Author = "unknown";
     
     /** Prevent factory setting from being modified */
     internal bool ReadOnly;

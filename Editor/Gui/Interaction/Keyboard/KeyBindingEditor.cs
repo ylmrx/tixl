@@ -27,7 +27,10 @@ internal static class KeyBindingEditor
         if (FormInputs.AddDropdown(ref userSelection,
                                    KeyMapSwitching.KeyMaps.Select(t => t.Name),
                                    "Key Map",
-                                   $"Edit the shortcuts as you wish you'll find the {FileLocations.SettingsPath}."))
+                                   $"""
+                                    You can clone key map bindings and create your personal layouts. 
+                                    They wil be saved to {FileLocations.SettingsPath}.
+                                    """))
         {
             if (KeyMapSwitching.TrySetKeyMap(userSelection))
             {
@@ -50,21 +53,13 @@ internal static class KeyBindingEditor
         _somethingChanged |= KeyMapSwitching.CurrentKeymap.Author != _currentKeyBindingWithoutChanges.Author;
 
         FormInputs.AddVerticalSpace();
+
+        //FormInputs.SetIndentToParameters();
         FormInputs.ApplyIndent();
 
-        // Add "Create New" button
-        if (ImGui.Button("Clone"))
-        {
-            KeyMapSwitching.CloneCurrentKeymap();
-            UserSettings.Config.KeyBindingName = CurrentKeyMap.Name;
-            UserSettings.Save();
-            _somethingChanged = true;
-        }
-
-        
         if (!CurrentKeyMap.ReadOnly)
         {
-            ImGui.SameLine();
+            //ImGui.SameLine(0,1);
             if (CustomComponents.DisablableButton("Save", _somethingChanged))
             {
                 // TODO: and check if saving worked
@@ -76,17 +71,35 @@ internal static class KeyBindingEditor
                 _somethingChanged = false;
             }
         }
-        
+
+        ImGui.SameLine();
+        if (CustomComponents.DisablableButton("Clone", !_somethingChanged))
+        {
+            KeyMapSwitching.CloneCurrentKeymap();
+            UserSettings.Config.KeyBindingName = CurrentKeyMap.Name;
+            UserSettings.Save();
+            _somethingChanged = true;
+        }
+
+        if (!CurrentKeyMap.ReadOnly)
+        {
+            ImGui.SameLine();
+            if (ImGui.Button("Delete"))
+            {
+                KeyMapSwitching.DeleteKeyMap(CurrentKeyMap);
+            }
+        }
+
         FormInputs.AddVerticalSpace();
         ImGui.Separator();
         FormInputs.AddVerticalSpace();
-        DrawKeybindingEdits();
+        DrawKeyMapTable();
     }
 
-    private static void DrawKeybindingEdits()
+    private static void DrawKeyMapTable()
     {
         var needUpdate = false;
-        
+
         // Draw the table of shortcuts (same as before)
         if (ImGui.BeginTable("Shortcuts", 2, ImGuiTableFlags.BordersInnerH | ImGuiTableFlags.ScrollY))
         {
@@ -108,7 +121,6 @@ internal static class KeyBindingEditor
 
                 ImGui.TableSetColumnIndex(0);
                 var actionName = CustomComponents.HumanReadablePascalCase(Enum.GetName(action));
-                var shortcuts = action.ListKeyboardShortcutsForAction(false);
 
                 if (ImGui.Selectable(actionName, _selectedAction == action,
                                      ImGuiSelectableFlags.SpanAllColumns | ImGuiSelectableFlags.AllowOverlap))
@@ -121,11 +133,44 @@ internal static class KeyBindingEditor
 
                 ImGui.TableSetColumnIndex(1);
 
-                if (!string.IsNullOrEmpty(shortcuts))
+                if (CurrentKeyMap.TryGetBinding(action, out var binding))
                 {
-                    ImGui.PushFont(Fonts.FontBold);
-                    ImGui.TextUnformatted(shortcuts);
-                    ImGui.PopFont();
+                    var shortcuts = action.ListKeyboardShortcutsForAction(false);
+
+                    if (_somethingChanged)
+                    {
+                        _currentKeyBindingWithoutChanges.TryGetBinding(action, out var originalBinding);
+                        var changed = !binding.KeyCombination.Matches(ref originalBinding.KeyCombination);
+                        if (changed)
+                        {
+                            if (string.IsNullOrEmpty(shortcuts))
+                            {
+                                ImGui.PushStyleColor(ImGuiCol.Text, UiColors.StatusAttention.Rgba);
+                                ImGui.TextUnformatted("Removed " + _currentKeyBindingWithoutChanges.ShortCutsLabelsForActions[(int)action]);
+                                ImGui.PopStyleColor();
+                                
+                            }
+                            else
+                            {
+                                ImGui.PushStyleColor(ImGuiCol.Text, UiColors.Text.Rgba);
+                                ImGui.TextUnformatted(shortcuts);
+                                ImGui.PopStyleColor();
+                            }
+                        }
+                        else if (!string.IsNullOrEmpty(shortcuts))
+                        {
+                            ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
+                            ImGui.TextUnformatted(shortcuts);
+                            ImGui.PopStyleColor();
+                        }
+                    }
+                    else
+                    {
+                        // Fallback to save allocations.
+                        ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
+                        ImGui.TextUnformatted(shortcuts);
+                        ImGui.PopStyleColor();
+                    }
                 }
 
                 needUpdate |= DrawEditPopUp(action, actionName);
@@ -164,39 +209,46 @@ internal static class KeyBindingEditor
 
         ImGui.SameLine(0, 10);
 
-
         if (ImGui.IsKeyPressed(ImGuiKey.Escape))
         {
-            ImGui.CloseCurrentPopup();    
+            ImGui.CloseCurrentPopup();
         }
-        
+
         var pressedKey = KeyHandler.GetPressedKey();
         if (pressedKey != Key.Undefined)
         {
             _selectedCombo.Key = pressedKey;
         }
-        
+
         var k = _selectedCombo.Key;
-        
+
         ImGui.SetNextItemWidth(100);
         if (FormInputs.DrawEnumDropdown(ref k, "key"))
             _selectedCombo.Key = k;
 
         FormInputs.AddVerticalSpace(5);
-        
-        if (CurrentKeyMap.TryGetConflictingBinding(_selectedAction, _selectedCombo, out var conflictingBinding))
+
+        var hasConflictingBinding = CurrentKeyMap.TryGetConflictingBinding(_selectedAction, _selectedCombo, out var conflictingBinding);
+        if (hasConflictingBinding)
         {
             CustomComponents.StylizedText($"Already used for {conflictingBinding.Action}", Fonts.FontSmall, UiColors.StatusAttention);
         }
+
         FormInputs.AddVerticalSpace();
-        
+
         // Action buttons
         var isAssignValid = _selectedCombo.Key != Key.Undefined
                             && !CurrentKeyMap.DoesBindingMatchCombo(_selectedAction, _selectedCombo);
+
         if (CustomComponents.DisablableButton("Assign", isAssignValid))
         {
             CurrentKeyMap.AddBinding(_selectedAction, _selectedCombo);
             ImGui.CloseCurrentPopup();
+            if (hasConflictingBinding)
+            {
+                CurrentKeyMap.RemoveBinding(conflictingBinding.Action);
+            }
+
             needsUpdate = true;
         }
 
@@ -230,9 +282,6 @@ internal static class KeyBindingEditor
     }
 
     private static bool _somethingChanged;
-
-    private static bool _initialized;
-
     public static readonly object Dummy = new();
     private static UserActions _selectedAction = UserActions.None;
 }
