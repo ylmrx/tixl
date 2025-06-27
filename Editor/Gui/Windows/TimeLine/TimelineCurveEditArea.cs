@@ -7,6 +7,7 @@ using T3.Core.Operator;
 using T3.Editor.Gui.InputUi.CombinedInputs;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Animation;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Snapping;
 using T3.Editor.Gui.Interaction.WithCurves;
 using T3.Editor.Gui.Styling;
@@ -48,10 +49,10 @@ internal sealed class TimelineCurveEditArea : AnimationParameterEditing, ITimeOb
         {
             var drawList = ImGui.GetWindowDrawList();
             drawList.ChannelsSplit(3);
-            if (KeyboardBinding.Triggered(UserActions.FocusSelection))
+            if (KeyActionHandling.Triggered(UserActions.FocusSelection))
                 ViewAllOrSelectedKeys(alsoChangeTimeRange: true);
 
-            if (KeyboardBinding.Triggered(UserActions.Duplicate))
+            if (KeyActionHandling.Triggered(UserActions.Duplicate))
                 DuplicateSelectedKeyframes(TimeLineCanvas.Playback.TimeInBars);
 
             var lineStartPosition = ImGui.GetCursorPos();

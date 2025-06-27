@@ -6,6 +6,7 @@ using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
 using T3.Core.Utils;
 using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Timing;
 using T3.Editor.Gui.OutputUi;
 using T3.Editor.Gui.Styling;
@@ -26,20 +27,20 @@ internal static class TimeControls
     {
         var playback = Playback.Current; // TODO, this should be non-static eventually
 
-        if (KeyboardBinding.Triggered(UserActions.TapBeatSync))
+        if (KeyActionHandling.Triggered(UserActions.TapBeatSync))
             BeatTiming.TriggerSyncTap();
 
-        if (KeyboardBinding.Triggered(UserActions.TapBeatSyncMeasure))
+        if (KeyActionHandling.Triggered(UserActions.TapBeatSyncMeasure))
             BeatTiming.TriggerResyncMeasure();
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+        if (KeyActionHandling.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToStartTime))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackJumpToStartTime))
             playback.TimeInBars = playback.IsLooping ? playback.LoopRange.Start : 0;
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+        if (KeyActionHandling.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
         {
             //const float editFrameRate = 30;
@@ -58,19 +59,19 @@ internal static class TimeControls
             var editFrameRate = 1 / frameDuration;
 
             // Step to previous frame
-            if (KeyboardBinding.Triggered(UserActions.PlaybackPreviousFrame))
+            if (KeyActionHandling.Triggered(UserActions.PlaybackPreviousFrame))
             {
                 var rounded = Math.Round(playback.TimeInSecs * editFrameRate) / editFrameRate;
                 playback.TimeInSecs = rounded - frameDuration;
             }
 
-            if (KeyboardBinding.Triggered(UserActions.PlaybackJumpBack))
+            if (KeyActionHandling.Triggered(UserActions.PlaybackJumpBack))
             {
                 playback.TimeInBars -= 1;
             }
 
             // Step to next frame
-            if (KeyboardBinding.Triggered(UserActions.PlaybackNextFrame))
+            if (KeyActionHandling.Triggered(UserActions.PlaybackNextFrame))
             {
                 var rounded = Math.Round(playback.TimeInSecs * editFrameRate) / editFrameRate;
                 playback.TimeInSecs = rounded + frameDuration;
@@ -78,7 +79,7 @@ internal static class TimeControls
         }
 
         // Play backwards with increasing speed
-        if (KeyboardBinding.Triggered(UserActions.PlaybackBackwards))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackBackwards))
         {
             Log.Debug("Backwards triggered with speed " + playback.PlaybackSpeed);
             if (playback.PlaybackSpeed >= 0)
@@ -92,7 +93,7 @@ internal static class TimeControls
         }
 
         // Play forward with increasing speed
-        if (KeyboardBinding.Triggered(UserActions.PlaybackForward))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackForward))
         {
             if (playback.PlaybackSpeed <= 0)
             {
@@ -105,7 +106,7 @@ internal static class TimeControls
             }
         }
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackForwardHalfSpeed))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackForwardHalfSpeed))
         {
             if (playback.PlaybackSpeed > 0 && playback.PlaybackSpeed < 1f)
                 playback.PlaybackSpeed *= 0.5f;
@@ -114,14 +115,14 @@ internal static class TimeControls
         }
 
         // Stop as separate keyboard action 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackStop))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackStop))
         {
             playback.PlaybackSpeed = 0;
             if (UserSettings.Config.ResetTimeAfterPlayback)
                 playback.TimeInBars = _lastPlaybackStartTime;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackToggle))
+        if (KeyActionHandling.Triggered(UserActions.PlaybackToggle))
         {
             if (playback.PlaybackSpeed == 0)
             {
@@ -136,7 +137,7 @@ internal static class TimeControls
             }
         }
 
-        if (KeyboardBinding.Triggered(UserActions.SetStartTime))
+        if (KeyActionHandling.Triggered(UserActions.SetStartTime))
         {
             Playback.Current.IsLooping = true;
             Playback.Current.LoopRange.Start = (float)Playback.Current.TimeInBars;
@@ -144,7 +145,7 @@ internal static class TimeControls
                 Playback.Current.LoopRange.End = Playback.Current.LoopRange.Start + 4;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.SetEndTime))
+        if (KeyActionHandling.Triggered(UserActions.SetEndTime))
         {
             Playback.Current.IsLooping = true;
             Playback.Current.LoopRange.End = (float)Playback.Current.TimeInBars;
@@ -152,11 +153,11 @@ internal static class TimeControls
                 Playback.Current.LoopRange.Start = Playback.Current.LoopRange.End - 4;
         }
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToNextKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToNextKeyframe);
+        if (KeyActionHandling.Triggered(UserActions.PlaybackJumpToNextKeyframe))
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToNextKeyframe);
 
-        if (KeyboardBinding.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
-            UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+        if (KeyActionHandling.Triggered(UserActions.PlaybackJumpToPreviousKeyframe))
+            UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
 
 
     }
@@ -349,8 +350,8 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Click on beat to sync. Tap later once to refine. Click right to sync measure.\n"
                                                 + "Ctrl+Click to round BPM",
-                                                $"Tap: {KeyboardBinding.ListKeyboardShortcuts(UserActions.TapBeatSync)}\n"
-                                                + $"Resync: {KeyboardBinding.ListKeyboardShortcuts(UserActions.TapBeatSyncMeasure)}");
+                                                $"Tap: {KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.TapBeatSync)}\n"
+                                                + $"Resync: {KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.TapBeatSyncMeasure)}");
 
             ImGui.SameLine();
 
@@ -381,14 +382,14 @@ internal static class TimeControls
                                                 ? CustomComponents.ButtonStates.Dimmed
                                                 : CustomComponents.ButtonStates.Disabled
                                            )
-                || KeyboardBinding.Triggered(UserActions.PlaybackJumpToStartTime)
+                || KeyActionHandling.Triggered(UserActions.PlaybackJumpToStartTime)
                )
             {
                 playback.TimeInBars = playback.IsLooping ? playback.LoopRange.Start : 0;
             }
 
             CustomComponents.TooltipForLastItem("Jump to beginning",
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackJumpToStartTime));
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToStartTime));
 
             ImGui.SameLine();
 
@@ -400,11 +401,11 @@ internal static class TimeControls
                                                 : CustomComponents.ButtonStates.Disabled)
                )
             {
-                UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToPreviousKeyframe);
+                UserActionRegistry.QueueAction(UserActions.PlaybackJumpToPreviousKeyframe);
             }
 
             CustomComponents.TooltipForLastItem("Jump to previous keyframe",
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackJumpToPreviousKeyframe));
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToPreviousKeyframe));
 
             ImGui.SameLine();
 
@@ -433,8 +434,8 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Play backwards",
                                                 "Play backwards (and faster): " +
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackBackwards, false) +
-                                                "\nPrevious frame:" + KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackPreviousFrame, false));
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackBackwards, false) +
+                                                "\nPrevious frame:" + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackPreviousFrame, false));
 
             ImGui.SameLine();
 
@@ -463,10 +464,10 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Start playback",
                                                 "Play forward (and faster): " +
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackForward, false) +
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackForward, false) +
                                                 "\nPlay half speed (and slower): " +
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackForwardHalfSpeed, false) +
-                                                "\nNext frame:" + KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackNextFrame, false));
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackForwardHalfSpeed, false) +
+                                                "\nNext frame:" + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackNextFrame, false));
 
             ImGui.SameLine();
 
@@ -478,11 +479,11 @@ internal static class TimeControls
                                                 : CustomComponents.ButtonStates.Disabled)
                )
             {
-                UserActionRegistry.DeferredActions.Add(UserActions.PlaybackJumpToNextKeyframe);
+                UserActionRegistry.QueueAction(UserActions.PlaybackJumpToNextKeyframe);
             }
 
             CustomComponents.TooltipForLastItem("Jump to next keyframe",
-                                                KeyboardBinding.ListKeyboardShortcuts(UserActions.PlaybackJumpToNextKeyframe));
+                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToNextKeyframe));
             ImGui.SameLine();
 
             // // End
@@ -576,7 +577,7 @@ internal static class TimeControls
                             ? CustomComponents.ButtonStates.Activated
                             : CustomComponents.ButtonStates.Dimmed;
 
-            if (CustomComponents.IconButton(Icon.PinParams, ControlSize, state, KeyboardBinding.Triggered(UserActions.ToggleAnimationPinning)))
+            if (CustomComponents.IconButton(Icon.PinParams, ControlSize, state, KeyActionHandling.Triggered(UserActions.ToggleAnimationPinning)))
             {
                 UserSettings.Config.AutoPinAllAnimations = !UserSettings.Config.AutoPinAllAnimations;
 
@@ -589,7 +590,7 @@ internal static class TimeControls
 
         CustomComponents.TooltipForLastItem("Keep animated parameters visible",
                                             "This can be useful when align animations between multiple operators. Toggle again to clear the visible animations.\n\n"
-                                            + KeyboardBinding.ListKeyboardShortcuts(UserActions.ToggleAnimationPinning)
+                                            + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleAnimationPinning)
                                            );
         ImGui.SameLine();
     }
