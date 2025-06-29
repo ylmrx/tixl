@@ -298,7 +298,6 @@ internal class EditorSymbolPackage : SymbolPackage
             var dir = Path.Combine(Folder, FileLocations.SymbolUiSubFolder);
             if (!Directory.Exists(dir))
             {
-                Log.Warning($"Symbol UI folder {dir} does not exist");
                 return [];
             }
             
@@ -314,7 +313,6 @@ internal class EditorSymbolPackage : SymbolPackage
             
             if (!Directory.Exists(dir))
             {
-                Log.Warning($"Source code folder {dir} does not exist");
                 return [];
             }
             
