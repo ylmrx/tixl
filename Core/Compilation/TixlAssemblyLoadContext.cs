@@ -8,10 +8,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
-using Microsoft.Extensions.DependencyModel;
 using T3.Core.IO;
 using T3.Core.Logging;
-using T3.Core.Model;
 using T3.Core.UserData;
 
 namespace T3.Core.Compilation;
@@ -43,7 +41,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
 
     private static readonly List<TixlAssemblyLoadContext> _loadContexts = [];
     private static readonly Lock _loadContextLock = new();
-    private static readonly DllImportResolver _dllImportResolver = NativeDllResolver; // todo - this likely violates the encapsulation of assembly load contexts
+    private readonly DllImportResolver _dllImportResolver;
     private bool _unloaded;
 
     private static List<AssemblyTreeNode> CoreNodes => _coreNodes;
@@ -102,6 +100,8 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
             }
         }
 
+        DllImportResolver resolver = NativeDllResolverStatic;
+
         // add references to each core node where applicable, reusing existing nodes to create the tree
         for (var index = 0; index < _coreNodes.Count; index++)
         {
@@ -124,7 +124,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
                                 break;
                         }
 
-                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false, _dllImportResolver);
+                        depNode ??= new AssemblyTreeNode(asmAndName.Assembly, ctxGroup.Context, false, false, resolver);
 
                         node.AddReferenceTo(depNode);
                     }
@@ -147,6 +147,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         MainDirectory = directory;
         _shadowCopyDirectory = Path.Combine(_rootShadowCopyDir, Name!, DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss"));
         _shouldCopyBinaries = !isReadOnly;
+        _dllImportResolver = NativeDllResolver;
 
         var path = Path.Combine(directory, Name!) + ".dll";
 
@@ -390,14 +391,15 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         return OnResolving(assemblyName);
     }
 
-    private static IntPtr NativeDllResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    private static IntPtr NativeDllResolverStatic(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
     {
         //Log.Debug($"{assembly.FullName}: Resolving native dll {libraryName} for assembly {assembly.FullName}");
         const DllImportSearchPath defaultSearchPath = DllImportSearchPath.AssemblyDirectory
                                                       | DllImportSearchPath.UseDllDirectoryForDependencies
                                                       | DllImportSearchPath.ApplicationDirectory;
 
-        if (NativeLibrary.TryLoad(libraryName, assembly, searchPath ?? defaultSearchPath, out var handle))
+        var search = searchPath ?? defaultSearchPath;
+        if (NativeLibrary.TryLoad(libraryName, assembly, search, out var handle))
         {
             //Log.Debug($"{assembly.FullName!}: Successfully resolved native dll {libraryName}");
             return handle;
@@ -406,7 +408,30 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         Log.Error($"{assembly.FullName!}: Failed to resolve native dll {libraryName} relative to assembly '{assembly.Location}'");
         return IntPtr.Zero;
     }
+    
+    private IntPtr NativeDllResolver(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        //Log.Debug($"{assembly.FullName}: Resolving native dll {libraryName} for assembly {assembly.FullName}");
+        const DllImportSearchPath defaultSearchPath = DllImportSearchPath.AssemblyDirectory
+                                                      | DllImportSearchPath.UseDllDirectoryForDependencies
+                                                      | DllImportSearchPath.ApplicationDirectory;
 
+        var search = searchPath ?? defaultSearchPath;
+        if (NativeLibrary.TryLoad(libraryName, assembly, search, out var handle))
+        {
+            //Log.Debug($"{assembly.FullName!}: Successfully resolved native dll {libraryName}");
+            return handle;
+        }
+
+        if (assembly != Root!.Assembly && NativeLibrary.TryLoad(libraryName, Root.Assembly, search, out handle))
+        {
+            return handle;
+        }
+
+        Log.Error($"{assembly.FullName!}: Failed to resolve native dll {libraryName} relative to assembly '{assembly.Location}'");
+        return IntPtr.Zero;
+    }
+    
     protected override IntPtr LoadUnmanagedDll(string unmanagedDllName)
     {
         // manual dll resolution with the potential of having nothing but the name of the dll sans the extension
