@@ -46,16 +46,22 @@ public sealed partial class Symbol
                 // we have already created a child for this id, so we can just return it? maybe?
                 if (parent != child.Parent)
                 {
-                    Log.Warning($"Parent mismatch for {childId} in {Name}");
                     if (parent != null)
                     {
                         // todo - refactor this for readability
                         if (parent.Id == child.Parent?.Id) 
                         {
                             // this should never happen, but if it does, we are assuming that 
-                            throw new Exception($"Duplicate parent id {parent.Id} for {Name}, but different parent objects. This is an error that should be reported.");
+                            Log.Warning($"Duplicate parent id {parent.Id} for {Name}, but different parent objects. " +
+                                        $"If this happens at any time other than during copy/paste operations, then this is an error that should be reported.");
+                            replacedId = false;
+                            var newChild = new Child(child.Symbol, child.Id, parent, child.Name, child.IsBypassed, _creationLock, child.Id);
+                            _childrenCreatedFromMe[child.Id] = newChild;
+                            child.Dispose();
+                            return child;
                         }
 
+                        Log.Warning($"Parent mismatch for {childId} in {Name}");
                         child = CreateWithNewId(child, parent);
                         _childrenCreatedFromMe.TryAdd(child.Id, child);
                         replacedId = true;
