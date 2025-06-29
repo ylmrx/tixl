@@ -137,33 +137,6 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         base(assemblyName, true)
     {
         Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
-        Resolving += (_, name) =>
-                     {
-                         var result = OnResolving(name);
-
-                         if (result != null)
-                         {
-                             // check versions of the assembly - if different, log a warning.
-                             // todo: actually do something with this information later
-                             if (ProjectSettings.Config.LogAssemblyVersionMismatches)
-                             {
-                                 var assemblyNameOfResult = result.GetName();
-
-                                 if (assemblyNameOfResult.Version != name.Version)
-                                 {
-                                     Log.Warning($"Assembly {name.Name} loaded with different version: {assemblyNameOfResult.Version} vs {name.Version}");
-                                 }
-                             }
-                         }
-
-                         if (result == null)
-                         {
-                             Log.Error($"{Name!}: Failed to resolve assembly '{name.Name}'");
-                             return Root!.Assembly;
-                         }
-
-                         return result;
-                     };
         Unloading += (_) => { Log.Debug($"{Name!}: Unloading assembly context"); };
 
         lock (_loadContextLock)
@@ -202,8 +175,11 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     internal static Assembly LoadAssembly(string path, AssemblyLoadContext ctx)
     {
         // try a shadow copy first
-        if (ctx is not TixlAssemblyLoadContext { _shouldCopyBinaries: true } tixlCtx) 
+        if (ctx is not TixlAssemblyLoadContext { _shouldCopyBinaries: true } tixlCtx)
+        {
+            Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
             return ctx.LoadFromAssemblyPath(path);
+        }
         
         var shadowCopyDirectory = tixlCtx._shadowCopyDirectory;
         if (tixlCtx._shouldCopyBinaries && !Directory.Exists(shadowCopyDirectory))
@@ -237,6 +213,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         var relativePath = Path.GetRelativePath(tixlCtx.MainDirectory, path);
         path = Path.Combine(shadowCopyDirectory, relativePath);
 
+        Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
         return ctx.LoadFromAssemblyPath(path);
         
         static void CopyFilesInDirectory(string rootDirectory, string directory, string shadowCopyDirectory, bool recursive)
@@ -302,6 +279,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
                 {
                     // add the dependency to our context
                     AddDependency(asmNode);
+                    LogResolution(asmNode.Assembly, asmName);
                     return asmNode.Assembly;
                 }
             }
@@ -321,13 +299,47 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
                 {
                     // add the dependency to our context
                     AddDependency(asmNode);
+                    LogResolution(asmNode.Assembly, asmName);
                     return asmNode.Assembly;
                 }
             }
         }
 
         // check nuget packages
-        return SearchNugetForAssemblies(asmName, name);
+        var result =  SearchNugetForAssemblies(asmName, name);
+        LogResolution(result, asmName);
+        return result;
+
+        void LogResolution(Assembly? resultAsm, AssemblyName searchName)
+        {
+            if (resultAsm != null)
+            {
+                // check versions of the assembly - if different, log a warning.
+                // todo: actually do something with this information later
+                if (ProjectSettings.Config.LogAssemblyVersionMismatches)
+                {
+                    var assemblyNameOfResult = resultAsm.GetName();
+
+                    if (assemblyNameOfResult.Version != searchName.Version)
+                    {
+                        Log.Warning($"Assembly {searchName.Name} loaded with different version: {assemblyNameOfResult.Version} vs {searchName.Version}");
+                    }
+                }
+                
+                if (resultAsm.GetName().Name != searchName.Name)
+                {
+                    Log.Error($"{Name!}: Resolved assembly name mismatch: {resultAsm.GetName().Name} != {searchName.Name}");
+                }
+                else
+                {
+                    Log.Debug($"{Name!}: Resolved assembly {resultAsm.GetName().Name}");
+                }
+            }
+            else
+            {
+                Log.Error($"{Name!}: Failed to resolve assembly '{searchName.Name}'");
+            }
+        }
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
