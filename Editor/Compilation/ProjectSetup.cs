@@ -112,7 +112,7 @@ internal static partial class ProjectSetup
     public static void UpdateSymbolPackages(params EditorSymbolPackage[] packages)
     {
         var stopWatch = Stopwatch.StartNew();
-        
+
         // actually update the symbol packages
 
         // this switch statement exists to avoid the overhead of parallelization for a single package, e.g. when compiling changes to a single project
@@ -141,6 +141,11 @@ internal static partial class ProjectSetup
         ConcurrentDictionary<EditorSymbolPackage, List<SymbolJson.SymbolReadResult>> loadedSymbols = new();
         ConcurrentDictionary<EditorSymbolPackage, List<Symbol>> loadedOrCreatedSymbols = new();
 
+        // generate load contexts synchronously
+        foreach (var package in packages)
+        {
+            package.AssemblyInformation.GenerateLoadContext();
+        }
 
         packages
            .AsParallel()

@@ -245,6 +245,7 @@ public abstract partial class SymbolPackage : IResourcePackage
             SymbolAdded?.Invoke(null, symbol);
         }
 
+        OnSymbolsLoaded();
         return;
 
         void LoadTypes(Guid guid, Type type, IDictionary<Guid, Type> newTypesDict, ConcurrentBag<Symbol> updated)
@@ -287,6 +288,8 @@ public abstract partial class SymbolPackage : IResourcePackage
             }
         }
     }
+    
+    protected virtual void OnSymbolsLoaded(){}
 
     protected static void UpdateSymbolInstances(Symbol symbol, bool forceTypeUpdate = false)
     {

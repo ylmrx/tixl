@@ -338,7 +338,7 @@ public sealed partial class AssemblyInformation
         return assembly.CreateInstance(constructorInfoInstanceType.FullName!);
     }
 
-    private void GenerateLoadContext()
+    public void GenerateLoadContext()
     {
         if(!_initialized)
             throw new InvalidOperationException($"Cannot generate load context for {Name} - not initialized");
@@ -346,7 +346,7 @@ public sealed partial class AssemblyInformation
         lock (_assemblyLock)
         {
             if (_loadContext != null)
-                throw new InvalidOperationException($"Load context already created for {Name}");
+                return;
 
             if (_directory == null)
             {

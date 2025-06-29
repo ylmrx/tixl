@@ -36,7 +36,6 @@ internal class EditorSymbolPackage : SymbolPackage
         Log.Debug($"Added package {assembly.Name}");
         SymbolAdded += OnSymbolAdded;
         assembly.Unloaded += OnAssemblyUnloaded;
-        assembly.Loaded += OnAssemblyLoaded;
         assembly.UnloadComplete += OnAssemblyUnloadComplete;
     }
 
@@ -425,8 +424,9 @@ internal class EditorSymbolPackage : SymbolPackage
         return SymbolUiDict.TryRemove(symbolId, out _) && SymbolDict.TryRemove(symbolId, out _);
     }
 
-    private void OnAssemblyLoaded(AssemblyInformation assemblyInformation)
+    protected sealed override void OnSymbolsLoaded()
     {
+        var assemblyInformation = AssemblyInformation;
         var types = assemblyInformation.TypesInheritingFrom(typeof(IEditorUiExtension)).ToArray();
         
         // register descriptive UI

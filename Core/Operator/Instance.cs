@@ -168,7 +168,7 @@ public abstract partial class Instance :  IGuidPathContainer, IResourceConsumer
     {
         if ((_status & InstanceStatus.Disposed) == 0)
         {
-            Log.Error($"Instance {this} was not disposed properly");
+            Log.Error($"Instance {GetType()} was not disposed properly");
             // todo : do we want to invoke disposal here? could this prevent memory leaks or other shutdown/reload issues?
             // would it cause thread safety issues? probably..
             // but currently this is using a disposal pattern designed around finalizers (disposing = true), etc

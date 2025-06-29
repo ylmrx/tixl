@@ -136,7 +136,7 @@ internal static partial class ProjectSetup
         failedProjects = [];
         foreach (var projectInfo in projectResults)
         {
-            if (projectInfo.csProjFile != null && projectInfo.success)
+            if (projectInfo is { csProjFile: not null, success: true })
             {
                 var project = new EditableSymbolProject(projectInfo.csProjFile);
                 AddToLoadedPackages(project);
