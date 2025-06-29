@@ -50,7 +50,7 @@ internal sealed class AssemblyTreeNode
 
         _nativeResolver = nativeResolver;
         Name = assembly.GetName();
-        NameStr = Name.GetNameSafe();
+        NameStr = Name.GetName();
         _searchNestedFolders = searchNestedFolders;
 
         _parentName = parent.Name!;
@@ -272,7 +272,7 @@ internal sealed class AssemblyTreeNode
                 return;
             }
 
-            var reference = new DllReference(file.FullName, assemblyName.GetNameSafe(), assemblyName);
+            var reference = new DllReference(file.FullName, assemblyName.GetName(), assemblyName);
             _unreferencedDlls.Add(reference);
         }
     }

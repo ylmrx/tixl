@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Threading;
+using Microsoft.Extensions.DependencyModel;
 using T3.Core.IO;
 using T3.Core.Logging;
 using T3.Core.Model;
@@ -116,7 +117,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
                             continue;
 
                         AssemblyTreeNode? depNode = null;
-                        var nameStr = dependencyName.GetNameSafe();
+                        var nameStr = dependencyName.GetName();
                         foreach (var coreNode in _coreNodes)
                         {
                             if (coreNode.TryFindExisting(nameStr, out depNode))
@@ -272,7 +273,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     // called if Load method returns null - searches other contexts and nuget packages
     private Assembly? OnResolving(AssemblyName asmName)
     {
-        var name = asmName.GetNameSafe();
+        var name = asmName.GetName();
 
         #if DEBUG
         if (_unloaded)
@@ -339,7 +340,7 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         }
         #endif
 
-        var name = assemblyName.GetNameSafe();
+        var name = assemblyName.GetName();
 
         foreach (var coreRef in CoreNodes)
         {
@@ -570,5 +571,5 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
 
 internal static class AssemblyNameExtensions
 {
-    public static string GetNameSafe(this AssemblyName asmName) => asmName.Name ?? asmName.FullName;
+    public static string GetName(this AssemblyName asmName) => asmName.FullName;
 }
