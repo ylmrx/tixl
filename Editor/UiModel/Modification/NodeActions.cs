@@ -194,7 +194,7 @@ internal static class NodeActions
             }
             
             using var reader = new StringReader(text);
-            var jsonReader = new JsonTextReader(reader);
+            using var jsonReader = new JsonTextReader(reader);
             if (JToken.ReadFrom(jsonReader, SymbolJson.LoadSettings) is not JArray jArray)
                 return;
 
