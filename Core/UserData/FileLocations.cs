@@ -15,7 +15,7 @@ public static class FileLocations
     public const string RenderSubFolder = "RenderOutput";
     public const string ExportFolderName = "T3Exports";
     public const string KeyBindingSubFolder = "KeyBindings";
-    public static string TempFolder => Path.Combine(SettingsPath, "Tmp");
+    public static string TempFolder => Path.Combine(SettingsDirectory, "Tmp");
 
     
     /// <summary>

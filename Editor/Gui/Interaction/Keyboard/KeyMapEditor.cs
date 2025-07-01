@@ -29,7 +29,7 @@ internal static class KeyMapEditor
                                    "Key Map",
                                    $"""
                                     You can clone key map bindings and create your personal layouts. 
-                                    They wil be saved to {FileLocations.SettingsPath}.
+                                    They wil be saved to {FileLocations.SettingsDirectory}.
                                     """))
         {
             if (KeyMapSwitching.TrySetKeyMap(userSelection))
