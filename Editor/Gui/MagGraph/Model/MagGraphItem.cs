@@ -87,6 +87,13 @@ internal sealed class MagGraphItem : ISelectableCanvasObject, IValueSnapAttracto
     public OutputLine[] OutputLines = Array.Empty<OutputLine>();
     public bool HasHiddenOutputs;
 
+    public enum InputLineStates
+    {
+        Connected,
+        TempConnection,
+        NotConnected,
+    } 
+
     public struct InputLine
     {
         public Type Type;
@@ -96,6 +103,7 @@ internal sealed class MagGraphItem : ISelectableCanvasObject, IValueSnapAttracto
         public int VisibleIndex;
         public MagGraphConnection? ConnectionIn;
         public int MultiInputIndex;
+        public InputLineStates ConnectionState;
     }
 
     public struct OutputLine

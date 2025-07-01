@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using T3.Core.UserData;
 using T3.Editor.Gui.Graph.Window;
 using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Output;
 
@@ -24,10 +25,10 @@ internal static class LayoutHandling
         // Process Keyboard shortcuts
         for (var i = 0; i < _saveLayoutActions.Length; i++)
         {
-            if (KeyboardBinding.Triggered(_saveLayoutActions[i]))
+            if (KeyActionHandling.Triggered(_saveLayoutActions[i]))
                 SaveLayout(i);
 
-            if (KeyboardBinding.Triggered(_loadLayoutActions[i]))
+            if (KeyActionHandling.Triggered(_loadLayoutActions[i]))
                 LoadAndApplyLayoutOrFocusMode(i);
         }
     }

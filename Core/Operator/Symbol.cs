@@ -184,8 +184,19 @@ public sealed partial class Symbol : IDisposable, IResource
         }
         else
         {
-            var insertBefore = multiInputIndex < connectionsAtInput.Count;
-            if (insertBefore)
+            var append = multiInputIndex == connectionsAtInput.Count;
+            if (append)
+            {
+                if (connectionsAtInput.Count == 0)
+                {
+                    Connections.Add(connection);
+                }
+                else
+                {
+                    Connections.Add( connection);
+                }
+            }
+            else
             {
                 // Use the target index to find the existing successor among the connections
                 var existingConnection = connectionsAtInput[multiInputIndex];
@@ -194,21 +205,6 @@ public sealed partial class Symbol : IDisposable, IResource
                 var insertIndex = Connections.FindIndex(c => c == existingConnection);
 
                 Connections.Insert(insertIndex, connection);
-            }
-            else
-            {
-                if (connectionsAtInput.Count == 0)
-                {
-                    Connections.Add(connection);
-                }
-                else
-                {
-                    var existingConnection = connectionsAtInput[^1];
-
-                    // ReSharper disable once PossibleUnintendedReferenceComparison
-                    var insertIndex = Connections.FindIndex(c => c == existingConnection);
-                    Connections.Insert(insertIndex + 1, connection);
-                }
             }
         }
 

@@ -4,6 +4,7 @@ using T3.Core.DataTypes;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Timing;
 using T3.Editor.Gui.Interaction.WithCurves;
 using T3.Editor.Gui.Styling;
@@ -84,7 +85,7 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
                              |ImGuiWindowFlags.NoScrollWithMouse);
 
             {
-                if (KeyboardBinding.Triggered(UserActions.DeleteSelection))
+                if (KeyActionHandling.Triggered(UserActions.DeleteSelection))
                     DeleteSelectedElements(compositionOp);
                     
                 switch (Mode)

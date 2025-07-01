@@ -38,7 +38,7 @@
     },
     {
       "Id": "6d16847c-a560-4835-b120-3fb8c278530a"/*WriteTo*/,
-      "DefaultValue": 1
+      "DefaultValue": 0
     },
     {
       "Id": "7634c477-6891-4fac-8f8a-3e580cb02277"/*InputMode*/,
