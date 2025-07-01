@@ -213,7 +213,7 @@ internal static class AppMenuBar
                     {
                         if (GraphWindow.GraphWindowInstances.Count > 0)
                         {
-                            BlockingWindow.Instance.ShowMessageBox("Would you like to create a new window?", "Opening " + name, "Yes", "No");
+                            BlockingWindow.Instance.ShowMessageBox("Would you like to open this project in a new window?", "Opening " + name, "Yes", "No");
                         }
 
                         Log.Error("Not implemented yet");
@@ -253,7 +253,7 @@ internal static class AppMenuBar
             // Disabled, at least for now, as this is an incomplete (or not even started) operation on the Main branch atm
             if (ImGui.MenuItem("Import Operators", null, false, !T3Ui.IsCurrentlySaving))
             {
-                BlockingWindow.Instance.ShowMessageBox("This feature is not yet implemented on the main branch - stay tuned for updates!",
+                BlockingWindow.Instance.ShowMessageBox("This feature is not yet available in the main branch. Stay tuned for updates!",
                                                        "Not yet implemented");
                 //_importDialog.ShowNextFrame();
             }

@@ -91,29 +91,29 @@ internal static class CrashReporting
         var lastBackupTime = AutoBackup.GetTimeOfLastBackup().GetReadableRelativeTime();
 
         var message = $"""
-                       TiXL crashed. We're really sorry.
+                       TiXL has crashed. We're really sorry.
 
-                       The last backup was saved {lastBackupTime} to...
+                       The last backup was saved {lastBackupTime} at...
                        {AutoBackup.BackupDirectory}
                         
-                       Please refer to Help > Using Backups on what to do next.
+                       Please refer to Help > Using Backups for instructions on what to do next.
                        """;
 
         if (json != null)
         {
             message += """
                        
-                        When this window closes, the current operator will be copied to your clipboard. 
-                        """;
+                       When this window closes, the current operator will be copied to your clipboard.
+                       """;
         }
 
         message += "\n\n" + (sentryEvent.Exception?.ToString() ?? Environment.StackTrace);
 
-        const string confirmation = "Send crash report (it really helps!)";
+        const string confirmation = "Send crash report (it really helps us!)";
         var result = BlockingWindow.Instance.ShowMessageBox(message, 
-                                                            @"☠🙈 Damn!", 
+                                                            @"☠🙈 Oh no!", 
                                                             confirmation, 
-                                                            "No thanks");
+                                                            "No, thanks");
 
         if (json != null)
         {
