@@ -4,6 +4,8 @@ using ImGuiNET;
 using T3.Core.Animation;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Snapping;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
@@ -55,6 +57,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
             DrawAllLayers(_context.ClipSelection.AllClips, compositionOp);
             DrawContextMenu(compositionOp);
+            HandleKeyboardActions(compositionOp);
             if (_context.ClipSelection.AllClips.Count > 0)
             {
                 FormInputs.AddVerticalSpace(15);
@@ -62,6 +65,14 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             }
         }
         ImGui.EndGroup();
+    }
+
+    private void HandleKeyboardActions(Instance compositionOp)
+    {
+        if (UserActions.SplitSelectedOrHoveredClips.Triggered())
+        {
+            SplitClipsAtTime(compositionOp);
+        }
     }
 
     private void DrawAllLayers(IReadOnlyCollection<ITimeClip> clips, Instance compositionOp)
@@ -123,8 +134,6 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (_context.ClipSelection.Count == 0)
             return;
 
-        var compositionSymbolUi = compositionOp.GetSymbolUi();
-
         // This is a horrible hack to distinguish right mouse click from right mouse drag
         var rightMouseDragDelta = (ImGui.GetIO().MouseClickedPos[1] - ImGui.GetIO().MousePos).Length();
         if (!_contextMenuIsOpen && rightMouseDragDelta > 3)
@@ -154,7 +163,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
             if (ImGui.MenuItem("Cut at time"))
             {
-                SplitClipsAtTime(compositionOp, compositionSymbolUi);
+                SplitClipsAtTime(compositionOp);
             }
 
             ImGui.Separator();
@@ -170,7 +179,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     /// <remarks>
     /// This command is incomplete and likely to lead to inconsistent data
     /// </remarks>
-    private void SplitClipsAtTime(Instance compositionOp, SymbolUi compositionSymbolUi)
+    private void SplitClipsAtTime(Instance compositionOp)
     {
         Debug.Assert(_playback != null);
 
@@ -181,6 +190,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             Log.Debug($"There are no time clips at current time {timeInBars:0.0}");
             return;
         }
+
+        var compositionSymbolUi = compositionOp.GetSymbolUi();
 
         var commands = new List<ICommand>();
         foreach (var clip in matchingClips)
@@ -203,7 +214,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             var originalSourceDuration = clip.SourceRange.Duration;
             var normalizedCutPosition = ((float)_playback.TimeInBars - clip.TimeRange.Start) / clip.TimeRange.Duration;
 
-            clip.TimeRange.End = (float)_playback.TimeInBars;
+
 
             // Apply new time range to newly added instance
             var newChildId = cmd.OldToNewIdDict[clip.Id];
@@ -224,7 +235,12 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             newTimeClip.SourceRange.Start = newTimeClip.SourceRange.Start + originalSourceDuration * normalizedCutPosition;
             newTimeClip.SourceRange.End = clip.SourceRange.End;
 
+            var adjustFirstClipCommand = new MoveTimeClipsCommand(compositionOp, [clip]);
+            
+            clip.TimeRange.End = (float)_playback.TimeInBars;
             clip.SourceRange.Duration = originalSourceDuration * normalizedCutPosition;
+            adjustFirstClipCommand.StoreCurrentValues();
+            commands.Add(adjustFirstClipCommand);
         }
 
         var macroCommands = new MacroCommand("split clip", commands);
