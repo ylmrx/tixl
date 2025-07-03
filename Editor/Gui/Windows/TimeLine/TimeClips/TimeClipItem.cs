@@ -153,7 +153,14 @@ internal static class TimeClipItem
 
         if (wasClicked)
         {
-            FitViewToSelectionHandling.FitViewToSelection();
+            if (ImGui.GetIO().KeyAlt)
+            {
+                ImGui.OpenPopup(_TimeEditPopupId);
+            }
+            else
+            {
+                FitViewToSelectionHandling.FitViewToSelection();
+            }
         }
 
         HandleDragging(attr, timeClip, isSelected, wasClicked, HandleDragMode.Body);
@@ -195,9 +202,22 @@ internal static class TimeClipItem
                 attr.MoveClipsCommand = null;
             }
         }
+        DrawTimeEditPop(timeClip);
 
         ImGui.PopID();
     }
+
+    private static void DrawTimeEditPop(ITimeClip item)
+    {
+        if (ImGui.BeginPopup(_TimeEditPopupId))
+        {
+            ImGui.TextUnformatted("Some content for later.");
+            ImGui.EndPopup();
+        }
+    }
+
+    private const string _TimeEditPopupId = nameof(_TimeEditPopupId); 
+    
 
     private static double GetSpeed(ITimeClip timeClip)
     {
