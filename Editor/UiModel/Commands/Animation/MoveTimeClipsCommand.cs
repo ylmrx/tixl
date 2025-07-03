@@ -15,6 +15,11 @@ public sealed class MoveTimeClipsCommand : ICommand
         public TimeRange TimeRange { get; set; }
         public TimeRange SourceRange { get; set; }
         public int LayerIndex { get; set; }
+        
+        public TimeRange TimeRangeOrg { get; set; }
+        public TimeRange SourceRangeOrg { get; set; }
+        public int LayerIndexOrg { get; set; }
+        
     }
 
     private readonly Entry[] _entries;
@@ -31,8 +36,11 @@ public sealed class MoveTimeClipsCommand : ICommand
                             {
                                 Id = clip.Id,
                                 TimeRange =clip.TimeRange.Clone(),
+                                TimeRangeOrg = clip.TimeRange.Clone(),
                                 SourceRange =clip.SourceRange.Clone(),
+                                SourceRangeOrg =clip.SourceRange.Clone(),
                                 LayerIndex = clip.LayerIndex,
+                                LayerIndexOrg = clip.LayerIndex,
                             };
             _entries[i] = entry;
         }
@@ -63,9 +71,9 @@ public sealed class MoveTimeClipsCommand : ICommand
             if (selectedEntry == null)
                 continue;
 
-            clip.TimeRange = selectedEntry.TimeRange.Clone();
-            clip.SourceRange = selectedEntry.SourceRange.Clone();
-            clip.LayerIndex = selectedEntry.LayerIndex;
+            clip.TimeRange = selectedEntry.TimeRangeOrg.Clone();
+            clip.SourceRange = selectedEntry.SourceRangeOrg.Clone();
+            clip.LayerIndex = selectedEntry.LayerIndexOrg;
             changed = true;
         }
 

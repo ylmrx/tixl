@@ -136,7 +136,7 @@ internal abstract class CurveEditCanvas : ScalableCanvas, ITimeObjectManipulatio
         {
             _commands.Add(manipulators.StartDragCommand(compositionSymbolId));
         }
-        _macro = new MacroCommand("Manipulate Keyframes", _commands);
+        _macro = new MacroCommand("Move Timeline Items", _commands);
         return null;
     }
 
