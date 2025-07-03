@@ -2,7 +2,6 @@
 using System.Diagnostics;
 using ImGuiNET;
 using T3.Core.Animation;
-using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Interaction.Snapping;
@@ -22,35 +21,94 @@ namespace T3.Editor.Gui.Windows.TimeLine.TimeClips;
 /// </summary>
 internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 {
-    public LayersArea(ValueSnapHandler snapHandler, TimeLineCanvas timeLineCanvas, Func<Instance> getCompositionOp, Func<Guid, bool> requestChildComposition)
+    public LayersArea(TimeLineCanvas timeLineCanvas, Func<Instance> getCompositionOp, Func<Guid, bool> requestChildCompositionFunc,
+                      ValueSnapHandler snapHandlerForU)
     {
-        _snapHandler = snapHandler;
         _getCompositionOp = getCompositionOp;
-        _requestChildComposition = requestChildComposition;
-        _clipSelection = new ClipSelection(timeLineCanvas.NodeSelection);
-        _timelineCanvas = timeLineCanvas;
+        _context = new LayerContext(new ClipSelection(timeLineCanvas.NodeSelection),
+                                    requestChildCompositionFunc,
+                                    timeLineCanvas,
+                                    snapHandlerForU);
     }
 
-    public void Draw(Instance compositionOp, Playback playback)
+    /// <summary>
+    /// Attributes that are required for drawing elements like <see cref="TimeClipItem"/>s.
+    /// </summary>
+    internal sealed record LayerContext(
+        ClipSelection ClipSelection,
+        Func<Guid, bool> RequestChildComposition,
+        TimeLineCanvas TimeCanvas,
+        ValueSnapHandler SnapHandler);
+
+    private readonly LayerContext _context;
+    
+    public void Draw(Instance compositionOp, Playback playback, ValueSnapHandler snapHandler)
     {
         _drawList = ImGui.GetWindowDrawList();
         _playback = playback;
 
         ImGui.BeginGroup();
         {
-            _clipSelection.UpdateForComposition(compositionOp);
+            _context.ClipSelection.UpdateForComposition(compositionOp);
             ImGui.SetCursorPos(ImGui.GetCursorPos() + new Vector2(0, 3)); // keep some padding 
             _minScreenPos = ImGui.GetCursorScreenPos();
 
-            DrawAllLayers(_clipSelection.AllClips, compositionOp);
+            DrawAllLayers(_context.ClipSelection.AllClips, compositionOp);
             DrawContextMenu(compositionOp);
-            if (_clipSelection.AllClips.Count > 0)
+            if (_context.ClipSelection.AllClips.Count > 0)
             {
                 FormInputs.AddVerticalSpace(15);
                 ImGui.TextUnformatted(""); // Enforce application of space. Not sure why imgui requires that
             }
         }
         ImGui.EndGroup();
+    }
+
+    private void DrawAllLayers(IReadOnlyCollection<ITimeClip> clips, Instance compositionOp)
+    {
+        if (clips.Count == 0)
+        {
+            LastHeight = 0;
+            return;
+        }
+
+        // Adjust height to bounds
+        {
+            _minLayerIndex = int.MaxValue;
+            _maxLayerIndex = int.MinValue;
+            foreach (var clip in clips)
+            {
+                _minLayerIndex = Math.Min(clip.LayerIndex, _minLayerIndex);
+                _maxLayerIndex = Math.Max(clip.LayerIndex, _maxLayerIndex);
+            }
+        }
+
+        // Draw layer lines
+        var min = ImGui.GetCursorScreenPos() + new Vector2(0, LayerHeight * 0.5f);
+        var max = min + new Vector2(ImGui.GetContentRegionAvail().X,
+                                    LayerHeight * (_maxLayerIndex - _minLayerIndex + 1) + 1);
+        LastHeight = max.Y - min.Y + 5;
+        _drawList.AddRectFilled(new Vector2(min.X, max.Y - 2),
+                                new Vector2(max.X, max.Y - 0), UiColors.BackgroundFull.Fade(0.6f));
+
+        var compositionSymbolUi = compositionOp.GetSymbolUi();
+        var drawAttributes = new TimeClipItem.ClipDrawingAttributes(
+                                                                    _context,
+                                                                    new ImRect(min, max),
+                                                                    _minLayerIndex,
+                                                                    compositionOp,
+                                                                    compositionSymbolUi,
+                                                                    _moveClipsCommand,
+                                                                    _drawList
+                                                                   );
+
+        // All clips in all layers
+        foreach (var clip in clips)
+        {
+            TimeClipItem.DrawClip(clip, ref drawAttributes);
+        }
+
+        ImGui.SetCursorScreenPos(min + new Vector2(0, LayerHeight));
     }
 
     private bool _contextMenuIsOpen;
@@ -62,7 +120,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (!_contextMenuIsOpen && !ImGui.IsWindowHovered())
             return;
 
-        if (_clipSelection.Count == 0)
+        if (_context.ClipSelection.Count == 0)
             return;
 
         var compositionSymbolUi = compositionOp.GetSymbolUi();
@@ -75,23 +133,23 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (ImGui.BeginPopupContextWindow("windows_context_menu"))
         {
             _contextMenuIsOpen = true;
-            if (ImGui.MenuItem("Delete", null, false, _clipSelection.Count > 0))
+            if (ImGui.MenuItem("Delete", null, false, _context.ClipSelection.Count > 0))
             {
-                UndoRedoStack.AddAndExecute(new TimeClipDeleteCommand(compositionOp, _clipSelection.SelectedClips));
-                _clipSelection.Clear();
+                UndoRedoStack.AddAndExecute(new TimeClipDeleteCommand(compositionOp, _context.ClipSelection.SelectedClips));
+                _context.ClipSelection.Clear();
             }
 
-            if (ImGui.MenuItem("Clear Time Stretch", null, false, _clipSelection.Count > 0))
+            if (ImGui.MenuItem("Clear Time Stretch", null, false, _context.ClipSelection.Count > 0))
             {
-                var moveTimeClipCommand = new MoveTimeClipsCommand(compositionOp, _clipSelection.SelectedClips.ToList());
-                foreach (var clip in _clipSelection.SelectedClips)
+                var moveTimeClipCommand = new MoveTimeClipsCommand(compositionOp, _context.ClipSelection.SelectedClips.ToList());
+                foreach (var clip in _context.ClipSelection.SelectedClips)
                 {
                     clip.SourceRange = clip.TimeRange.Clone();
                 }
 
                 moveTimeClipCommand.StoreCurrentValues();
                 UndoRedoStack.AddAndExecute(moveTimeClipCommand);
-                _clipSelection.Clear();
+                _context.ClipSelection.Clear();
             }
 
             if (ImGui.MenuItem("Cut at time"))
@@ -117,7 +175,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         Debug.Assert(_playback != null);
 
         var timeInBars = _playback.TimeInBars;
-        var matchingClips = _clipSelection.AllOrSelectedClips.Where(clip => clip.TimeRange.Contains(timeInBars)).ToList();
+        var matchingClips = _context.ClipSelection.AllOrSelectedClips.Where(clip => clip.TimeRange.Contains(timeInBars)).ToList();
         if (matchingClips.Count == 0)
         {
             Log.Debug($"There are no time clips at current time {timeInBars:0.0}");
@@ -180,349 +238,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
     public float LastHeight;
 
-    private void DrawAllLayers(IReadOnlyCollection<ITimeClip> clips, Instance compositionOp)
-    {
-        if (clips.Count == 0)
-        {
-            LastHeight = 0;
-            return;
-        }
-
-        // Adjust height to bounds
-        {
-            _minLayerIndex = int.MaxValue;
-            _maxLayerIndex = int.MinValue;
-            foreach (var clip in clips)
-            {
-                _minLayerIndex = Math.Min(clip.LayerIndex, _minLayerIndex);
-                _maxLayerIndex = Math.Max(clip.LayerIndex, _maxLayerIndex);
-            }
-        }
-
-        // Draw layer lines
-        var min = ImGui.GetCursorScreenPos() + new Vector2(0, LayerHeight * 0.5f);
-        var max = min + new Vector2(ImGui.GetContentRegionAvail().X,
-                                    LayerHeight * (_maxLayerIndex - _minLayerIndex + 1) + 1);
-        var layerArea = new ImRect(min, max);
-        LastHeight = max.Y - min.Y + 5;
-        _drawList.AddRectFilled(new Vector2(min.X, max.Y - 2),
-                                new Vector2(max.X, max.Y - 0), UiColors.BackgroundFull.Fade(0.6f));
-
-        var compositionSymbolUi = compositionOp.GetSymbolUi();
-        var drawAttributes = new ClipDrawingAttributes(
-                                                       _timelineCanvas,
-                                                       layerArea,
-                                                       _minLayerIndex,
-                                                       compositionOp,
-                                                       compositionSymbolUi,
-                                                       _drawList
-                                                      );
-
-        foreach (var clip in clips)
-        {
-            DrawClip(clip, ref drawAttributes);
-        }
-
-        ImGui.SetCursorScreenPos(min + new Vector2(0, LayerHeight));
-    }
-
-    private record struct ClipDrawingAttributes(
-        TimeLineCanvas TimelineCanvas,
-        ImRect LayerArea,
-        int MinLayerIndex,
-        Instance CompositionOp,
-        SymbolUi CompositionSymbolUi,
-        ImDrawListPtr DrawList);
-
-    private void DrawClip(ITimeClip timeClip, ref ClipDrawingAttributes attr)
-    {
-        var xStartTime = attr.TimelineCanvas.TransformX(timeClip.TimeRange.Start) + 1;
-        var xEndTime = attr.TimelineCanvas.TransformX(timeClip.TimeRange.End) + 1;
-        var position = new Vector2(xStartTime,
-                                   attr.LayerArea.Min.Y + (timeClip.LayerIndex - attr.MinLayerIndex) * LayerHeight);
-
-        var clipWidth = xEndTime - xStartTime;
-        var showSizeHandles = clipWidth > 4 * HandleWidth;
-        var bodyWidth = showSizeHandles
-                            ? (clipWidth - 2 * HandleWidth)
-                            : clipWidth;
-
-        var bodySize = new Vector2(bodyWidth, LayerHeight - 2);
-        var clipSize = new Vector2(clipWidth, LayerHeight - 2);
-
-        var symbolChildUi = attr.CompositionSymbolUi.ChildUis[timeClip.Id];
-
-        ImGui.PushID(symbolChildUi.Id.GetHashCode());
-
-        var isSelected = _clipSelection.SelectedClips.Contains(timeClip);
-        var itemRectMax = position + clipSize - new Vector2(1, 0);
-
-        var rounding = 3.5f;
-        var randomColor = DrawUtils.RandomColorForHash(timeClip.Id.GetHashCode());
-
-        attr.DrawList.AddRectFilled(position, itemRectMax, randomColor.Fade(0.25f), rounding);
-
-        var timeRemapped = timeClip.TimeRange != timeClip.SourceRange;
-        var timeStretched = Math.Abs(timeClip.TimeRange.Duration - timeClip.SourceRange.Duration) > 0.001;
-        if (timeStretched)
-        {
-            attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
-                                        position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
-                                        UiColors.StatusAttention, rounding);
-        }
-        else if (timeRemapped)
-        {
-            attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 1),
-                                        position + new Vector2(clipSize.X - 1, clipSize.Y),
-                                        UiColors.StatusAnimated);
-        }
-
-        if (isSelected)
-            attr.DrawList.AddRect(position, itemRectMax, UiColors.Selection, rounding);
-
-        ImGui.PushClipRect(position, itemRectMax - new Vector2(3, 0), true);
-        var label = timeStretched
-                        ? symbolChildUi.SymbolChild.ReadableName + $" ({GetSpeed(timeClip)}%)"
-                        : symbolChildUi.SymbolChild.ReadableName;
-        ImGui.PushFont(Fonts.FontSmall);
-        attr.DrawList.AddText(position + new Vector2(4, 1), isSelected ? UiColors.Selection : randomColor, label);
-        ImGui.PopFont();
-        ImGui.PopClipRect();
-
-        if (isSelected && timeRemapped && _clipSelection.Count == 1)
-        {
-            var verticalOffset = ImGui.GetContentRegionMax().Y + ImGui.GetWindowPos().Y - position.Y - LayerHeight;
-            var horizontalOffset = attr.TimelineCanvas.TransformDirection(new Vector2(timeClip.SourceRange.Start - timeClip.TimeRange.Start, 0)).X;
-            var startPosition = position + new Vector2(0, LayerHeight);
-            attr.DrawList.AddBezierCubic(startPosition,
-                                         startPosition + new Vector2(0, verticalOffset),
-                                         startPosition + new Vector2(horizontalOffset, 0),
-                                         startPosition + new Vector2(horizontalOffset, verticalOffset),
-                                         _timeRemappingColor, 1);
-
-            horizontalOffset = attr.TimelineCanvas.TransformDirection(new Vector2(timeClip.SourceRange.End - timeClip.TimeRange.End, 0)).X;
-            var endPosition = position + new Vector2(clipSize.X, LayerHeight);
-            attr.DrawList.AddBezierCubic(endPosition,
-                                         endPosition + new Vector2(0, verticalOffset),
-                                         endPosition + new Vector2(horizontalOffset, 0),
-                                         endPosition + new Vector2(horizontalOffset, verticalOffset),
-                                         _timeRemappingColor, 1);
-        }
-
-        ImGui.SetCursorScreenPos(showSizeHandles ? (position + _handleOffset) : position);
-
-        var wasClicked = ImGui.InvisibleButton("body", bodySize);
-
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.BeginTooltip();
-            {
-                ImGui.TextUnformatted(symbolChildUi.SymbolChild.ReadableName);
-
-                ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
-                ImGui.TextUnformatted($"Visible: {timeClip.TimeRange.Start:0.00} ... {timeClip.TimeRange.End:0.00}");
-                if (timeRemapped)
-                {
-                    ImGui.TextUnformatted($"Source {timeClip.SourceRange.Start:0.00} ... {timeClip.SourceRange.End:0.00}");
-                }
-
-                if (timeStretched)
-                {
-                    var speed = GetSpeed(timeClip);
-                    ImGui.TextUnformatted($"Speed: {speed:0.}%");
-                }
-
-                ImGui.PopStyleColor();
-            }
-            ImGui.EndTooltip();
-        }
-
-        if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))
-        {
-            if (Structure.TryGetUiAndInstanceInComposition(timeClip.Id, attr.CompositionOp, out _, out var instance))
-            {
-                if (instance.Symbol.Children.Count > 0)
-                    _requestChildComposition(instance.SymbolChildId);
-            }
-        }
-
-        if (ImGui.IsItemHovered())
-        {
-            FrameStats.AddHoveredId(symbolChildUi.Id);
-        }
-
-        var notClickingOrDragging = !ImGui.IsItemActive() && !ImGui.IsMouseDragging(ImGuiMouseButton.Left);
-        if (notClickingOrDragging && _moveClipsCommand != null)
-        {
-            // Store values and nullify command
-            attr.TimelineCanvas.CompleteDragCommand();
-        }
-
-        if (wasClicked)
-        {
-            FitViewToSelectionHandling.FitViewToSelection();
-        }
-
-        HandleDragging(attr.CompositionOp, timeClip, isSelected, wasClicked, HandleDragMode.Body, position);
-
-        var handleSize = showSizeHandles ? new Vector2(HandleWidth, LayerHeight) : Vector2.One;
-
-        ImGui.SetCursorScreenPos(position);
-        var aHandleClicked = ImGui.InvisibleButton("startHandle", handleSize);
-        if (ImGui.IsItemHovered() || ImGui.IsItemActive())
-        {
-            attr.DrawList.AddRectFilled(ImGui.GetItemRectMin() + new Vector2(2, 3),
-                                        ImGui.GetItemRectMax() - new Vector2(1, 4),
-                                        UiColors.ForegroundFull.Fade(0.3f),
-                                        5);
-        }
-
-        HandleDragging(attr.CompositionOp, timeClip, isSelected, false, HandleDragMode.Start, position);
-
-        ImGui.SetCursorScreenPos(position + new Vector2(bodyWidth + HandleWidth, 0));
-        aHandleClicked |= ImGui.InvisibleButton("endHandle", handleSize);
-        if (ImGui.IsItemHovered() || ImGui.IsItemActive())
-        {
-            attr.DrawList.AddRectFilled(ImGui.GetItemRectMin() + new Vector2(0, 3),
-                                        ImGui.GetItemRectMax() - new Vector2(3, 4),
-                                        UiColors.ForegroundFull.Fade(0.3f),
-                                        5);
-        }
-
-        HandleDragging(attr.CompositionOp, timeClip, isSelected, false, HandleDragMode.End, position);
-
-        if (aHandleClicked)
-        {
-            attr.TimelineCanvas.CompleteDragCommand();
-
-            if (_moveClipsCommand != null)
-            {
-                _moveClipsCommand.StoreCurrentValues();
-                UndoRedoStack.Add(_moveClipsCommand);
-                _moveClipsCommand = null;
-            }
-        }
-
-        ImGui.PopID();
-    }
-
-    private static double GetSpeed(ITimeClip timeClip)
-    {
-        return Math.Abs(timeClip.TimeRange.Duration) > 0.001
-                   ? Math.Round((timeClip.TimeRange.Duration / timeClip.SourceRange.Duration) * 100)
-                   : 9999;
-    }
-
-    private enum HandleDragMode
-    {
-        Body = 0,
-        Start,
-        End,
-    }
-
-    private float _timeWithinDraggedClip;
-
-    private void HandleDragging(Instance compositionOp, ITimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode, Vector2 position)
-    {
-        if (ImGui.IsItemHovered())
-        {
-            ImGui.SetMouseCursor(mode == HandleDragMode.Body
-                                     ? ImGuiMouseCursor.Hand
-                                     : ImGuiMouseCursor.ResizeEW);
-        }
-
-        if (!wasClicked && (!ImGui.IsItemActive() || !ImGui.IsMouseDragging(0, UserSettings.Config.ClickThreshold)))
-            return;
-
-        if (ImGui.GetIO().KeyCtrl)
-        {
-            if (isSelected)
-            {
-                _clipSelection.Deselect(timeClip);
-            }
-
-            return;
-        }
-
-        if (!isSelected)
-        {
-            if (!ImGui.GetIO().KeyShift)
-            {
-                _timelineCanvas.ClearSelection();
-            }
-
-            _clipSelection.Select(timeClip);
-        }
-
-        var mousePos = ImGui.GetIO().MousePos;
-        var dragContent = ImGui.GetIO().KeyAlt;
-        var referenceRange = (dragContent ? timeClip.SourceRange : timeClip.TimeRange);
-        var scale = 1f;
-        if (dragContent && timeClip.SourceRange.Duration != 0 && timeClip.SourceRange.Duration != 0)
-            scale = timeClip.TimeRange.Duration / timeClip.SourceRange.Duration;
-
-        if (_moveClipsCommand == null)
-        {
-            var dragStartedAtTime = _timelineCanvas.InverseTransformX(mousePos.X);
-            _timeWithinDraggedClip = dragStartedAtTime - referenceRange.Start;
-            _posPosYOnDragStart = mousePos.Y;
-            _layerIndexOnDragStart = 0;
-            _timelineCanvas.StartDragCommand(compositionOp.Symbol.Id);
-        }
-
-        switch (mode)
-        {
-            case HandleDragMode.Body:
-                var currentDragTime = _timelineCanvas.InverseTransformX(mousePos.X);
-
-                var newStartTime = currentDragTime - _timeWithinDraggedClip;
-                var dy = _posPosYOnDragStart - mousePos.Y;
-
-                if (_snapHandler.TryCheckForSnapping(newStartTime, out var snappedValue, _timelineCanvas.Scale.X * scale))
-                {
-                    newStartTime = (float)snappedValue;
-                    _timelineCanvas.UpdateDragCommand(newStartTime - referenceRange.Start, dy);
-                    return;
-                }
-
-                var newEndTime = newStartTime + referenceRange.Duration;
-                if (_snapHandler.TryCheckForSnapping(newEndTime, out var snappedValue2, _timelineCanvas.Scale.X * scale))
-                {
-                    newEndTime = (float)snappedValue2;
-                }
-
-                _timelineCanvas.UpdateDragCommand(newEndTime - referenceRange.End, dy);
-                break;
-
-            case HandleDragMode.Start:
-                var newDragStartTime = _timelineCanvas.InverseTransformX(mousePos.X);
-                if (_snapHandler.TryCheckForSnapping(newDragStartTime, out var snappedValue3, _timelineCanvas.Scale.X * scale))
-                {
-                    newDragStartTime = (float)snappedValue3;
-                }
-
-                _timelineCanvas.UpdateDragAtStartPointCommand(newDragStartTime - timeClip.TimeRange.Start, 0);
-                break;
-
-            case HandleDragMode.End:
-                var newDragTime = _timelineCanvas.InverseTransformX(mousePos.X);
-                if (_snapHandler.TryCheckForSnapping(newDragTime, out var snappedValue4, _timelineCanvas.Scale.X * scale))
-                {
-                    newDragTime = (float)snappedValue4;
-                }
-
-                _timelineCanvas.UpdateDragAtEndPointCommand(newDragTime - timeClip.TimeRange.End, 0);
-                break;
-
-            default:
-                throw new ArgumentOutOfRangeException(nameof(mode), mode, null);
-        }
-    }
-
     #region implement TimeObject interface --------------------------------------------
     public void ClearSelection()
     {
-        _clipSelection.Clear();
+        _context.ClipSelection.Clear();
     }
 
     public void UpdateSelectionForArea(ImRect screenArea, SelectionFence.SelectModes selectMode)
@@ -530,10 +249,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         var compositionOp = _getCompositionOp();
 
         if (selectMode == SelectionFence.SelectModes.Replace)
-            _clipSelection.Clear();
+            _context.ClipSelection.Clear();
 
-        var startTime = _timelineCanvas.InverseTransformX(screenArea.Min.X);
-        var endTime = _timelineCanvas.InverseTransformX(screenArea.Max.X);
+        var startTime = _context.TimeCanvas.InverseTransformX(screenArea.Min.X);
+        var endTime = _context.TimeCanvas.InverseTransformX(screenArea.Max.X);
 
         var layerMinIndex = (screenArea.Min.Y - _minScreenPos.Y - LayerHeight * 0.5f) / LayerHeight + _minLayerIndex;
         var layerMaxIndex = (screenArea.Max.Y - _minScreenPos.Y - LayerHeight * 0.5f) / LayerHeight + _minLayerIndex;
@@ -552,11 +271,11 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             {
                 case SelectionFence.SelectModes.Add:
                 case SelectionFence.SelectModes.Replace:
-                    _clipSelection.AddSelection(clip);
+                    _context.ClipSelection.AddSelection(clip);
                     break;
 
                 case SelectionFence.SelectModes.Remove:
-                    _clipSelection.Deselect(clip);
+                    _context.ClipSelection.Deselect(clip);
                     break;
             }
         }
@@ -566,7 +285,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     {
         var composition = _getCompositionOp();
 
-        _moveClipsCommand = new MoveTimeClipsCommand(composition, _clipSelection.SelectedClips.ToList());
+        _moveClipsCommand = new MoveTimeClipsCommand(composition, _context.ClipSelection.SelectedClips.ToList());
+        _layerIndexOnDragStart = 0;
         return _moveClipsCommand;
     }
 
@@ -581,7 +301,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             _layerIndexOnDragStart -= indexDelta;
         }
 
-        foreach (var clip in _clipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.SelectedClips)
         {
             if (dragContent)
             {
@@ -605,7 +325,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public void UpdateDragAtStartPointCommand(double dt, double dv)
     {
         var trim = !ImGui.GetIO().KeyAlt;
-        foreach (var clip in _clipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.SelectedClips)
         {
             // Keep 1 frame min duration
             var org = clip.TimeRange.Start;
@@ -619,7 +339,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public void UpdateDragAtEndPointCommand(double dt, double dv)
     {
         var trim = !ImGui.GetIO().KeyAlt;
-        foreach (var clip in _clipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.SelectedClips)
         {
             // Keep 1 frame min duration
             var org = clip.TimeRange.End;
@@ -632,7 +352,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
     void ITimeObjectManipulation.UpdateDragStretchCommand(double scaleU, double scaleV, double originU, double originV)
     {
-        foreach (var clip in _clipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.SelectedClips)
         {
             clip.TimeRange.Start = (float)(originU + (clip.TimeRange.Start - originU) * scaleU);
             clip.TimeRange.End = (float)Math.Max(originU + (clip.TimeRange.End - originU) * scaleU, clip.TimeRange.Start + MinDuration);
@@ -644,7 +364,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public TimeRange GetSelectionTimeRange()
     {
         var timeRange = TimeRange.Undefined;
-        foreach (var s in _clipSelection.SelectedClips)
+        foreach (var s in _context.ClipSelection.SelectedClips)
         {
             // fix broken time ranges
             // FIXME: make sure these don't happen at all
@@ -690,7 +410,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         foreach (var clip in allClips)
         {
-            if (_clipSelection.Contains(clip))
+            if (_context.ClipSelection.Contains(clip))
                 continue;
 
             snapResult.TryToImproveWithAnchorValue(clip.TimeRange.Start);
@@ -702,18 +422,11 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     private Vector2 _minScreenPos;
 
     private static MoveTimeClipsCommand? _moveClipsCommand;
-    private const int LayerHeight = 28;
-    private const float HandleWidth = 7;
-    private readonly Vector2 _handleOffset = new(HandleWidth, 0);
+    internal const int LayerHeight = 28;
 
     private ImDrawListPtr _drawList;
-    private readonly ValueSnapHandler _snapHandler;
+
     private Playback? _playback;
-    private readonly Color _timeRemappingColor = UiColors.StatusAnimated.Fade(0.5f);
-    private readonly ClipSelection _clipSelection;
-    private readonly TimeLineCanvas _timelineCanvas;
     private readonly Func<Instance> _getCompositionOp;
-    private readonly Func<Guid, bool> _requestChildComposition;
-    private float _posPosYOnDragStart;
     private int _layerIndexOnDragStart;
 }
