@@ -65,8 +65,8 @@ internal static class TimeClipItem
         }
         else if (timeRemapped)
         {
-            attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 1),
-                                        position + new Vector2(clipSize.X - 1, clipSize.Y),
+            attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 2),
+                                        position + new Vector2(clipSize.X - 1, clipSize.Y-1),
                                         UiColors.StatusAnimated);
         }
 
@@ -266,7 +266,7 @@ internal static class TimeClipItem
         }
 
         var mousePos = ImGui.GetIO().MousePos;
-        var dragContent = ImGui.GetIO().KeyAlt;
+        var dragContent = false;// ImGui.GetIO().KeyAlt;
         var referenceRange = (dragContent ? timeClip.SourceRange : timeClip.TimeRange);
         var scale = 1f;
         if (dragContent && timeClip.SourceRange.Duration != 0 && timeClip.SourceRange.Duration != 0)
