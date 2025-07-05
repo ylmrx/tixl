@@ -116,6 +116,7 @@ internal static class KeyMapSwitching
                     continue;
                 }
 
+                t.UpdateShortcutLabels();
                 KeyMaps.Add(t);
             }
             catch (Exception e)
