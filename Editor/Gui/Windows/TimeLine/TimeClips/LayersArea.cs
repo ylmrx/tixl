@@ -27,10 +27,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                       ValueSnapHandler snapHandlerForU)
     {
         _getCompositionOp = getCompositionOp;
-        _context = new LayerContext(new ClipSelection(timeLineCanvas.NodeSelection),
-                                    requestChildCompositionFunc,
-                                    timeLineCanvas,
-                                    snapHandlerForU);
+        _context = new LayersArea.LayerContext(new ClipSelection(timeLineCanvas.NodeSelection),
+                                               requestChildCompositionFunc,
+                                               timeLineCanvas,
+                                               snapHandlerForU);
     }
 
     /// <summary>
@@ -42,7 +42,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         TimeLineCanvas TimeCanvas,
         ValueSnapHandler SnapHandler);
 
-    private readonly LayerContext _context;
+    private readonly LayersArea.LayerContext _context;
 
     public void Draw(Instance compositionOp, Playback playback, ValueSnapHandler snapHandler)
     {
@@ -58,6 +58,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             DrawAllLayers(compositionOp);
             DrawContextMenuItems(compositionOp);
             HandleKeyboardActions(compositionOp);
+            ClipTimingEditor.DrawPopUp(_context);
             if (_context.ClipSelection.AllClipIds.Count > 0)
             {
                 FormInputs.AddVerticalSpace(15);
@@ -173,6 +174,11 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                 moveTimeClipCommand.StoreCurrentValues();
                 UndoRedoStack.AddAndExecute(moveTimeClipCommand);
                 _context.ClipSelection.Clear();
+            }
+            
+            if (ImGui.MenuItem("Edit clip times", null, false, _context.ClipSelection.Count > 0))
+            {
+                ClipTimingEditor.TimeClipEditorRequested = true;
             }
 
             if (ImGui.MenuItem("Cut at time"))

@@ -172,14 +172,7 @@ internal static class TimeClipItem
 
         if (wasClickedDown)
         {
-            if (ImGui.GetIO().KeyAlt)
-            {
-                ImGui.OpenPopup(_TimeEditPopupId);
-            }
-            else
-            {
-                FitViewToSelectionHandling.FitViewToSelection();
-            }
+            FitViewToSelectionHandling.FitViewToSelection();
         }
 
         HandleDragging(attr, timeClip, isSelected, wasClickedDown, HandleDragMode.Body);
@@ -222,32 +215,9 @@ internal static class TimeClipItem
             }
         }
 
-        DrawTimeEditPop(timeClip);
-
         ImGui.PopID();
     }
 
-    private static void DrawTimeEditPop(TimeClip item)
-    {
-        //ImGui.SetNextItemWidth(350);
-        ImGui.SetNextWindowSize(new Vector2(350, 0));
-        if (ImGui.BeginPopup(_TimeEditPopupId))
-        {
-            //ImGui.TextUnformatted("TimeClip");
-            FormInputs.AddSectionHeader("Time Clip");
-            var sourceRange = new Vector2(item.SourceRange.Start, item.SourceRange.Start);
-
-            FormInputs.AddFloat("Clip Start", ref item.TimeRange.Start);
-            FormInputs.AddFloat("Clip End", ref item.TimeRange.End);
-            FormInputs.AddVerticalSpace();
-            FormInputs.AddFloat("SourceStart", ref item.SourceRange.Start);
-            FormInputs.AddFloat("SourceEnd", ref item.SourceRange.End);
-
-            ImGui.EndPopup();
-        }
-    }
-
-    private const string _TimeEditPopupId = nameof(_TimeEditPopupId);
 
     private static double GetSpeed(TimeClip timeClip)
     {
