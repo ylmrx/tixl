@@ -316,15 +316,23 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public ICommand StartDragCommand(in Guid compositionSymbolId)
     {
         var composition = _getCompositionOp();
-
-        _moveClipsCommand = new MoveTimeClipsCommand(composition, _context.ClipSelection.GetAllOrSelectedClips().ToList());
+        var selection = _context.ClipSelection.SelectedClipsIds.Count > 0
+                            ? _context.ClipSelection.GetAllOrSelectedClips().ToList()
+                            : [];
+        
+        _moveClipsCommand = new MoveTimeClipsCommand(composition, selection);
         _layerIndexOnDragStart = 0;
         return _moveClipsCommand;
     }
 
     void ITimeObjectManipulation.UpdateDragCommand(double dt, double dy)
     {
-        var toggleLinkMode = ImGui.GetIO().KeyAlt;
+        var io = ImGui.GetIO();
+        var toggleLinkMode = io.KeyAlt;
+        var dragInside = io.KeyCtrl && io.KeyAlt;
+
+        if (_context.ClipSelection.SelectedClipsIds.Count == 0)
+            return;
         
         var indexDelta = _layerIndexOnDragStart - (int)(dy / LayerHeight);
 
@@ -335,7 +343,12 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
-            if (clip.UsedForRegionMapping^toggleLinkMode)
+            if (dragInside)
+            {
+                clip.SourceRange.Start += (float)dt;
+                clip.SourceRange.End += (float)dt;
+            }
+            else if (clip.UsedForRegionMapping^toggleLinkMode)
             {
                 //TODO: fix continuous dragging
                 clip.TimeRange.Start += (float)dt;

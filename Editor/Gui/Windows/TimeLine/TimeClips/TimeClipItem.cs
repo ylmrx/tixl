@@ -82,7 +82,7 @@ internal static class TimeClipItem
 
             ImGui.PopFont();
         }
-        
+
         // Stretch indicators
         {
             if (timeStretched)
@@ -98,7 +98,6 @@ internal static class TimeClipItem
                                             UiColors.StatusAnimated);
             }
         }
-        
 
         // Draw stretch indicators
         if (isSelected && timeRemapped && attr.LayerContext.ClipSelection.Count == 1)
@@ -124,7 +123,7 @@ internal static class TimeClipItem
         // Interaction and dragging
         ImGui.SetCursorScreenPos(showSizeHandles ? (position + _handleOffset) : position);
 
-        var wasClicked = ImGui.InvisibleButton("body", bodySize);
+        var wasClickedDown = ImGui.InvisibleButton("body", bodySize);
 
         if (ImGui.IsItemHovered())
         {
@@ -171,7 +170,7 @@ internal static class TimeClipItem
             attr.LayerContext.TimeCanvas.CompleteDragCommand();
         }
 
-        if (wasClicked)
+        if (wasClickedDown)
         {
             if (ImGui.GetIO().KeyAlt)
             {
@@ -183,7 +182,7 @@ internal static class TimeClipItem
             }
         }
 
-        HandleDragging(attr, timeClip, isSelected, wasClicked, HandleDragMode.Body);
+        HandleDragging(attr, timeClip, isSelected, wasClickedDown, HandleDragMode.Body);
 
         var handleSize = showSizeHandles ? new Vector2(HandleWidth, LayersArea.LayerHeight) : Vector2.One;
 
@@ -231,7 +230,7 @@ internal static class TimeClipItem
     private static void DrawTimeEditPop(TimeClip item)
     {
         //ImGui.SetNextItemWidth(350);
-        ImGui.SetNextWindowSize(new Vector2(350,0));
+        ImGui.SetNextWindowSize(new Vector2(350, 0));
         if (ImGui.BeginPopup(_TimeEditPopupId))
         {
             //ImGui.TextUnformatted("TimeClip");
@@ -266,9 +265,9 @@ internal static class TimeClipItem
 
     /// <summary>
     /// Handles the invocation and update of drag commands. These will be forwarded to the timeline interface and
-    /// applied to other selected items like keyframes and other selected timeclips
+    /// applied to other selected items like keyframes and other selected time clips
     /// </summary>
-    private static void HandleDragging(ClipDrawingAttributes attr, TimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode)
+    private static void HandleDragging(ClipDrawingAttributes attr, TimeClip timeClip, bool isSelected, bool _, HandleDragMode mode)
     {
         if (ImGui.IsItemHovered())
         {
@@ -276,44 +275,53 @@ internal static class TimeClipItem
                                      ? ImGuiMouseCursor.Hand
                                      : ImGuiMouseCursor.ResizeEW);
         }
-
-        if (!wasClicked && (!ImGui.IsItemActive() ))
+        
+        var isDeactivated = ImGui.IsItemDeactivated();
+        var isActive = ImGui.IsItemActive();
+        if (!isActive && !isDeactivated )
             return;
-
-
-
-        if (ImGui.GetIO().KeyCtrl)
+        
+        var wasClickRelease = isDeactivated && ImGui.GetMouseDragDelta().Length() < UserSettings.Config.ClickThreshold;
+        if (wasClickRelease)
         {
-            if (isSelected)
+            if (ImGui.GetIO().KeyCtrl)
             {
-                attr.LayerContext.ClipSelection.Deselect(timeClip);
+                if (isSelected)
+                {
+                    attr.LayerContext.ClipSelection.Deselect(timeClip);
+                }
+
+                return;
+            }
+
+            if (!isSelected)
+            {
+                if (!ImGui.GetIO().KeyShift)
+                {
+                    attr.LayerContext.TimeCanvas.ClearSelection();
+                }
+
+                attr.LayerContext.ClipSelection.Select(timeClip);
             }
 
             return;
         }
-
-        if (!isSelected)
-        {
-            if (!ImGui.GetIO().KeyShift)
-            {
-                attr.LayerContext.TimeCanvas.ClearSelection();
-            }
-
-            attr.LayerContext.ClipSelection.Select(timeClip);
-        }
-
+        
         var mousePos = ImGui.GetIO().MousePos;
-        var dragContent = false; // ImGui.GetIO().KeyAlt;
-        var referenceRange = (dragContent ? timeClip.SourceRange : timeClip.TimeRange);
-        var scale = 1f;
-        if (dragContent && timeClip.SourceRange.Duration != 0 && timeClip.SourceRange.Duration != 0)
-            scale = timeClip.TimeRange.Duration / timeClip.SourceRange.Duration;
-
+        var currentDragTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
+        
         if (attr.MoveClipsCommand == null)
         {
-            var dragStartedAtTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-            _timeWithinDraggedClip = dragStartedAtTime - referenceRange.Start;
+            if (!isSelected)
+            {
+                attr.LayerContext.ClipSelection.Clear();
+                attr.LayerContext.ClipSelection.Select(timeClip);
+            }
+            
+            _timeWithinDraggedClip = currentDragTime - timeClip.TimeRange.Start;
             _posPosYOnDragStart = mousePos.Y;
+            _dragStartTime = currentDragTime;
+            _lastAppliedDeltaTime = currentDragTime;
             attr.LayerContext.TimeCanvas.StartDragCommand(attr.CompositionOp.Symbol.Id);
         }
         
@@ -323,30 +331,23 @@ internal static class TimeClipItem
         switch (mode)
         {
             case HandleDragMode.Body:
-                var currentDragTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-
-                var newStartTime = currentDragTime - _timeWithinDraggedClip;
                 var dy = _posPosYOnDragStart - mousePos.Y;
 
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newStartTime, out var snappedValue, attr.LayerContext.TimeCanvas.Scale.X * scale))
+                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip, out var snappedClipStartTime, attr.LayerContext.TimeCanvas.Scale.X))
                 {
-                    newStartTime = (float)snappedValue;
-                    attr.LayerContext.TimeCanvas.UpdateDragCommand(newStartTime - referenceRange.Start, dy);
-                    return;
+                    currentDragTime = (float)snappedClipStartTime + _timeWithinDraggedClip;
                 }
-
-                var newEndTime = newStartTime + referenceRange.Duration;
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newEndTime, out var snappedValue2, attr.LayerContext.TimeCanvas.Scale.X * scale))
+                else if (attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip + timeClip.TimeRange.Duration, out var snappedClipEndTime, attr.LayerContext.TimeCanvas.Scale.X))
                 {
-                    newEndTime = (float)snappedValue2;
+                    currentDragTime = (float)snappedClipEndTime + _timeWithinDraggedClip - timeClip.TimeRange.Duration;
                 }
-
-                attr.LayerContext.TimeCanvas.UpdateDragCommand(newEndTime - referenceRange.End, dy);
+                
+                attr.LayerContext.TimeCanvas.UpdateDragCommand(GetIncrement(currentDragTime), dy);
                 break;
 
             case HandleDragMode.Start:
                 var newDragStartTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragStartTime, out var snappedValue3, attr.LayerContext.TimeCanvas.Scale.X * scale))
+                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragStartTime, out var snappedValue3, attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     newDragStartTime = (float)snappedValue3;
                 }
@@ -356,7 +357,7 @@ internal static class TimeClipItem
 
             case HandleDragMode.End:
                 var newDragTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragTime, out var snappedValue4, attr.LayerContext.TimeCanvas.Scale.X * scale))
+                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragTime, out var snappedValue4, attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     newDragTime = (float)snappedValue4;
                 }
@@ -369,8 +370,17 @@ internal static class TimeClipItem
         }
     }
 
+    private static double GetIncrement(double snappedTotalDelta)
+    {
+        var dt = snappedTotalDelta - _lastAppliedDeltaTime;
+        _lastAppliedDeltaTime = snappedTotalDelta;
+        return dt;
+    }
+    
     private const float HandleWidth = 7;
     private static float _timeWithinDraggedClip;
+    private static double _dragStartTime;
+    private static double _lastAppliedDeltaTime;
     private static readonly Vector2 _handleOffset = new(HandleWidth, 0);
     private static readonly Color _timeRemappingColor = UiColors.StatusAnimated.Fade(0.5f);
     private static float _posPosYOnDragStart;
