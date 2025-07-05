@@ -74,6 +74,11 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         {
             SplitClipsAtTime(compositionOp);
         }
+
+        if (UserActions.DeleteSelection.Triggered())
+        {
+            DeleteSelectedClips(compositionOp);
+        }
     }
 
     private void DrawAllLayers(Instance compositionOp)
@@ -140,26 +145,14 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (!_contextMenuIsOpen && !UiHelpers.UiHelpers.WasRightMouseClick())
             return;
 
+        ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(6, 6));
+        ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(6, 6));
         if (ImGui.BeginPopupContextWindow("windows_context_menu"))
         {
             _contextMenuIsOpen = true;
             if (ImGui.MenuItem("Delete", UserActions.DeleteSelection.ListKeyboardShortcutsForAction(false), false, _context.ClipSelection.Count > 0))
             {
-                var compositionSymbolUi = compositionOp.GetSymbolUi();
-                List<SymbolUi.Child> selectedChildren = [];
-                foreach (var id in _context.ClipSelection.AllOrSelectedClipIds)
-                {
-                    if (!compositionSymbolUi.ChildUis.TryGetValue(id, out var child))
-                        continue;
-                    
-                    selectedChildren.Add(child);                    
-                }
-
-                UndoRedoStack.AddAndExecute(new DeleteSymbolChildrenCommand(compositionSymbolUi, selectedChildren));
-                //_context.ClipSelection.Clear();
-                _context.TimeCanvas.NodeSelection.Clear();
-                compositionSymbolUi.FlagAsModified();
-                ProjectView.Focused?.FlagChanges(ProjectView.ChangeTypes.Children);
+                DeleteSelectedClips(compositionOp);
             }
 
             if (ImGui.MenuItem("Clear Time Stretch", null, false, _context.ClipSelection.Count > 0))
@@ -194,6 +187,26 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         {
             _contextMenuIsOpen = false;
         }
+        ImGui.PopStyleVar(2);
+    }
+
+    private void DeleteSelectedClips(Instance compositionOp)
+    {
+        var compositionSymbolUi = compositionOp.GetSymbolUi();
+        List<SymbolUi.Child> selectedChildren = [];
+        foreach (var id in _context.ClipSelection.AllOrSelectedClipIds)
+        {
+            if (!compositionSymbolUi.ChildUis.TryGetValue(id, out var child))
+                continue;
+                    
+            selectedChildren.Add(child);                    
+        }
+
+        UndoRedoStack.AddAndExecute(new DeleteSymbolChildrenCommand(compositionSymbolUi, selectedChildren));
+        //_context.ClipSelection.Clear();
+        _context.TimeCanvas.NodeSelection.Clear();
+        compositionSymbolUi.FlagAsModified();
+        ProjectView.Focused?.FlagChanges(ProjectView.ChangeTypes.Children);
     }
 
     /// <remarks>
