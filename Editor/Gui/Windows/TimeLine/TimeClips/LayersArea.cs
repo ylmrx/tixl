@@ -324,8 +324,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
     void ITimeObjectManipulation.UpdateDragCommand(double dt, double dy)
     {
-        var dragContent = ImGui.GetIO().KeyAlt;
-
+        var toggleLinkMode = ImGui.GetIO().KeyAlt;
+        
         var indexDelta = _layerIndexOnDragStart - (int)(dy / LayerHeight);
 
         if (indexDelta != 0)
@@ -335,7 +335,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
-            if (dragContent)
+            if (clip.UsedForRegionMapping^toggleLinkMode)
             {
                 //TODO: fix continuous dragging
                 clip.TimeRange.Start += (float)dt;
@@ -349,8 +349,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                 clip.TimeRange.End += (float)dt;
                 clip.SourceRange.Start += (float)dt;
                 clip.SourceRange.End += (float)dt;
-                clip.LayerIndex += indexDelta;
             }
+            clip.LayerIndex += indexDelta;
         }
     }
 

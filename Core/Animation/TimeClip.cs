@@ -29,11 +29,19 @@ public sealed class TimeClip : IOutputData
     public Guid Id { get; set; }
     public TimeRange TimeRange;
     public TimeRange SourceRange;
-
     public int LayerIndex { get; set; } = 0;
-
+    
+    /// <summary>
+    /// TimeClips that primary purpose is use with nested content with remapping local time to that
+    /// content time. Operators like TimeClipSwitch can clear this flag to indicate that the source
+    /// region should be linked to the clip region when dragging clips in the timeline. 
+    /// </summary>
+    public bool UsedForRegionMapping = true; 
+    
     public Type DataType => typeof(TimeClip);
 
+    
+    
     public bool IsClipOverlappingOthers(IEnumerable<TimeClip> allTimeClips)
     {
         foreach (var otherClip in allTimeClips)

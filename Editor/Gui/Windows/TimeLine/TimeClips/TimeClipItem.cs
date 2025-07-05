@@ -263,6 +263,10 @@ internal static class TimeClipItem
         End,
     }
 
+    /// <summary>
+    /// Handles the invocation and update of drag commands. These will be forwarded to the timeline interface and
+    /// applied to to other selected items like keyframes and other selected timeclips
+    /// </summary>
     private static void HandleDragging(ClipDrawingAttributes attr, TimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode)
     {
         if (ImGui.IsItemHovered())

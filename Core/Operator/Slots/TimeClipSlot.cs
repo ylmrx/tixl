@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using T3.Core.Animation;
 using T3.Core.IO;
 using T3.Core.Logging;
@@ -21,6 +22,13 @@ internal interface IOutputDataUser<T> : IOutputDataUser
 {
 }
 
+/// <summary>
+/// An unfortunate workaround to allow flagging operators that should not update their source time region when being dragged
+/// in the timeline. This primarily useful for ops like [TimeClip] that do not involve content nested in their sub elements.
+/// Also see <see cref="TimeClip.UsedForRegionMapping"/>.
+/// </summary>
+public interface IPreventingTimeRemap;
+
 public sealed class TimeClipSlot<T> : Slot<T>, ITimeClipProvider, IOutputDataUser<TimeClip>
 {
     public TimeClip TimeClip { get; private set; }
@@ -34,6 +42,7 @@ public sealed class TimeClipSlot<T> : Slot<T>, ITimeClipProvider, IOutputDataUse
     {
         TimeClip = (TimeClip)data;
         TimeClip.Id = Parent.SymbolChildId;
+        TimeClip.UsedForRegionMapping = Parent is not IPreventingTimeRemap;
     }
 
     public UpdateStates LastUpdateStatus;
