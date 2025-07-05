@@ -106,9 +106,13 @@ internal sealed class Structure
     {
         foreach (var child in compositionOp.Children.Values)
         {
-            foreach (var clipProvider in child.Outputs.OfType<ITimeClipProvider>())
+            var outputs = child.Outputs;
+            for (var i = 0; i < outputs.Count; i++)
             {
-                yield return clipProvider.TimeClip; //CHANGE
+                if (outputs[i] is ITimeClipProvider clipProvider)
+                {
+                    yield return clipProvider.TimeClip; 
+                }
             }
         }
     }
@@ -361,7 +365,7 @@ internal sealed class Structure
         hoveredSourceInstance = hasInstancePath && focusedView != null
                                     ? focusedView.Structure.GetInstanceFromIdPath(childIdPath)
                                     : null;
-        
+
         readableInstancePath = hoveredSourceInstance != null ? focusedView!.Structure.GetReadableInstancePath(childIdPath) : [];
         return hasInstancePath;
     }
