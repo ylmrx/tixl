@@ -2,6 +2,7 @@
 using T3.Core.Animation;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Editor.UiModel.ProjectHandling;
 using T3.Editor.UiModel.Selection;
 
 namespace T3.Editor.Gui.Windows.TimeLine.TimeClips;
@@ -17,7 +18,7 @@ internal sealed class ClipSelection
         _nodeSelection = nodeSelection;
     }
  
-    public List<Guid> SelectedClipsIds { get; } = new(100);
+    public HashSet<Guid> SelectedClipsIds { get; } = new(100);
 
     public int Count => SelectedClipsIds.Count;
     public IReadOnlyCollection<Guid> AllOrSelectedClipIds => SelectedClipsIds.Count > 0 ? SelectedClipsIds : AllClipIds;
@@ -46,25 +47,22 @@ internal sealed class ClipSelection
     {
         _compositionOp = compositionOp;
         CompositionTimeClips.Clear();
-                
-        // Avoiding Linq for GC reasons 
-        foreach (var child in compositionOp.Children.Values)
+
+        foreach (var s2 in Structure.GetAllTimeClips(compositionOp))
         {
-            foreach (var output in child.Outputs)
-            {
-                if (output is ITimeClipProvider clipProvider)
-                {
-                    CompositionTimeClips[clipProvider.TimeClip.Id] = clipProvider.TimeClip;
-                }
-            }
+            CompositionTimeClips[s2.Id] = s2;
         }
-                
+        
+        // TODO: It's  unfortunate that Selection is a list makes access slow
         SelectedClipsIds.Clear();
         foreach (var selectedGraphNode in _nodeSelection.Selection)
         {
             if (CompositionTimeClips.TryGetValue(selectedGraphNode.Id, out var selectedTimeClip))
             {
-                SelectedClipsIds.Add(selectedTimeClip.Id);
+                if (!SelectedClipsIds.Add(selectedTimeClip.Id))
+                {
+                    Log.Warning($"Clip {selectedTimeClip.Id} selected twice?");
+                }
             }
         }
     }
@@ -87,11 +85,9 @@ internal sealed class ClipSelection
         if (_compositionOp == null) 
             return;
             
-        foreach (var id in SelectedClipsIds)
-        {
-            _nodeSelection.DeselectCompositionChild(_compositionOp, id);
-        }
+        _nodeSelection.Clear();
         _nodeSelection.SelectCompositionChild(_compositionOp, timeClip.Id);
+        SelectedClipsIds.Clear();
         SelectedClipsIds.Add(timeClip.Id);
     }
 

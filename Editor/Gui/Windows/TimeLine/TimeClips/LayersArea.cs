@@ -142,10 +142,23 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (ImGui.BeginPopupContextWindow("windows_context_menu"))
         {
             _contextMenuIsOpen = true;
-            if (ImGui.MenuItem("Delete", null, false, _context.ClipSelection.Count > 0))
+            if (ImGui.MenuItem("Delete", UserActions.DeleteSelection.ListKeyboardShortcutsForAction(false), false, _context.ClipSelection.Count > 0))
             {
-                UndoRedoStack.AddAndExecute(new TimeClipDeleteCommand(compositionOp, _context.ClipSelection.GetAllOrSelectedClips()));
-                _context.ClipSelection.Clear();
+                var compositionSymbolUi = compositionOp.GetSymbolUi();
+                List<SymbolUi.Child> selectedChildren = [];
+                foreach (var id in _context.ClipSelection.AllOrSelectedClipIds)
+                {
+                    if (!compositionSymbolUi.ChildUis.TryGetValue(id, out var child))
+                        continue;
+                    
+                    selectedChildren.Add(child);                    
+                }
+
+                UndoRedoStack.AddAndExecute(new DeleteSymbolChildrenCommand(compositionSymbolUi, selectedChildren));
+                //_context.ClipSelection.Clear();
+                _context.TimeCanvas.NodeSelection.Clear();
+                compositionSymbolUi.FlagAsModified();
+                ProjectView.Focused?.FlagChanges(ProjectView.ChangeTypes.Children);
             }
 
             if (ImGui.MenuItem("Clear Time Stretch", null, false, _context.ClipSelection.Count > 0))

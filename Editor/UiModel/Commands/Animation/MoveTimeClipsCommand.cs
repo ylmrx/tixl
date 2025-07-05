@@ -1,15 +1,16 @@
-﻿using T3.Core.Animation;
+﻿#nullable enable
+using T3.Core.Animation;
 using T3.Core.Operator;
 using T3.Editor.UiModel.ProjectHandling;
 
 namespace T3.Editor.UiModel.Commands.Animation;
 
-public sealed class MoveTimeClipsCommand : ICommand
+internal sealed class MoveTimeClipsCommand : ICommand
 {
     public string Name => "Move Time Clip";
     public bool IsUndoable => true;
         
-    private class  Entry
+    private sealed class  Entry
     {
         public Guid Id { get; set; }
         public TimeRange TimeRange { get; set; }
@@ -25,10 +26,10 @@ public sealed class MoveTimeClipsCommand : ICommand
     private readonly Entry[] _entries;
     private readonly Instance _compositionOp;
 
-    public MoveTimeClipsCommand(Instance compositionOp, IReadOnlyList<ITimeClip> clips)
+    internal MoveTimeClipsCommand(Instance compositionOp, IReadOnlyList<ITimeClip> clips)
     {
         _compositionOp = compositionOp;
-        _entries = new Entry[clips.Count()];
+        _entries = new Entry[clips.Count];
         for (var i = 0; i < _entries.Length; i++)
         {
             var clip = clips[i];
@@ -47,7 +48,7 @@ public sealed class MoveTimeClipsCommand : ICommand
     }
         
 
-    public void StoreCurrentValues()
+    internal void StoreCurrentValues()
     {
         foreach (var clip in Structure.GetAllTimeClips(_compositionOp))
         {
