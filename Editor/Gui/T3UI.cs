@@ -62,7 +62,7 @@ public static class T3Ui
     {
         Profiling.KeepFrameData();
         ImGui.PushStyleColor(ImGuiCol.Text, UiColors.Text.Rgba);
-        DragHandling.Update();
+        DragAndDropHandling.Update();
 
         CustomComponents.BeginFrame();
         FormInputs.BeginFrame();

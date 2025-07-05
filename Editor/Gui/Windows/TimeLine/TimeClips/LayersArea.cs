@@ -56,7 +56,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             _minScreenPos = ImGui.GetCursorScreenPos();
 
             DrawAllLayers(_context.ClipSelection.AllClips, compositionOp);
-            DrawContextMenu(compositionOp);
+            DrawContextMenuItems(compositionOp);
             HandleKeyboardActions(compositionOp);
             if (_context.ClipSelection.AllClips.Count > 0)
             {
@@ -123,8 +123,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     }
 
     private bool _contextMenuIsOpen;
+    
+    
 
-    private void DrawContextMenu(Instance compositionOp)
+    private void DrawContextMenuItems(Instance compositionOp)
     {
         Debug.Assert(_playback != null);
 
@@ -133,10 +135,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         if (_context.ClipSelection.Count == 0)
             return;
-
-        // This is a horrible hack to distinguish right mouse click from right mouse drag
-        var rightMouseDragDelta = (ImGui.GetIO().MouseClickedPos[1] - ImGui.GetIO().MousePos).Length();
-        if (!_contextMenuIsOpen && rightMouseDragDelta > 3)
+        
+        if (!_contextMenuIsOpen && !UiHelpers.UiHelpers.WasRightMouseClick())
             return;
 
         if (ImGui.BeginPopupContextWindow("windows_context_menu"))
