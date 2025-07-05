@@ -50,7 +50,7 @@ internal static class TimeClipItem
         var isSelected = attr.LayerContext.ClipSelection.SelectedClipsIds.Contains(timeClip.Id);
         var itemRectMax = position + clipSize - new Vector2(1, 0);
 
-        var rounding = 3.5f;
+        var rounding = 4.5f;
         var randomColor = DrawUtils.RandomColorForHash(timeClip.Id.GetHashCode());
 
         var timeRemapped = timeClip.TimeRange != timeClip.SourceRange;
@@ -61,22 +61,6 @@ internal static class TimeClipItem
 
         if (isSelected)
             attr.DrawList.AddRect(position, itemRectMax, UiColors.Selection, rounding);
-
-        // Stretch indicators
-        {
-            if (timeStretched)
-            {
-                attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
-                                            position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
-                                            UiColors.StatusAttention, rounding);
-            }
-            else if (timeRemapped)
-            {
-                attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 2),
-                                            position + new Vector2(clipSize.X - 1, clipSize.Y - 1),
-                                            UiColors.StatusAnimated);
-            }
-        }
 
         // Label
         {
@@ -98,6 +82,23 @@ internal static class TimeClipItem
 
             ImGui.PopFont();
         }
+        
+        // Stretch indicators
+        {
+            if (timeStretched)
+            {
+                attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
+                                            position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
+                                            UiColors.StatusAttention, rounding);
+            }
+            else if (timeRemapped)
+            {
+                attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 3),
+                                            position + new Vector2(clipSize.X - 3, clipSize.Y - 1),
+                                            UiColors.StatusAnimated);
+            }
+        }
+        
 
         // Draw stretch indicators
         if (isSelected && timeRemapped && attr.LayerContext.ClipSelection.Count == 1)
@@ -265,7 +266,7 @@ internal static class TimeClipItem
 
     /// <summary>
     /// Handles the invocation and update of drag commands. These will be forwarded to the timeline interface and
-    /// applied to to other selected items like keyframes and other selected timeclips
+    /// applied to other selected items like keyframes and other selected timeclips
     /// </summary>
     private static void HandleDragging(ClipDrawingAttributes attr, TimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode)
     {
@@ -276,8 +277,10 @@ internal static class TimeClipItem
                                      : ImGuiMouseCursor.ResizeEW);
         }
 
-        if (!wasClicked && (!ImGui.IsItemActive() || !ImGui.IsMouseDragging(0, UserSettings.Config.ClickThreshold)))
+        if (!wasClicked && (!ImGui.IsItemActive() ))
             return;
+
+
 
         if (ImGui.GetIO().KeyCtrl)
         {
@@ -313,6 +316,9 @@ internal static class TimeClipItem
             _posPosYOnDragStart = mousePos.Y;
             attr.LayerContext.TimeCanvas.StartDragCommand(attr.CompositionOp.Symbol.Id);
         }
+        
+        if (!ImGui.IsMouseDragging(0, UserSettings.Config.ClickThreshold))
+            return;
 
         switch (mode)
         {
