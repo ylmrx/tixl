@@ -105,7 +105,7 @@ public sealed class TimeClipSlot<T> : Slot<T>, ITimeClipProvider, IOutputDataUse
 
     protected override int InvalidationOverride()
     {
-        // Slot is an output of an composition op
+        // Slot is an output of a composition op
         if (HasInputConnections)
         {
             return InputConnections[0].Invalidate();

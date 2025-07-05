@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -8,25 +9,26 @@ using T3.Serialization;
 
 namespace T3.Core.Animation;
 
-public class TimeClip : IOutputData
+/// <summary>
+/// Maps are timeline region to a source time region and contains some additional attributes for display in timeline editor.
+/// </summary>
+public sealed class TimeClip : IOutputData
 {
+    // Used when creating new timeClips
+    // ReSharper disable once MemberCanBePrivate.Global
     public TimeClip()
     {
         var t = Playback.Current != null
                     ? (float)Playback.Current.TimeInBars
                     : 0;
-        _timeRange = new TimeRange(t, t + DefaultClipDuration);
-        _sourceRange = new TimeRange(t, t + DefaultClipDuration);
+        TimeRange = new TimeRange(t, t + DefaultClipDuration);
+        SourceRange = new TimeRange(t, t + DefaultClipDuration);
     }
 
     private const float DefaultClipDuration = 4f;
     public Guid Id { get; set; }
-
-    private TimeRange _timeRange;
-    public ref TimeRange TimeRange => ref _timeRange;
-
-    private TimeRange _sourceRange;
-    public ref TimeRange SourceRange => ref _sourceRange;
+    public TimeRange TimeRange;
+    public TimeRange SourceRange;
 
     public int LayerIndex { get; set; } = 0;
 
@@ -63,13 +65,13 @@ public class TimeClip : IOutputData
         writer.WriteStartObject();
         writer.WritePropertyName("TimeRange");
         writer.WriteStartObject();
-        writer.WriteValue("Start", _timeRange.Start);
-        writer.WriteValue("End", _timeRange.End);
+        writer.WriteValue("Start", TimeRange.Start);
+        writer.WriteValue("End", TimeRange.End);
         writer.WriteEndObject();
         writer.WritePropertyName("SourceRange");
         writer.WriteStartObject();
-        writer.WriteValue("Start", _sourceRange.Start);
-        writer.WriteValue("End", _sourceRange.End);
+        writer.WriteValue("Start", SourceRange.Start);
+        writer.WriteValue("End", SourceRange.End);
         writer.WriteEndObject();
         writer.WriteValue("LayerIndex", LayerIndex);
         writer.WriteEndObject();
@@ -78,22 +80,18 @@ public class TimeClip : IOutputData
     public void ReadFromJson(JToken json)
     {
         var timeClip = json["TimeClip"];
-        if (timeClip != null)
-        {
-            var timeRange = timeClip["TimeRange"];
-            if (timeRange != null)
-            {
-                _timeRange = new TimeRange(timeRange["Start"].Value<float>(), timeRange["End"].Value<float>());
-            }
+        if (timeClip == null)
+            return;
 
-            var sourceRange = timeClip["SourceRange"];
-            if (sourceRange != null)
-            {
-                _sourceRange = new TimeRange(sourceRange["Start"].Value<float>(), sourceRange["End"].Value<float>());
-            }
+        var timeRange = timeClip["TimeRange"];
+        if (timeRange != null)
+            TimeRange = new TimeRange(timeRange.Value<float>("Start"), timeRange.Value<float>("End"));
 
-            LayerIndex = timeClip["LayerIndex"]?.Value<int>() ?? 0;
-        }
+        var sourceRange = timeClip["SourceRange"];
+        if (sourceRange != null)
+            SourceRange = new TimeRange(sourceRange.Value<float>("Start"), sourceRange.Value<float>("End"));
+
+        LayerIndex = timeClip.Value<int>("LayerIndex");
     }
     #endregion
 
@@ -101,8 +99,8 @@ public class TimeClip : IOutputData
     {
         if (outputData is TimeClip otherTimeClip)
         {
-            _timeRange = otherTimeClip.TimeRange;
-            _sourceRange = otherTimeClip.SourceRange;
+            TimeRange = otherTimeClip.TimeRange;
+            SourceRange = otherTimeClip.SourceRange;
             LayerIndex = otherTimeClip.LayerIndex;
 
             return true;
@@ -115,12 +113,12 @@ public class TimeClip : IOutputData
 
     public TimeClip Clone()
     {
-        return new TimeClip()
+        return new TimeClip
                    {
                        Id = Guid.NewGuid(),
-                       TimeRange = _timeRange,
-                       SourceRange = _sourceRange,
-                       LayerIndex = LayerIndex
+                       TimeRange = this.TimeRange,
+                       SourceRange = this.SourceRange,
+                       LayerIndex = this.LayerIndex
                    };
     }
 }
