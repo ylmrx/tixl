@@ -47,41 +47,59 @@ internal static class TimeClipItem
 
         ImGui.PushID(symbolChildUi.Id.GetHashCode());
 
-        var isSelected = attr.LayerContext.ClipSelection.SelectedClips.Contains(timeClip);
+        var isSelected = attr.LayerContext.ClipSelection.SelectedClipsIds.Contains(timeClip.Id);
         var itemRectMax = position + clipSize - new Vector2(1, 0);
 
         var rounding = 3.5f;
         var randomColor = DrawUtils.RandomColorForHash(timeClip.Id.GetHashCode());
 
-        attr.DrawList.AddRectFilled(position, itemRectMax, randomColor.Fade(0.25f), rounding);
-
         var timeRemapped = timeClip.TimeRange != timeClip.SourceRange;
         var timeStretched = Math.Abs(timeClip.TimeRange.Duration - timeClip.SourceRange.Duration) > 0.001;
-        if (timeStretched)
-        {
-            attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
-                                        position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
-                                        UiColors.StatusAttention, rounding);
-        }
-        else if (timeRemapped)
-        {
-            attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 2),
-                                        position + new Vector2(clipSize.X - 1, clipSize.Y-1),
-                                        UiColors.StatusAnimated);
-        }
+
+        // Body and outline
+        attr.DrawList.AddRectFilled(position, itemRectMax, randomColor.Fade(0.25f), rounding);
 
         if (isSelected)
             attr.DrawList.AddRect(position, itemRectMax, UiColors.Selection, rounding);
 
-        ImGui.PushClipRect(position, itemRectMax - new Vector2(3, 0), true);
-        var label = timeStretched
-                        ? symbolChildUi.SymbolChild.ReadableName + $" ({GetSpeed(timeClip)}%)"
-                        : symbolChildUi.SymbolChild.ReadableName;
-        ImGui.PushFont(Fonts.FontSmall);
-        attr.DrawList.AddText(position + new Vector2(4, 1), isSelected ? UiColors.Selection : randomColor, label);
-        ImGui.PopFont();
-        ImGui.PopClipRect();
+        // Stretch indicators
+        {
+            if (timeStretched)
+            {
+                attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
+                                            position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
+                                            UiColors.StatusAttention, rounding);
+            }
+            else if (timeRemapped)
+            {
+                attr.DrawList.AddRectFilled(position + new Vector2(0, clipSize.Y - 2),
+                                            position + new Vector2(clipSize.X - 1, clipSize.Y - 1),
+                                            UiColors.StatusAnimated);
+            }
+        }
 
+        // Label
+        {
+            var label = timeStretched
+                            ? symbolChildUi.SymbolChild.ReadableName + $" ({GetSpeed(timeClip)}%)"
+                            : symbolChildUi.SymbolChild.ReadableName;
+
+            ImGui.PushFont(Fonts.FontSmall);
+            var labelSize = ImGui.CalcTextSize(label);
+            var needsClipping = labelSize.X > clipSize.X;
+
+            if (needsClipping)
+                ImGui.PushClipRect(position, itemRectMax - new Vector2(3, 0), true);
+
+            attr.DrawList.AddText(position + new Vector2(4, 1), isSelected ? UiColors.Selection : randomColor, label);
+
+            if (needsClipping)
+                ImGui.PopClipRect();
+
+            ImGui.PopFont();
+        }
+
+        // Draw stretch indicators
         if (isSelected && timeRemapped && attr.LayerContext.ClipSelection.Count == 1)
         {
             var verticalOffset = ImGui.GetContentRegionMax().Y + ImGui.GetWindowPos().Y - position.Y - LayersArea.LayerHeight;
@@ -102,6 +120,7 @@ internal static class TimeClipItem
                                          _timeRemappingColor, 1);
         }
 
+        // Interaction and dragging
         ImGui.SetCursorScreenPos(showSizeHandles ? (position + _handleOffset) : position);
 
         var wasClicked = ImGui.InvisibleButton("body", bodySize);
@@ -202,6 +221,7 @@ internal static class TimeClipItem
                 attr.MoveClipsCommand = null;
             }
         }
+
         DrawTimeEditPop(timeClip);
 
         ImGui.PopID();
@@ -216,8 +236,7 @@ internal static class TimeClipItem
         }
     }
 
-    private const string _TimeEditPopupId = nameof(_TimeEditPopupId); 
-    
+    private const string _TimeEditPopupId = nameof(_TimeEditPopupId);
 
     private static double GetSpeed(ITimeClip timeClip)
     {
@@ -266,7 +285,7 @@ internal static class TimeClipItem
         }
 
         var mousePos = ImGui.GetIO().MousePos;
-        var dragContent = false;// ImGui.GetIO().KeyAlt;
+        var dragContent = false; // ImGui.GetIO().KeyAlt;
         var referenceRange = (dragContent ? timeClip.SourceRange : timeClip.TimeRange);
         var scale = 1f;
         if (dragContent && timeClip.SourceRange.Duration != 0 && timeClip.SourceRange.Duration != 0)

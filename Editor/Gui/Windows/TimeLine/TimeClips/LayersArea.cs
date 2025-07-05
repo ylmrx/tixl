@@ -43,7 +43,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         ValueSnapHandler SnapHandler);
 
     private readonly LayerContext _context;
-    
+
     public void Draw(Instance compositionOp, Playback playback, ValueSnapHandler snapHandler)
     {
         _drawList = ImGui.GetWindowDrawList();
@@ -55,10 +55,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             ImGui.SetCursorPos(ImGui.GetCursorPos() + new Vector2(0, 3)); // keep some padding 
             _minScreenPos = ImGui.GetCursorScreenPos();
 
-            DrawAllLayers(_context.ClipSelection.AllClips, compositionOp);
+            DrawAllLayers(compositionOp);
             DrawContextMenuItems(compositionOp);
             HandleKeyboardActions(compositionOp);
-            if (_context.ClipSelection.AllClips.Count > 0)
+            if (_context.ClipSelection.AllClipIds.Count > 0)
             {
                 FormInputs.AddVerticalSpace(15);
                 ImGui.TextUnformatted(""); // Enforce application of space. Not sure why imgui requires that
@@ -75,8 +75,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         }
     }
 
-    private void DrawAllLayers(IReadOnlyCollection<ITimeClip> clips, Instance compositionOp)
+    private void DrawAllLayers(Instance compositionOp)
     {
+        var clips = _context.ClipSelection.CompositionTimeClips.Values;
+
         if (clips.Count == 0)
         {
             LastHeight = 0;
@@ -123,8 +125,6 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     }
 
     private bool _contextMenuIsOpen;
-    
-    
 
     private void DrawContextMenuItems(Instance compositionOp)
     {
@@ -135,7 +135,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         if (_context.ClipSelection.Count == 0)
             return;
-        
+
         if (!_contextMenuIsOpen && !UiHelpers.UiHelpers.WasRightMouseClick())
             return;
 
@@ -144,14 +144,15 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             _contextMenuIsOpen = true;
             if (ImGui.MenuItem("Delete", null, false, _context.ClipSelection.Count > 0))
             {
-                UndoRedoStack.AddAndExecute(new TimeClipDeleteCommand(compositionOp, _context.ClipSelection.SelectedClips));
+                UndoRedoStack.AddAndExecute(new TimeClipDeleteCommand(compositionOp, _context.ClipSelection.GetAllOrSelectedClips()));
                 _context.ClipSelection.Clear();
             }
 
             if (ImGui.MenuItem("Clear Time Stretch", null, false, _context.ClipSelection.Count > 0))
             {
-                var moveTimeClipCommand = new MoveTimeClipsCommand(compositionOp, _context.ClipSelection.SelectedClips.ToList());
-                foreach (var clip in _context.ClipSelection.SelectedClips)
+                var selectedClips = _context.ClipSelection.GetAllOrSelectedClips().ToList();
+                var moveTimeClipCommand = new MoveTimeClipsCommand(compositionOp, selectedClips);
+                foreach (var clip in selectedClips)
                 {
                     clip.SourceRange = clip.TimeRange.Clone();
                 }
@@ -184,18 +185,15 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         Debug.Assert(_playback != null);
 
         var timeInBars = _playback.TimeInBars;
-        var matchingClips = _context.ClipSelection.AllOrSelectedClips.Where(clip => clip.TimeRange.Contains(timeInBars)).ToList();
-        if (matchingClips.Count == 0)
-        {
-            Log.Debug($"There are no time clips at current time {timeInBars:0.0}");
-            return;
-        }
-
-        var compositionSymbolUi = compositionOp.GetSymbolUi();
 
         var commands = new List<ICommand>();
-        foreach (var clip in matchingClips)
+        foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
+            if (!clip.TimeRange.Contains(timeInBars))
+                return;
+
+            var compositionSymbolUi = compositionOp.GetSymbolUi();
+
             var symbolChildUi = compositionSymbolUi.ChildUis[clip.Id];
 
             var originalName = symbolChildUi.SymbolChild.ReadableName;
@@ -213,8 +211,6 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             var orgTimeRangeEnd = clip.TimeRange.End;
             var originalSourceDuration = clip.SourceRange.Duration;
             var normalizedCutPosition = ((float)_playback.TimeInBars - clip.TimeRange.Start) / clip.TimeRange.Duration;
-
-
 
             // Apply new time range to newly added instance
             var newChildId = cmd.OldToNewIdDict[clip.Id];
@@ -236,11 +232,18 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             newTimeClip.SourceRange.End = clip.SourceRange.End;
 
             var adjustFirstClipCommand = new MoveTimeClipsCommand(compositionOp, [clip]);
-            
+
             clip.TimeRange.End = (float)_playback.TimeInBars;
             clip.SourceRange.Duration = originalSourceDuration * normalizedCutPosition;
             adjustFirstClipCommand.StoreCurrentValues();
             commands.Add(adjustFirstClipCommand);
+        }
+
+        //var matchingClips = _context.ClipSelection.AllOrSelectedClipIds.Where(clip => clip.TimeRange.Contains(timeInBars)).ToList();
+        if (commands.Count == 0)
+        {
+            Log.Debug($"There are no time clips at current time {timeInBars:0.0}");
+            return;
         }
 
         var macroCommands = new MacroCommand("split clip", commands);
@@ -301,7 +304,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     {
         var composition = _getCompositionOp();
 
-        _moveClipsCommand = new MoveTimeClipsCommand(composition, _context.ClipSelection.SelectedClips.ToList());
+        _moveClipsCommand = new MoveTimeClipsCommand(composition, _context.ClipSelection.GetAllOrSelectedClips().ToList());
         _layerIndexOnDragStart = 0;
         return _moveClipsCommand;
     }
@@ -317,7 +320,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             _layerIndexOnDragStart -= indexDelta;
         }
 
-        foreach (var clip in _context.ClipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
             if (dragContent)
             {
@@ -341,7 +344,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public void UpdateDragAtStartPointCommand(double dt, double dv)
     {
         var trim = !ImGui.GetIO().KeyAlt;
-        foreach (var clip in _context.ClipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
             // Keep 1 frame min duration
             var org = clip.TimeRange.Start;
@@ -355,7 +358,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public void UpdateDragAtEndPointCommand(double dt, double dv)
     {
         var trim = !ImGui.GetIO().KeyAlt;
-        foreach (var clip in _context.ClipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
             // Keep 1 frame min duration
             var org = clip.TimeRange.End;
@@ -368,7 +371,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
     void ITimeObjectManipulation.UpdateDragStretchCommand(double scaleU, double scaleV, double originU, double originV)
     {
-        foreach (var clip in _context.ClipSelection.SelectedClips)
+        foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
             clip.TimeRange.Start = (float)(originU + (clip.TimeRange.Start - originU) * scaleU);
             clip.TimeRange.End = (float)Math.Max(originU + (clip.TimeRange.End - originU) * scaleU, clip.TimeRange.Start + MinDuration);
@@ -380,7 +383,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     public TimeRange GetSelectionTimeRange()
     {
         var timeRange = TimeRange.Undefined;
-        foreach (var s in _context.ClipSelection.SelectedClips)
+        foreach (var s in _context.ClipSelection.GetAllOrSelectedClips())
         {
             // fix broken time ranges
             // FIXME: make sure these don't happen at all

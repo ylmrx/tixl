@@ -16,11 +16,36 @@ internal sealed class ClipSelection
     {
         _nodeSelection = nodeSelection;
     }
+ 
+    public List<Guid> SelectedClipsIds { get; } = new(100);
+
+    public int Count => SelectedClipsIds.Count;
+    public IReadOnlyCollection<Guid> AllOrSelectedClipIds => SelectedClipsIds.Count > 0 ? SelectedClipsIds : AllClipIds;
+    public IReadOnlyCollection<Guid> AllClipIds => CompositionTimeClips.Keys;
+
+    public IEnumerable<ITimeClip> GetAllOrSelectedClips()
+    {
+        if (SelectedClipsIds.Count == 0)
+        {
+            foreach (var clip in CompositionTimeClips.Values)
+            {
+                yield return clip;
+                
+            }
             
+            yield break;
+        }
+
+        foreach (var id in SelectedClipsIds)
+        {
+            yield return CompositionTimeClips[id];
+        }
+    }
+    
     public void UpdateForComposition(Instance compositionOp)
     {
         _compositionOp = compositionOp;
-        _compositionTimeClips.Clear();
+        CompositionTimeClips.Clear();
                 
         // Avoiding Linq for GC reasons 
         foreach (var child in compositionOp.Children.Values)
@@ -29,38 +54,32 @@ internal sealed class ClipSelection
             {
                 if (output is ITimeClipProvider clipProvider)
                 {
-                    _compositionTimeClips[clipProvider.TimeClip.Id] = clipProvider.TimeClip;
+                    CompositionTimeClips[clipProvider.TimeClip.Id] = clipProvider.TimeClip;
                 }
             }
         }
                 
-        _selectedClips.Clear();
+        SelectedClipsIds.Clear();
         foreach (var selectedGraphNode in _nodeSelection.Selection)
         {
-            if (_compositionTimeClips.TryGetValue(selectedGraphNode.Id, out var selectedTimeClip))
+            if (CompositionTimeClips.TryGetValue(selectedGraphNode.Id, out var selectedTimeClip))
             {
-                _selectedClips.Add(selectedTimeClip);
+                SelectedClipsIds.Add(selectedTimeClip.Id);
             }
         }
     }
-
-    public List<ITimeClip> SelectedClips => _selectedClips;
-    public int Count => _selectedClips.Count;
-    public IReadOnlyCollection<ITimeClip> AllOrSelectedClips => _selectedClips.Count > 0 ? _selectedClips : AllClips;
-
-    public IReadOnlyCollection<ITimeClip> AllClips => _compositionTimeClips.Values;
 
     public void Clear()
     {
         if (_compositionOp == null) 
             return;
             
-        foreach (var c in _selectedClips)
+        foreach (var id in SelectedClipsIds)
         {
-            _nodeSelection.DeselectCompositionChild(_compositionOp, c.Id);
+            _nodeSelection.DeselectCompositionChild(_compositionOp, id);
         }
                 
-        _selectedClips.Clear();
+        SelectedClipsIds.Clear();
     }
 
     public void Select(ITimeClip timeClip)
@@ -68,12 +87,12 @@ internal sealed class ClipSelection
         if (_compositionOp == null) 
             return;
             
-        foreach (var c in _selectedClips)
+        foreach (var id in SelectedClipsIds)
         {
-            _nodeSelection.DeselectCompositionChild(_compositionOp, c.Id);
+            _nodeSelection.DeselectCompositionChild(_compositionOp, id);
         }
         _nodeSelection.SelectCompositionChild(_compositionOp, timeClip.Id);
-        _selectedClips.Add(timeClip);
+        SelectedClipsIds.Add(timeClip.Id);
     }
 
     public void Deselect(ITimeClip timeClip)
@@ -82,7 +101,7 @@ internal sealed class ClipSelection
             return;
 
         _nodeSelection.DeselectCompositionChild(_compositionOp, timeClip.Id);
-        _selectedClips.Remove(timeClip);
+        SelectedClipsIds.Remove(timeClip.Id);
     }
 
     public void AddSelection(ITimeClip matchingClip)
@@ -91,21 +110,21 @@ internal sealed class ClipSelection
             return;
 
         _nodeSelection.SelectCompositionChild(_compositionOp, matchingClip.Id);
-        _selectedClips.Add(matchingClip);
+        SelectedClipsIds.Add(matchingClip.Id);
     }
             
 
 
     public bool Contains(ITimeClip clip)
     {
-        return _selectedClips.Contains(clip);
+        return SelectedClipsIds.Contains(clip.Id);
     }
             
     /// <summary>
     /// Reusing static collections to avoid GC leaks
     /// </summary>
-    private readonly Dictionary<Guid, ITimeClip> _compositionTimeClips = new(100);
-    private readonly List<ITimeClip> _selectedClips = new(100);
+    internal readonly Dictionary<Guid, ITimeClip> CompositionTimeClips = new(100);
+
     private Instance? _compositionOp;
     private readonly NodeSelection _nodeSelection;
 }

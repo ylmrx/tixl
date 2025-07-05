@@ -16,6 +16,7 @@ public sealed class TimeClipDeleteCommand : ICommand
 
     public void Do()
     {
+        // TODO: implement
         Log.Warning("Deleting timeclips is not implemented");
     }
 
