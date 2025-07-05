@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using T3.Core.Logging;
@@ -7,11 +8,11 @@ using T3.Serialization;
 
 namespace T3.Core.Animation;
 
-public class TimeClip : IOutputData, ITimeClip
+public class TimeClip : IOutputData
 {
     public TimeClip()
     {
-        var t = Playback.Current != null 
+        var t = Playback.Current != null
                     ? (float)Playback.Current.TimeInBars
                     : 0;
         _timeRange = new TimeRange(t, t + DefaultClipDuration);
@@ -31,6 +32,31 @@ public class TimeClip : IOutputData, ITimeClip
 
     public Type DataType => typeof(TimeClip);
 
+    public bool IsClipOverlappingOthers(IEnumerable<TimeClip> allTimeClips)
+    {
+        foreach (var otherClip in allTimeClips)
+        {
+            if (otherClip == this)
+                continue;
+
+            if (LayerIndex != otherClip.LayerIndex)
+                continue;
+
+            var start = TimeRange.Start;
+            var end = TimeRange.End;
+            var otherStart = otherClip.TimeRange.Start;
+            var otherEnd = otherClip.TimeRange.End;
+
+            if (otherEnd <= start || otherStart >= end)
+                continue;
+
+            return true;
+        }
+
+        return false;
+    }
+
+    #region serialization
     public void ToJson(JsonTextWriter writer)
     {
         writer.WritePropertyName("TimeClip");
@@ -69,6 +95,7 @@ public class TimeClip : IOutputData, ITimeClip
             LayerIndex = timeClip["LayerIndex"]?.Value<int>() ?? 0;
         }
     }
+    #endregion
 
     public bool Assign(IOutputData outputData)
     {

@@ -8,7 +8,7 @@ using T3.Editor.UiModel.Selection;
 namespace T3.Editor.Gui.Windows.TimeLine.TimeClips;
 
 /// <summary>
-/// Maps selection of <see cref="ITimeClip"/>s
+/// Maps selection of <see cref="TimeClip"/>s
 /// to <see cref="NodeSelection"/> with <see cref="ISelectableCanvasObject"/>s.
 /// </summary>
 internal sealed class ClipSelection
@@ -24,7 +24,7 @@ internal sealed class ClipSelection
     public IReadOnlyCollection<Guid> AllOrSelectedClipIds => SelectedClipsIds.Count > 0 ? SelectedClipsIds : AllClipIds;
     public IReadOnlyCollection<Guid> AllClipIds => CompositionTimeClips.Keys;
 
-    public IEnumerable<ITimeClip> GetAllOrSelectedClips()
+    public IEnumerable<TimeClip> GetAllOrSelectedClips()
     {
         if (SelectedClipsIds.Count == 0)
         {
@@ -80,7 +80,7 @@ internal sealed class ClipSelection
         SelectedClipsIds.Clear();
     }
 
-    public void Select(ITimeClip timeClip)
+    public void Select(TimeClip timeClip)
     {
         if (_compositionOp == null) 
             return;
@@ -91,7 +91,7 @@ internal sealed class ClipSelection
         SelectedClipsIds.Add(timeClip.Id);
     }
 
-    public void Deselect(ITimeClip timeClip)
+    public void Deselect(TimeClip timeClip)
     {
         if (_compositionOp == null) 
             return;
@@ -100,7 +100,7 @@ internal sealed class ClipSelection
         SelectedClipsIds.Remove(timeClip.Id);
     }
 
-    public void AddSelection(ITimeClip matchingClip)
+    public void AddSelection(TimeClip matchingClip)
     {
         if (_compositionOp == null) 
             return;
@@ -111,7 +111,7 @@ internal sealed class ClipSelection
             
 
 
-    public bool Contains(ITimeClip clip)
+    public bool Contains(TimeClip clip)
     {
         return SelectedClipsIds.Contains(clip.Id);
     }
@@ -119,7 +119,7 @@ internal sealed class ClipSelection
     /// <summary>
     /// Reusing static collections to avoid GC leaks
     /// </summary>
-    internal readonly Dictionary<Guid, ITimeClip> CompositionTimeClips = new(100);
+    internal readonly Dictionary<Guid, TimeClip> CompositionTimeClips = new(100);
 
     private Instance? _compositionOp;
     private readonly NodeSelection _nodeSelection;

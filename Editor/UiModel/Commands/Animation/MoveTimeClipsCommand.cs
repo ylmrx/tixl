@@ -26,7 +26,7 @@ internal sealed class MoveTimeClipsCommand : ICommand
     private readonly Entry[] _entries;
     private readonly Instance _compositionOp;
 
-    internal MoveTimeClipsCommand(Instance compositionOp, IReadOnlyList<ITimeClip> clips)
+    internal MoveTimeClipsCommand(Instance compositionOp, IReadOnlyList<TimeClip> clips)
     {
         _compositionOp = compositionOp;
         _entries = new Entry[clips.Count];

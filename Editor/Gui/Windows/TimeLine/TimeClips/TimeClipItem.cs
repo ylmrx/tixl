@@ -27,7 +27,7 @@ internal static class TimeClipItem
         MoveTimeClipsCommand? MoveClipsCommand,
         ImDrawListPtr DrawList);
 
-    internal static void DrawClip(ITimeClip timeClip, ref ClipDrawingAttributes attr)
+    internal static void DrawClip(TimeClip timeClip, ref ClipDrawingAttributes attr)
     {
         var xStartTime = attr.LayerContext.TimeCanvas.TransformX(timeClip.TimeRange.Start) + 1;
         var xEndTime = attr.LayerContext.TimeCanvas.TransformX(timeClip.TimeRange.End) + 1;
@@ -227,18 +227,29 @@ internal static class TimeClipItem
         ImGui.PopID();
     }
 
-    private static void DrawTimeEditPop(ITimeClip item)
+    private static void DrawTimeEditPop(TimeClip item)
     {
+        //ImGui.SetNextItemWidth(350);
+        ImGui.SetNextWindowSize(new Vector2(350,0));
         if (ImGui.BeginPopup(_TimeEditPopupId))
         {
-            ImGui.TextUnformatted("Some content for later.");
+            //ImGui.TextUnformatted("TimeClip");
+            FormInputs.AddSectionHeader("Time Clip");
+            var sourceRange = new Vector2(item.SourceRange.Start, item.SourceRange.Start);
+
+            FormInputs.AddFloat("Clip Start", ref item.TimeRange.Start);
+            FormInputs.AddFloat("Clip End", ref item.TimeRange.End);
+            FormInputs.AddVerticalSpace();
+            FormInputs.AddFloat("SourceStart", ref item.SourceRange.Start);
+            FormInputs.AddFloat("SourceEnd", ref item.SourceRange.End);
+
             ImGui.EndPopup();
         }
     }
 
     private const string _TimeEditPopupId = nameof(_TimeEditPopupId);
 
-    private static double GetSpeed(ITimeClip timeClip)
+    private static double GetSpeed(TimeClip timeClip)
     {
         return Math.Abs(timeClip.TimeRange.Duration) > 0.001
                    ? Math.Round((timeClip.TimeRange.Duration / timeClip.SourceRange.Duration) * 100)
@@ -252,7 +263,7 @@ internal static class TimeClipItem
         End,
     }
 
-    private static void HandleDragging(ClipDrawingAttributes attr, ITimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode)
+    private static void HandleDragging(ClipDrawingAttributes attr, TimeClip timeClip, bool isSelected, bool wasClicked, HandleDragMode mode)
     {
         if (ImGui.IsItemHovered())
         {
