@@ -30,7 +30,7 @@ internal sealed partial class EditableSymbolProject
         if(CodeExternallyModified)
         {
             CodeExternallyModified = false;
-            if (_lastRecompilationTimeUtc.HasValue && (_lastRecompilationTimeUtc.Value - DateTime.UtcNow).TotalSeconds < 5f)
+            if (_lastRecompilationTimeUtc.HasValue && (DateTime.UtcNow - _lastRecompilationTimeUtc.Value).TotalSeconds < 0.5f)
             {
                 Log.Info($"{DisplayName}: Skipping recompilation due to a presumed-misfired file change event");
                 needsUpdating = false;
