@@ -167,7 +167,7 @@ internal static class KeyboardActions
         //     NodeNavigation.SelectBelow();
         // }
 
-        if (KeyActionHandling.Triggered(UserActions.AddComment))
+        if (UserActions.AddComment.Triggered())
         {
             context.EditCommentDialog.ShowNextFrame();
         }
@@ -175,7 +175,7 @@ internal static class KeyboardActions
         if (context.StateMachine.CurrentState == GraphStates.Default)
         {
             var oneSelected = context.Selector.Selection.Count == 1;
-            if (oneSelected && KeyActionHandling.Triggered(UserActions.RenameChild))
+            if (oneSelected && UserActions.RenameChild.Triggered())
             {
                 if (context.Layout.Items.TryGetValue(context.Selector.Selection[0].Id, out var item)
                                                      && item.Variant == MagGraphItem.Variants.Operator)
