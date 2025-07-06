@@ -343,7 +343,14 @@ internal sealed class PlaceholderCreation
         }
 
         var newSymbolChild = newChildUi.SymbolChild;
-        var newInstance = context.CompositionInstance.Children[newChildUi.Id];
+
+        if (!context.CompositionInstance.Children.TryGetValue(newChildUi.Id, out var newInstance))
+        {
+            Log.Error($"Failed to access newly created symbol child {newChildUi.Id}");
+            return;
+        }
+        
+        //var newInstance = context.CompositionInstance.Children[newChildUi.Id];
         context.Selector.SetSelection(newChildUi, newInstance);
 
         // Connect to focus node...

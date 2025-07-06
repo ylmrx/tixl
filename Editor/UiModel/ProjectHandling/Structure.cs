@@ -83,7 +83,7 @@ internal sealed class Structure
         return newList;
     }
 
-    public static ITimeClip? GetCompositionTimeClip(Instance? compositionOp)
+    public static TimeClip? GetCompositionTimeClip(Instance? compositionOp)
     {
         if (compositionOp == null)
         {
@@ -102,13 +102,17 @@ internal sealed class Structure
     /// <summary>
     /// This is slow and should be refactored into something else
     /// </summary>
-    public static IEnumerable<ITimeClip> GetAllTimeClips(Instance compositionOp)
+    public static IEnumerable<TimeClip> GetAllTimeClips(Instance compositionOp)
     {
         foreach (var child in compositionOp.Children.Values)
         {
-            foreach (var clipProvider in child.Outputs.OfType<ITimeClipProvider>())
+            var outputs = child.Outputs;
+            for (var i = 0; i < outputs.Count; i++)
             {
-                yield return clipProvider.TimeClip; //CHANGE
+                if (outputs[i] is ITimeClipProvider clipProvider)
+                {
+                    yield return clipProvider.TimeClip; 
+                }
             }
         }
     }
@@ -361,7 +365,7 @@ internal sealed class Structure
         hoveredSourceInstance = hasInstancePath && focusedView != null
                                     ? focusedView.Structure.GetInstanceFromIdPath(childIdPath)
                                     : null;
-        
+
         readableInstancePath = hoveredSourceInstance != null ? focusedView!.Structure.GetReadableInstancePath(childIdPath) : [];
         return hasInstancePath;
     }

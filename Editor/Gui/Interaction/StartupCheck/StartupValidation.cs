@@ -88,7 +88,7 @@ public static class StartupValidation
             var startupPath = Path.GetFullPath(".");
             sb.Append($"Startup folder is:\n{startupPath}\n\n");
                 
-            sb.Append($"We can't find the following files...\n\n  {string.Join("\n  ", missingPaths)}");
+            sb.Append($"We are unable to find the following files...\n\n  {string.Join("\n  ", missingPaths)}");
             sb.Append("\n\n");
             sb.Append(Message);
             string[] buttons;
@@ -96,7 +96,7 @@ public static class StartupValidation
             if (!string.IsNullOrEmpty(URL))
             {
                 sb.Append("\n\n");
-                sb.Append("Click Yes to get help");
+                sb.Append("Click Yes to get help.");
                 buttons = [helpButton, "Just close"];
             }
             else
@@ -134,7 +134,7 @@ public static class StartupValidation
             if (currentDir.IndexOf(folderPath, StringComparison.OrdinalIgnoreCase) < 0)
                 continue;
 
-            BlockingWindow.Instance.ShowMessageBox($"Tooll can't be started from {folderPath}", @"Error", "Ok");
+            BlockingWindow.Instance.ShowMessageBox("Tooll cannot be started from {folderPath}", @"Error", "Ok");
             EditorUi.Instance.ExitApplication();
         }
             
@@ -143,7 +143,7 @@ public static class StartupValidation
         if (!directoryInfo.Attributes.HasFlag(FileAttributes.ReadOnly))
             return;
             
-        BlockingWindow.Instance.ShowMessageBox($"Can't write to current working directory: {currentDir}.", @"Error", "Ok");
+        BlockingWindow.Instance.ShowMessageBox($"Cannot write to the current working directory: {currentDir}.", @"Error", "Ok");
         EditorUi.Instance.ExitApplication();
     }
 

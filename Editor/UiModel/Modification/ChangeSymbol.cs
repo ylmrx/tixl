@@ -5,6 +5,12 @@ using T3.Editor.UiModel.Selection;
 
 namespace T3.Editor.UiModel.Modification;
 
+/// <summary>
+/// Replace a symbol with another symbol.
+/// </summary>
+/// <remarks>
+/// Maybe this method has to be refactored or deprecated.
+/// </remarks>
 internal static class ChangeSymbol
 {
     public static void ChangeOperatorSymbol(NodeSelection nodeSelection, Instance compositionOp, List<SymbolUi.Child> selectedChildUis, Symbol symbol)

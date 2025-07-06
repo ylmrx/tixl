@@ -13,6 +13,7 @@ using T3.Editor.App;
 using T3.Editor.Gui.Dialog;
 using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Midi;
 using T3.Editor.Gui.Interaction.Timing;
 using T3.Editor.Gui.Interaction.Variations;
@@ -61,7 +62,7 @@ public static class T3Ui
     {
         Profiling.KeepFrameData();
         ImGui.PushStyleColor(ImGuiCol.Text, UiColors.Text.Rgba);
-        DragHandling.Update();
+        DragAndDropHandling.Update();
 
         CustomComponents.BeginFrame();
         FormInputs.BeginFrame();
@@ -89,7 +90,7 @@ public static class T3Ui
         
         FitViewToSelectionHandling.ProcessNewFrame();
         SrvManager.RemoveForDisposedTextures();
-        KeyboardBinding.InitFrame();
+        KeyActionHandling.InitializeFrame();
         
         CompatibleMidiDeviceHandling.UpdateConnectedDevices();
 
@@ -175,31 +176,31 @@ public static class T3Ui
 
     private static void TriggerGlobalActionsFromKeyBindings()
     {
-        if (KeyboardBinding.Triggered(UserActions.Undo))
+        if (KeyActionHandling.Triggered(UserActions.Undo))
         {
             UndoRedoStack.Undo();
         }
-        else if (KeyboardBinding.Triggered(UserActions.Redo))
+        else if (KeyActionHandling.Triggered(UserActions.Redo))
         {
             UndoRedoStack.Redo();
         }
-        else if (KeyboardBinding.Triggered(UserActions.Save))
+        else if (KeyActionHandling.Triggered(UserActions.Save))
         {
             SaveInBackground(saveAll: false);
         }
-        else if (KeyboardBinding.Triggered(UserActions.ToggleAllUiElements))
+        else if (KeyActionHandling.Triggered(UserActions.ToggleAllUiElements))
         {
             ToggleAllUiElements();
         }
-        else if (KeyboardBinding.Triggered(UserActions.SearchGraph))
+        else if (KeyActionHandling.Triggered(UserActions.SearchGraph))
         {
             _searchDialog.ShowNextFrame();
         }
-        else if (KeyboardBinding.Triggered(UserActions.ToggleFullscreen))
+        else if (KeyActionHandling.Triggered(UserActions.ToggleFullscreen))
         {
             UserSettings.Config.FullScreen = !UserSettings.Config.FullScreen;
         }
-        else if (KeyboardBinding.Triggered(UserActions.ToggleFocusMode)) ToggleFocusMode();
+        else if (KeyActionHandling.Triggered(UserActions.ToggleFocusMode)) ToggleFocusMode();
     }
 
     internal static void ToggleFocusMode()
