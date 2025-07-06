@@ -3,6 +3,8 @@ using System.Linq;
 using T3.Core.Animation;
 using T3.Core.IO;
 using T3.Core.Logging;
+using T3.Core.Utils;
+
 // ReSharper disable ForCanBeConvertedToForeach
 
 namespace T3.Core.Operator.Slots;
@@ -57,8 +59,13 @@ public sealed class TimeClipSlot<T> : Slot<T>, ITimeClipProvider, IOutputDataUse
 
         // TODO: Setting local time should flag time accessors as dirty 
         var prevTime = context.LocalTime;
-        double factor = (context.LocalTime - TimeClip.TimeRange.Start) / (TimeClip.TimeRange.End - TimeClip.TimeRange.Start);
-        context.LocalTime = factor * (TimeClip.SourceRange.End - TimeClip.SourceRange.Start) + TimeClip.SourceRange.Start;
+        var prevFxTime = context.LocalFxTime;
+        
+        context.LocalTime = prevTime.Remap(TimeClip.TimeRange.Start, TimeClip.TimeRange.End,
+                                           TimeClip.SourceRange.Start, TimeClip.SourceRange.End);
+        
+        context.LocalFxTime = prevFxTime.Remap(TimeClip.TimeRange.Start, TimeClip.TimeRange.End,
+                                               TimeClip.SourceRange.Start, TimeClip.SourceRange.End);
 
         if (_baseUpdateAction == null)
         {
@@ -70,6 +77,7 @@ public sealed class TimeClipSlot<T> : Slot<T>, ITimeClipProvider, IOutputDataUse
         }
 
         context.LocalTime = prevTime;
+        context.LocalFxTime = prevFxTime;
         LastUpdateStatus = UpdateStates.Active;
     }
 
