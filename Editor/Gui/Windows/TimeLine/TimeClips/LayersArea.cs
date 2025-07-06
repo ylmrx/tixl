@@ -228,6 +228,15 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             if (!clip.TimeRange.Contains(timeInBars))
                 return;
 
+            if (timeInBars - clip.TimeRange.Start < 0.01 
+                ||
+                clip.TimeRange.End - timeInBars < 0.01)
+            {
+                Log.Debug("This clip would be too small...");
+                continue;
+            }
+
+            
             var compositionSymbolUi = compositionOp.GetSymbolUi();
 
             var symbolChildUi = compositionSymbolUi.ChildUis[clip.Id];
