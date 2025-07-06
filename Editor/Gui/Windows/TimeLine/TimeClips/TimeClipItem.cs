@@ -62,10 +62,11 @@ internal static class TimeClipItem
         if (isSelected)
             attr.DrawList.AddRect(position, itemRectMax, UiColors.Selection, rounding);
 
+
         // Label
         {
             var label = timeStretched
-                            ? symbolChildUi.SymbolChild.ReadableName + $" ({GetSpeed(timeClip)}%)"
+                            ? symbolChildUi.SymbolChild.ReadableName + $" ({timeClip.Speed*100:0.0}%)"
                             : symbolChildUi.SymbolChild.ReadableName;
 
             ImGui.PushFont(Fonts.FontSmall);
@@ -140,13 +141,14 @@ internal static class TimeClipItem
 
                 if (timeStretched)
                 {
-                    var speed = GetSpeed(timeClip);
-                    ImGui.TextUnformatted($"Speed: {speed:0.}%");
+                    ImGui.TextUnformatted($"Speed: {timeClip.Speed*100:0.0}%");
                 }
 
                 ImGui.PopStyleColor();
+                ImGui.PopFont();
             }
             ImGui.EndTooltip();
+            ImGui.PopStyleVar();
         }
 
         if (ImGui.IsItemHovered() && ImGui.IsMouseDoubleClicked(0))

@@ -69,7 +69,7 @@ internal static class ClipTimingEditor
             foreach (var clip in _clips)
             {
                 var clipDuration = clip.TimeRange.Duration;
-                clip.SourceRange.End = clip.SourceRange.Start + clipDuration / (_combinedSpeedPercentage / 100);
+                clip.SourceRange.End = clip.SourceRange.Start + clipDuration * (_combinedSpeedPercentage / 100);
             }
         }
     }
@@ -137,7 +137,7 @@ internal static class ClipTimingEditor
         
         ImGui.SameLine();
         ImGui.PushID(2);
-        if (SingleValueEdit.Draw(ref r.End, size, 0, 999) != InputEditStateFlags.Nothing)
+        if (SingleValueEdit.Draw(ref r.End, size, 0, 999) == InputEditStateFlags.Finished)
         {
             if (!float.IsNaN(r.End))
             {
@@ -165,7 +165,7 @@ internal static class ClipTimingEditor
         
         foreach (var clip in _clips)
         {
-            var speed = (clip.TimeRange.Duration) / (clip.SourceRange.Duration) * 100;
+            var speed = clip.Speed * 100;
             if (isFirst)
             {
                 _combinedTimeRange.Start = clip.TimeRange.Start;
