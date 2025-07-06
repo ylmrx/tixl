@@ -45,6 +45,8 @@ internal static class TimeClipItem
 
         var symbolChildUi = attr.CompositionSymbolUi.ChildUis[timeClip.Id];
 
+        
+
         ImGui.PushID(symbolChildUi.Id.GetHashCode());
 
         var isSelected = attr.LayerContext.ClipSelection.SelectedClipsIds.Contains(timeClip.Id);
@@ -133,9 +135,15 @@ internal static class TimeClipItem
 
         if (ImGui.IsItemHovered())
         {
+            ImGui.PushStyleVar(ImGuiStyleVar.WindowPadding, new Vector2(4,4));
             ImGui.BeginTooltip();
             {
+                ImGui.PushFont(Fonts.FontSmall);
                 ImGui.TextUnformatted(symbolChildUi.SymbolChild.ReadableName);
+                if (!isConnected)
+                {
+                    ImGui.TextUnformatted("(Not connected?)");
+                }
 
                 ImGui.PushStyleColor(ImGuiCol.Text, UiColors.TextMuted.Rgba);
                 ImGui.TextUnformatted($"Visible: {timeClip.TimeRange.Start:0.00} ... {timeClip.TimeRange.End:0.00}");
@@ -226,12 +234,12 @@ internal static class TimeClipItem
     }
 
 
-    private static double GetSpeed(TimeClip timeClip)
-    {
-        return Math.Abs(timeClip.TimeRange.Duration) > 0.001
-                   ? Math.Round((timeClip.TimeRange.Duration / timeClip.SourceRange.Duration) * 100)
-                   : 9999;
-    }
+    // private static double GetSpeed(TimeClip timeClip)
+    // {
+    //     return Math.Abs(timeClip.TimeRange.Duration) > 0.001
+    //                ? Math.Round((timeClip.SourceRange.Duration / timeClip.TimeRange.Duration) * 100)
+    //                : 9999;
+    // }
 
     private enum HandleDragMode
     {
@@ -291,8 +299,15 @@ internal static class TimeClipItem
         {
             if (!isSelected)
             {
-                attr.LayerContext.ClipSelection.Clear();
-                attr.LayerContext.ClipSelection.Select(timeClip);
+                if (ImGui.GetIO().KeyShift)
+                {
+                    attr.LayerContext.ClipSelection.AddSelection(timeClip);
+                }
+                else
+                {
+                    attr.LayerContext.ClipSelection.Select(timeClip);
+                    
+                }
             }
             
             _timeWithinDraggedClip = currentDragTime - timeClip.TimeRange.Start;
@@ -304,17 +319,23 @@ internal static class TimeClipItem
         
         if (!ImGui.IsMouseDragging(0, UserSettings.Config.ClickThreshold))
             return;
-
+        
+        var allowSnapping = !ImGui.GetIO().KeyShift && !(ImGui.GetIO().KeyAlt && ImGui.GetIO().KeyCtrl);
         switch (mode)
         {
             case HandleDragMode.Body:
                 var dy = _posPosYOnDragStart - mousePos.Y;
 
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip, out var snappedClipStartTime, attr.LayerContext.TimeCanvas.Scale.X))
+
+                if (allowSnapping && attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip, 
+                                                                                   out var snappedClipStartTime,
+                                                                                   attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     currentDragTime = (float)snappedClipStartTime + _timeWithinDraggedClip;
                 }
-                else if (attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip + timeClip.TimeRange.Duration, out var snappedClipEndTime, attr.LayerContext.TimeCanvas.Scale.X))
+                else if (allowSnapping && attr.LayerContext.SnapHandler.TryCheckForSnapping(currentDragTime - _timeWithinDraggedClip + timeClip.TimeRange.Duration, 
+                                                                                            out var snappedClipEndTime, 
+                                                                                            attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     currentDragTime = (float)snappedClipEndTime + _timeWithinDraggedClip - timeClip.TimeRange.Duration;
                 }
@@ -324,7 +345,7 @@ internal static class TimeClipItem
 
             case HandleDragMode.Start:
                 var newDragStartTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragStartTime, out var snappedValue3, attr.LayerContext.TimeCanvas.Scale.X))
+                if (allowSnapping && attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragStartTime, out var snappedValue3, attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     newDragStartTime = (float)snappedValue3;
                 }
@@ -334,7 +355,7 @@ internal static class TimeClipItem
 
             case HandleDragMode.End:
                 var newDragTime = attr.LayerContext.TimeCanvas.InverseTransformX(mousePos.X);
-                if (attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragTime, out var snappedValue4, attr.LayerContext.TimeCanvas.Scale.X))
+                if (allowSnapping && attr.LayerContext.SnapHandler.TryCheckForSnapping(newDragTime, out var snappedValue4, attr.LayerContext.TimeCanvas.Scale.X))
                 {
                     newDragTime = (float)snappedValue4;
                 }
