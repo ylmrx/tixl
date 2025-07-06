@@ -4,6 +4,7 @@ using ImGuiNET;
 using T3.Core.Animation;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Snapping;
@@ -134,6 +135,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         ImGui.SetCursorScreenPos(min + new Vector2(0, LayerHeight));
     }
 
+
+
     private bool _contextMenuIsOpen;
 
     private void DrawContextMenuItems(Instance compositionOp)
@@ -178,7 +181,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                 ClipTimingEditor.TimeClipEditorRequested = true;
             }
 
-            if (ImGui.MenuItem("Cut at time"))
+            if (ImGui.MenuItem("Cut at time", UserActions.SplitSelectedOrHoveredClips.ListKeyboardShortcutsForAction()))
             {
                 SplitClipsAtTime(compositionOp);
             }
@@ -263,38 +266,81 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             var newTimeClip = newInstance.Outputs.OfType<ITimeClipProvider>().Single().TimeClip;
 
             var newSymbolUiChild = compositionSymbolUi.ChildUis[newChildId];
+            var newName = originalName.AppendOrIncrementVersionNumber();
             var renameCommand = new ChangeSymbolChildNameCommand(newSymbolUiChild, compositionSymbolUi.Symbol)
                                     {
-                                        NewName = originalName
+                                        NewName = newName
                                     };
             renameCommand.Do();
             commands.Add(renameCommand);
 
-            newSymbolUiChild.SymbolChild.Name = originalName;
-
             newTimeClip.TimeRange = new TimeRange((float)_playback.TimeInBars, orgTimeRangeEnd);
             newTimeClip.SourceRange.Start = newTimeClip.SourceRange.Start + originalSourceDuration * normalizedCutPosition;
             newTimeClip.SourceRange.End = clip.SourceRange.End;
-
+            
+            // Adjust first clip end time
             var adjustFirstClipCommand = new MoveTimeClipsCommand(compositionOp, [clip]);
-
             clip.TimeRange.End = (float)_playback.TimeInBars;
             clip.SourceRange.Duration = originalSourceDuration * normalizedCutPosition;
             adjustFirstClipCommand.StoreCurrentValues();
+            
             commands.Add(adjustFirstClipCommand);
+            
+            
+            // Copy connection of original clip
+            {
+                Symbol.Child.Output timeClipOutput = null;
+                foreach (var o in symbolChildUi.SymbolChild.Outputs.Values)
+                {
+                    if (o.OutputData is TimeClip tc && tc == clip)
+                    {
+                        timeClipOutput = o;
+                        break;
+                    }
+                }
+
+                if (timeClipOutput == null)
+                {
+                    Log.Warning($"Can't find timeclip output for {symbolChildUi}?");
+                    continue;
+                }
+                
+                // find connections
+                var connections = compositionOp.Symbol.Connections
+                                               .Where(c => c.SourceParentOrChildId == symbolChildUi.Id
+                                                      && c.SourceSlotId == timeClipOutput.OutputDefinition.Id)
+                                               .ToList();
+
+                foreach (var c in connections)
+                {
+                    if (!compositionOp.Symbol.Children.TryGetValue(c.TargetParentOrChildId, out var targetOp))
+                        continue;
+
+                    if (!targetOp.Inputs.TryGetValue(c.TargetSlotId, out var targetInput) || !targetInput.IsMultiInput)
+                        continue;
+
+                    var addConnectionCommand = new AddConnectionCommand(compositionOp.Symbol, 
+                                                                        new Symbol.Connection(newInstance.SymbolChildId,
+                                                                                              c.SourceSlotId,
+                                                                                              c.TargetParentOrChildId,
+                                                                                              c.TargetSlotId), 
+                                                                        compositionOp.Symbol.GetMultiInputIndexFor(c)+1);
+                    addConnectionCommand.Do();
+                    commands.Add(addConnectionCommand);
+                }
+            }
         }
 
-        //var matchingClips = _context.ClipSelection.AllOrSelectedClipIds.Where(clip => clip.TimeRange.Contains(timeInBars)).ToList();
         if (commands.Count == 0)
         {
-            Log.Debug($"There are no time clips at current time {timeInBars:0.0}");
+            Log.Debug($"There are no time clips to split at current time {timeInBars:0.0}");
             return;
         }
 
         var macroCommands = new MacroCommand("split clip", commands);
         UndoRedoStack.Add(macroCommands);
 
-        ProjectView.Focused?.FlagChanges(ProjectView.ChangeTypes.Children);
+        ProjectView.Focused?.FlagChanges(ProjectView.ChangeTypes.Children|ProjectView.ChangeTypes.Connections );
     }
 
     private int _minLayerIndex = int.MaxValue;
@@ -362,6 +408,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         var io = ImGui.GetIO();
         var toggleLinkMode = io.KeyAlt;
         var dragInside = io.KeyCtrl && io.KeyAlt;
+        var lockTime = io.KeyCtrl && !io.KeyAlt;
 
         if (_context.ClipSelection.SelectedClipsIds.Count == 0)
             return;
@@ -375,6 +422,11 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
 
         foreach (var clip in _context.ClipSelection.GetAllOrSelectedClips())
         {
+            clip.LayerIndex += indexDelta;
+                
+            if (lockTime)
+                continue;
+            
             if (dragInside)
             {
                 clip.SourceRange.Start += (float)dt;
@@ -382,11 +434,8 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             }
             else if (clip.UsedForRegionMapping^toggleLinkMode)
             {
-                //TODO: fix continuous dragging
                 clip.TimeRange.Start += (float)dt;
                 clip.TimeRange.End += (float)dt;
-                // clip.SourceRange.Start += (float)dt;
-                // clip.SourceRange.End += (float)dt;
             }
             else
             {
@@ -395,7 +444,6 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                 clip.SourceRange.Start += (float)dt;
                 clip.SourceRange.End += (float)dt;
             }
-            clip.LayerIndex += indexDelta;
         }
     }
 
