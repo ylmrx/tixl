@@ -5,6 +5,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using T3.Core.Logging;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using T3.Serialization;
 
 namespace T3.Core.Animation;
@@ -30,18 +31,50 @@ public sealed class TimeClip : IOutputData
     public TimeRange TimeRange;
     public TimeRange SourceRange;
     public int LayerIndex { get; set; } = 0;
-    
+
     /// <summary>
     /// TimeClips that primary purpose is use with nested content with remapping local time to that
     /// content time. Operators like TimeClipSwitch can clear this flag to indicate that the source
     /// region should be linked to the clip region when dragging clips in the timeline. 
     /// </summary>
-    public bool UsedForRegionMapping = true; 
-    
+    public bool UsedForRegionMapping = true;
+
     public Type DataType => typeof(TimeClip);
 
-    
-    
+    [JsonIgnore]
+    public float Speed => MathF.Abs(TimeRange.Duration) < 0.001f ? 1 : SourceRange.Duration / TimeRange.Duration;
+
+    public bool MakeConform()
+    {
+        var neededFix = false;
+        
+        if (!TimeRange.Start._IsFinite())
+        {
+            TimeRange.Start = 0;
+            neededFix = true;
+        }
+
+        if (!TimeRange.End._IsFinite())
+        {
+            TimeRange.End = TimeRange.Start + DefaultClipDuration;
+            neededFix = true;
+        }
+        
+        if (!SourceRange.Start._IsFinite())
+        {
+            SourceRange.Start = TimeRange.Start;
+            neededFix = true;
+        }
+
+        if (!SourceRange.End._IsFinite())
+        {
+            SourceRange.End = TimeRange.End;
+            neededFix = true;
+        }
+        
+        return neededFix;
+    }
+
     public bool IsClipOverlappingOthers(IEnumerable<TimeClip> allTimeClips)
     {
         foreach (var otherClip in allTimeClips)

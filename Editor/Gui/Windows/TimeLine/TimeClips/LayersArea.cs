@@ -124,6 +124,10 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         // All clips in all layers
         foreach (var clip in clips)
         {
+            if (clip.MakeConform())
+            {
+                Log.Debug($"Corrected malformed timing for {clip.Id}");
+            }
             TimeClipItem.DrawClip(clip, ref drawAttributes);
         }
 
