@@ -127,7 +127,7 @@ internal static class KeyMapSwitching
     }
 
     internal static readonly List<KeyMap> KeyMaps = [_factoryKeymap];
-    private static string KeyMapFolder => Path.Combine(FileLocations.SettingsPath, FileLocations.KeyBindingSubFolder);
+    private static string KeyMapFolder => Path.Combine(FileLocations.SettingsDirectory, FileLocations.KeyBindingSubFolder);
     private static string DefaultKeyMapFolder => Path.Combine(FileLocations.ReadOnlySettingsPath, FileLocations.KeyBindingSubFolder);
 
     private static KeyMap CreateFactoryKeymap()

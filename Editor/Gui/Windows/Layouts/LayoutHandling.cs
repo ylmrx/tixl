@@ -238,5 +238,5 @@ internal static class LayoutHandling
 
     private const string LayoutFileNameFormat = "layout{0}.json";
     private static string LayoutSubfolder => "Layouts";
-    public static string LayoutFolder => Path.Combine(FileLocations.SettingsPath, LayoutSubfolder);
+    public static string LayoutFolder => Path.Combine(FileLocations.SettingsDirectory, LayoutSubfolder);
 }

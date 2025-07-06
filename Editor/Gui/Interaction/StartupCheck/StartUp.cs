@@ -99,5 +99,5 @@ public static class StartUp
     }
 
     private const string HelpUrl = "https://github.com/tixl3d/tixl/wiki/installation#setup-and-installation";
-    private static string StartUpLockFilePath => Path.Combine(FileLocations.SettingsPath, "startingUp");
+    private static string StartUpLockFilePath => Path.Combine(FileLocations.SettingsDirectory, "startingUp");
 }

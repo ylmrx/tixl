@@ -195,7 +195,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             
             if (!isAnyKeysSelected && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
-                if (compositionOp.Children.TryGetValue(parameter.ChildUi.SymbolChild.Id, out _))
+                if (compositionOp.Children.TryGetChildInstance(parameter.ChildUi.SymbolChild.Id, out _))
                 {
                     ProjectView.Focused?.NodeSelection.Clear();
                     ProjectView.Focused?.NodeSelection.SelectCompositionChild(compositionOp, parameter.ChildUi.Id);

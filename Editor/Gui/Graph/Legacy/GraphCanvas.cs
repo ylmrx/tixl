@@ -417,19 +417,23 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         if (FrameStats.Current.OpenedPopUpName == string.Empty)
             CustomComponents.DrawContextMenuForScrollCanvas(() => DrawContextMenuContent(compositionInstance), ref _contextMenuIsOpen);
 
-        _duplicateSymbolDialog.Draw(compositionInstance, _nodeSelection.GetSelectedChildUis().ToList(), ref _nameSpaceForDialogEdits,
+        var symbolId = compositionInstance.Symbol.Id;
+        compositionInstance = null; // for assembly unloading
+        _duplicateSymbolDialog.Draw(symbolId, _nodeSelection.GetSelectedChildUis().ToList(), ref _nameSpaceForDialogEdits,
                                     ref _symbolNameForDialogEdits,
                                     ref _symbolDescriptionForDialog);
-        _combineToSymbolDialog.Draw(compositionInstance, _projectView,
+        _combineToSymbolDialog.Draw(symbolId, _projectView,
                                     ref _nameSpaceForDialogEdits,
                                     ref _symbolNameForDialogEdits,
                                     ref _symbolDescriptionForDialog);
+        
+        compositionInstance = _projectView.CompositionInstance;
 
         _renameSymbolDialog.Draw(_nodeSelection.GetSelectedChildUis().ToList(), ref _symbolNameForDialogEdits);
 
         EditCommentDialog.Draw(_nodeSelection);
 
-        if (compositionInstance != _projectView.OpenedProject.RootInstance && !compositionInstance.Symbol.SymbolPackage.IsReadOnly)
+        if (compositionInstance != _projectView.RootInstance && !compositionInstance.Symbol.SymbolPackage.IsReadOnly)
         {
             var symbol = compositionInstance.Symbol;
             _addInputDialog.Draw(symbol);
@@ -497,7 +501,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         {
             if (node is SymbolUi.Child symbolChildUi)
             {
-                if (!compositionOp.TryGetChildInstance(symbolChildUi.Id, false, out var instance, out _))
+                if (!compositionOp.Children.TryGetChildInstance(symbolChildUi.Id, out var instance))
                 {
                     Log.Error("Can't find instance");
                 }
