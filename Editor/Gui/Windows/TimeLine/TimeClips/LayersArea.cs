@@ -157,7 +157,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
         if (ImGui.BeginPopupContextWindow("windows_context_menu"))
         {
             _contextMenuIsOpen = true;
-            if (ImGui.MenuItem("Delete", UserActions.DeleteSelection.ListKeyboardShortcutsForAction(false), false, _context.ClipSelection.Count > 0))
+            if (ImGui.MenuItem("Delete", UserActions.DeleteSelection.ListShortcuts(), false, _context.ClipSelection.Count > 0))
             {
                 DeleteSelectedClips(compositionOp);
             }
@@ -181,7 +181,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
                 ClipTimingEditor.TimeClipEditorRequested = true;
             }
 
-            if (ImGui.MenuItem("Cut at time", UserActions.SplitSelectedOrHoveredClips.ListKeyboardShortcutsForAction()))
+            if (ImGui.MenuItem("Cut at time", UserActions.SplitSelectedOrHoveredClips.ListShortcuts()))
             {
                 SplitClipsAtTime(compositionOp);
             }

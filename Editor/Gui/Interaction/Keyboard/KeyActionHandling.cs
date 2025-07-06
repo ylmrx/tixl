@@ -1,4 +1,5 @@
 #nullable enable
+using System.Reflection.Emit;
 using ImGuiNET;
 using T3.Editor.Gui.UiHelpers;
 using T3.SystemUi;
@@ -53,7 +54,7 @@ internal static class KeyActionHandling
         return false;
     }
 
-    internal static string ListKeyboardShortcutsForAction(this UserActions action, bool showLabel = true)
+    internal static string ListShortcuts(this UserActions action)
     {
         var currentKeymapShortCutsLabelsForActions = KeyMapSwitching.CurrentKeymap.ShortCutsLabelsForActions;
         var index = (int)action;
@@ -62,13 +63,16 @@ internal static class KeyActionHandling
             return string.Empty;
         }
 
-        var shortcuts = currentKeymapShortCutsLabelsForActions[index];
-        if (!showLabel)
-            return shortcuts;
-
-        var label = shortcuts.Contains(" and ") ? "Shortcuts: " : "Shortcut: ";
-        return label + shortcuts;
+        return currentKeymapShortCutsLabelsForActions[index];
     }
+
+    internal static string ListKeyboardShortcutsForActionWithLabel(this UserActions action)
+    {
+        var shortCuts = action.ListShortcuts(); 
+        var prefix = shortCuts.Contains(" and ") ? "Shortcuts: " : "Shortcut: ";
+        return prefix + shortCuts;
+    }
+
 
     internal static Flags GetActionFlags(UserActions action)
     {

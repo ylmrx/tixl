@@ -377,8 +377,8 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Click on beat to sync. Tap later once to refine. Click right to sync measure.\n"
                                                 + "Ctrl+Click to round BPM",
-                                                $"Tap: {KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.TapBeatSync)}\n"
-                                                + $"Resync: {KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.TapBeatSyncMeasure)}");
+                                                $"Tap: {KeyActionHandling.ListShortcuts(UserActions.TapBeatSync)}\n"
+                                                + $"Resync: {KeyActionHandling.ListShortcuts(UserActions.TapBeatSyncMeasure)}");
 
             ImGui.SameLine();
 
@@ -416,7 +416,7 @@ internal static class TimeControls
             }
 
             CustomComponents.TooltipForLastItem("Jump to beginning",
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToStartTime));
+                                                KeyActionHandling.ListShortcuts(UserActions.PlaybackJumpToStartTime));
 
             ImGui.SameLine();
 
@@ -432,7 +432,7 @@ internal static class TimeControls
             }
 
             CustomComponents.TooltipForLastItem("Jump to previous keyframe",
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToPreviousKeyframe));
+                                                KeyActionHandling.ListShortcuts(UserActions.PlaybackJumpToPreviousKeyframe));
 
             ImGui.SameLine();
 
@@ -461,8 +461,8 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Play backwards",
                                                 "Play backwards (and faster): " +
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackBackwards, false) +
-                                                "\nPrevious frame:" + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackPreviousFrame, false));
+                                                UserActions.PlaybackBackwards.ListShortcuts() +
+                                                "\nPrevious frame:" + UserActions.PlaybackPreviousFrame.ListShortcuts());
 
             ImGui.SameLine();
 
@@ -491,10 +491,10 @@ internal static class TimeControls
 
             CustomComponents.TooltipForLastItem("Start playback",
                                                 "Play forward (and faster): " +
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackForward, false) +
+                                                UserActions.PlaybackForward.ListShortcuts() +
                                                 "\nPlay half speed (and slower): " +
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackForwardHalfSpeed, false) +
-                                                "\nNext frame:" + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackNextFrame, false));
+                                                UserActions.PlaybackForwardHalfSpeed.ListShortcuts() +
+                                                "\nNext frame:" + UserActions.PlaybackNextFrame.ListShortcuts());
 
             ImGui.SameLine();
 
@@ -510,7 +510,7 @@ internal static class TimeControls
             }
 
             CustomComponents.TooltipForLastItem("Jump to next keyframe",
-                                                KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PlaybackJumpToNextKeyframe));
+                                                UserActions.PlaybackJumpToNextKeyframe.ListShortcuts());
             ImGui.SameLine();
 
             // // End
@@ -617,7 +617,7 @@ internal static class TimeControls
 
         CustomComponents.TooltipForLastItem("Keep animated parameters visible",
                                             "This can be useful when align animations between multiple operators. Toggle again to clear the visible animations.\n\n"
-                                            + KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleAnimationPinning)
+                                            + KeyActionHandling.ListShortcuts(UserActions.ToggleAnimationPinning)
                                            );
         ImGui.SameLine();
     }

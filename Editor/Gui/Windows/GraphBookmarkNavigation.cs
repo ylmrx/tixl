@@ -52,7 +52,7 @@ internal static class GraphBookmarkNavigation
             for (var index = 0; index < _loadBookmarkActions.Length; index++)
             {
                 var action = _loadBookmarkActions[index];
-                var shortcuts = KeyActionHandling.ListKeyboardShortcutsForAction(action, showLabel:false);
+                var shortcuts = action.ListShortcuts();
                 var isAvailable = DoesBookmarkExist(index);
                 if (ImGui.MenuItem(action.ToString(), shortcuts, false, enabled: isAvailable))
                 {
@@ -69,7 +69,7 @@ internal static class GraphBookmarkNavigation
             for (var index = 0; index < _saveBookmarkActions.Length; index++)
             {
                 var action = _saveBookmarkActions[index];
-                var shortcuts = KeyActionHandling.ListKeyboardShortcutsForAction(action, showLabel:false);
+                var shortcuts = action.ListShortcuts();
                     
                 if (ImGui.MenuItem(action.ToString(), shortcuts))
                 {

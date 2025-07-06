@@ -3,6 +3,7 @@ using ImGuiNET;
 using T3.Core.Animation;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
+using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.TimeLine;
@@ -59,6 +60,9 @@ public abstract class CurveEditing
             var editModes = selectedInterpolations as VDefinition.EditMode[] ?? selectedInterpolations.ToArray();
 
             bool changed = false;
+            if (SelectedKeyframes.Count > 0)
+            {
+                CustomComponents.HintLabel("Interpolation...");
 
             if (ImGui.MenuItem("Smooth", null, editModes.Contains(VDefinition.EditMode.Smooth)))
             {
@@ -95,7 +99,9 @@ public abstract class CurveEditing
                 changed = true;
             }
 
-            if (ImGui.BeginMenu("Before curve..."))
+                ImGui.Separator();
+
+                if (ImGui.BeginMenu("Before curve...", SelectedKeyframes.Count > 0))
             {
                 foreach (CurveUtils.OutsideCurveBehavior mapping in Enum.GetValues(typeof(CurveUtils.OutsideCurveBehavior)))
                 {
@@ -109,7 +115,7 @@ public abstract class CurveEditing
                 ImGui.EndMenu();
             }
 
-            if (ImGui.BeginMenu("After curve..."))
+                if (ImGui.BeginMenu("After curve...", SelectedKeyframes.Count > 0))
             {
                 foreach (CurveUtils.OutsideCurveBehavior mapping in Enum.GetValues(typeof(CurveUtils.OutsideCurveBehavior)))
                 {
@@ -149,6 +155,10 @@ public abstract class CurveEditing
                 DuplicateSelectedKeyframes(TimeLineCanvas.Current.Playback.TimeInBars);
                 changed = true;
             }
+            }
+
+            if (ImGui.MenuItem(SelectedKeyframes.Count > 0 ? "View Selected" : "View All", UserActions.FocusSelection.ListShortcuts()))
+                ViewAllOrSelectedKeys();
 
             if (changed)
             {

@@ -31,7 +31,7 @@ internal static class GraphContextMenu
         var selectedChildUis = nodeSelection.GetSelectedChildUis().ToList();
         var nextUndoTitle = UndoRedoStack.CanUndo ? $" ({UndoRedoStack.GetNextUndoTitle()})" : string.Empty;
         if (ImGui.MenuItem("Undo" + nextUndoTitle,
-                           shortcut: KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.Undo, false),
+                           shortcut: UserActions.Undo.ListShortcuts(),
                            selected: false,
                            enabled: UndoRedoStack.CanUndo))
         {
@@ -59,7 +59,7 @@ internal static class GraphContextMenu
 
         var allSelectedDisabled = selectedChildUis.TrueForAll(selectedChildUi => selectedChildUi.SymbolChild.IsDisabled);
         if (ImGui.MenuItem("Disable",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleDisabled, false),
+                           UserActions.ToggleDisabled.ListShortcuts(),
                            selected: allSelectedDisabled,
                            enabled: selectedChildUis.Count > 0))
         {
@@ -68,7 +68,7 @@ internal static class GraphContextMenu
 
         var allSelectedBypassed = selectedChildUis.TrueForAll(selectedChildUi => selectedChildUi.SymbolChild.IsBypassed);
         if (ImGui.MenuItem("Bypassed",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleBypassed, false),
+                           UserActions.ToggleBypassed.ListShortcuts(),
                            selected: allSelectedBypassed,
                            enabled: selectedChildUis.Count > 0))
         {
@@ -82,7 +82,7 @@ internal static class GraphContextMenu
         }
 
         if (ImGui.MenuItem("Add Comment",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.AddComment, false),
+                           UserActions.AddComment.ListShortcuts(),
                            selected: false,
                            enabled: oneOpSelected))
         {
@@ -90,7 +90,7 @@ internal static class GraphContextMenu
         }
         
         if (ImGui.MenuItem("Align select left",
-                           UserActions.AlignSelectionLeft.ListKeyboardShortcutsForAction(),
+                           UserActions.AlignSelectionLeft.ListShortcuts(),
                            selected: false,
                            enabled: context.StateMachine.CurrentState == GraphStates.Default && selectedChildUis.Count > 1))
         {
@@ -110,7 +110,7 @@ internal static class GraphContextMenu
         if (canModify)
         {
             if (ImGui.MenuItem("Enable for snapshots",
-                               KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleSnapshotControl, false),
+                               UserActions.ToggleSnapshotControl.ListShortcuts(),
                                selected: snapShotsEnabledFromSomeOps,
                                enabled: someOpsSelected))
             {            
@@ -188,7 +188,7 @@ internal static class GraphContextMenu
                           && selectedChildUis[0].SymbolChild.Symbol.OutputDefinitions.Count > 0
                           && selectedChildUis[0].SymbolChild.Symbol.OutputDefinitions[0].ValueType == typeof(Texture2D);
             if (ImGui.MenuItem("Set image as graph background",
-                               KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.DisplayImageAsBackground, false),
+                               UserActions.DisplayImageAsBackground.ListShortcuts(),
                                selected: false,
                                enabled: isImage))
             {
@@ -210,20 +210,20 @@ internal static class GraphContextMenu
         ImGui.Separator();
 
         if (ImGui.MenuItem("Copy",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.CopyToClipboard, false),
+                           UserActions.CopyToClipboard.ListShortcuts(),
                            selected: false,
                            enabled: someOpsSelected))
         {
             NodeActions.CopySelectedNodesToClipboard(nodeSelection, context.CompositionInstance);
         }
 
-        if (ImGui.MenuItem("Paste", KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PasteFromClipboard, false)))
+        if (ImGui.MenuItem("Paste", UserActions.PasteFromClipboard.ListShortcuts()))
         {
             NodeActions.PasteClipboard(nodeSelection, context.Canvas, context.CompositionInstance);
             context.Layout.FlagStructureAsChanged();
         }
         
-        if (ImGui.MenuItem("Paste Values", KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PasteValues, false)))
+        if (ImGui.MenuItem("Paste Values", UserActions.PasteValues.ListShortcuts()))
         {
             NodeActions.PasteValues(nodeSelection, context.Canvas, context.CompositionInstance);
             context.Layout.FlagStructureAsChanged();
@@ -244,7 +244,7 @@ internal static class GraphContextMenu
         }
 
         if (ImGui.MenuItem("Duplicate",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.Duplicate, false),
+                           UserActions.Duplicate.ListShortcuts(),
                            selected: false,
                            enabled: selectedChildUis.Count > 0 && !isSaving))
         {
@@ -335,7 +335,7 @@ internal static class GraphContextMenu
             }
 
             if (ImGui.MenuItem("Add Annotation",
-                               shortcut: KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.AddAnnotation, false),
+                               shortcut: UserActions.AddAnnotation.ListShortcuts(),
                                selected: false,
                                enabled: true))
             {
