@@ -161,6 +161,7 @@ internal static class KeyMapSwitching
                 new(UserActions.InsertKeyframe, new KeyCombination(Key.C)),
                 new(UserActions.InsertKeyframeWithIncrement, new KeyCombination(Key.C, shift: true)),
                 new(UserActions.ToggleAnimationPinning, new KeyCombination(Key.K, shift: true)),
+                new(UserActions.SplitSelectedOrHoveredClips, new KeyCombination(Key.X, ctrl: true)),
                 new(UserActions.SetStartTime, new KeyCombination(Key.B)),
                 new(UserActions.SetEndTime, new KeyCombination(Key.N)),
                 new(UserActions.TapBeatSync, new KeyCombination(Key.Z)),
@@ -180,6 +181,7 @@ internal static class KeyMapSwitching
                 new(UserActions.OpenOperator, new KeyCombination(Key.I)),
                 new(UserActions.CloseOperator, new KeyCombination(Key.U)),
                 new(UserActions.RenameChild, new KeyCombination(Key.Return)),
+                new(UserActions.AlignSelectionLeft, new KeyCombination(Key.A, alt:true)),
 
                 // Navigation
                 new(UserActions.NavigateBackwards, new KeyCombination(Key.CursorLeft, alt: true)),
