@@ -111,6 +111,8 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
                 {
                     _clipRange.Draw(this, compositionTimeClip, Drawlist, SnapHandlerForU);
                 }
+
+                CustomComponents.HandleDragScrolling(this);
             }
                 
             ImGui.EndChild();
