@@ -162,7 +162,7 @@ internal sealed class OutputWindow : Window
             }
 
             var label = drawnType == typeof(Texture2D) ? "Fit image to view" : "Reset view or camera position";
-            var shortCut = KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.FocusSelection);
+            var shortCut = KeyActionHandling.ListShortcuts(UserActions.FocusSelection);
             CustomComponents.TooltipForLastItem(label, shortCut);
         }
 

@@ -41,7 +41,7 @@ internal sealed class TimelineCurveEditArea : AnimationParameterEditing, ITimeOb
 
         if (fitCurvesVertically)
         {
-            var bounds = GetBoundsOnCanvas(GetSelectedOrAllPoints());
+            TryGetBoundsOnCanvas(GetSelectedOrAllPoints(), out var bounds);
             TimeLineCanvas.Current.SetVerticalScopeToCanvasArea(bounds, flipY: true);
         }
 

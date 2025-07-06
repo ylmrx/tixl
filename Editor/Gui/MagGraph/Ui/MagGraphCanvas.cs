@@ -210,13 +210,13 @@ internal sealed partial class MagGraphCanvas : ScalableCanvas, IGraphCanvas
     // }
     private void HandleSymbolDropping(GraphUiContext context)
     {
-        if (!DragHandling.IsDragging)
+        if (!DragAndDropHandling.IsDragging)
             return;
 
         ImGui.SetCursorPos(Vector2.Zero);
         ImGui.InvisibleButton("## drop", ImGui.GetWindowSize());
 
-        if (!DragHandling.TryGetDataDroppedLastItem(DragHandling.SymbolDraggingId, out var data))
+        if (!DragAndDropHandling.TryGetDataDroppedLastItem(DragAndDropHandling.SymbolDraggingId, out var data))
             return;
 
         if (!Guid.TryParse(data, out var guid))

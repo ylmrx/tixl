@@ -42,6 +42,7 @@ public enum UserActions
     InsertKeyframe,
     InsertKeyframeWithIncrement,
     ToggleAnimationPinning,
+    SplitSelectedOrHoveredClips,
 
     // Graph
     PinToOutputWindow,

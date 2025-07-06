@@ -135,7 +135,7 @@ internal static class KeyMapEditor
 
                 if (CurrentKeyMap.TryGetBinding(action, out var binding))
                 {
-                    var shortcuts = action.ListKeyboardShortcutsForAction(false);
+                    var shortcuts = action.ListShortcuts();
 
                     if (_somethingChanged)
                     {

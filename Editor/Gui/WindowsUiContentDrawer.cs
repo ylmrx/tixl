@@ -266,7 +266,9 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.UnmapSubresource(_ib, 0);
     }
 
-    
+    SharpDX.Mathematics.Interop.RawRectangle[] _prevScissorRects = new SharpDX.Mathematics.Interop.RawRectangle[16];
+    //Note : mrvux : unless you use multi viewport, you can set to 1, I leave 16 for safety here since it's only called once per frame, better than accumulating GC
+    SharpDX.Mathematics.Interop.RawViewportF[] _prevViewports = new SharpDX.Mathematics.Interop.RawViewportF[16];
 
     private void DrawData(ImDrawDataPtr drawData)
     {
@@ -280,9 +282,8 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.UnmapSubresource(_vertexConstantBuffer, 0);
 
         // Backup DX state that will be modified to restore it afterwards (unfortunately this is very ugly looking and verbose. Close your eyes!)
-        var prevScissorRects = new RawRectangle[16];
-        _deviceContext.Rasterizer.GetScissorRectangles(prevScissorRects);
-        var prevViewports = _deviceContext.Rasterizer.GetViewports<RawViewportF>();
+        _deviceContext.Rasterizer.GetScissorRectangles(_prevScissorRects);
+        _deviceContext.Rasterizer.GetViewports(_prevViewports);
         var prevRasterizerState = _deviceContext.Rasterizer.State;
         var prevBlendState = _deviceContext.OutputMerger.BlendState;
         var prevBlendFactor = _deviceContext.OutputMerger.BlendFactor;
@@ -327,9 +328,9 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         _deviceContext.GeometryShader.Set(null);
 
         // Setup render state
-        _deviceContext.OutputMerger.BlendState = _blendState;
-        _deviceContext.OutputMerger.BlendFactor = new RawColor4(0.0f, 0.0f, 0.0f, 0.0f);
-        _deviceContext.OutputMerger.DepthStencilState = _depthStencilState;
+        // Note : mrvux do not use properties for blend state / blend, since the native functions are packed with the 
+        _deviceContext.OutputMerger.SetBlendState(_blendState, new RawColor4(0.0f, 0.0f, 0.0f, 0.0f)); //sample mask to -1, no GC     
+        _deviceContext.OutputMerger.SetDepthStencilState(_depthStencilState, 0);
         _deviceContext.Rasterizer.State = _rasterizerState;
 
         // Render command lists
@@ -369,8 +370,8 @@ public sealed class WindowsUiContentDrawer : IUiContentDrawer<Device>
         }
 
         // Restore modified DX state
-        _deviceContext.Rasterizer.SetScissorRectangles(prevScissorRects);
-        _deviceContext.Rasterizer.SetViewports(prevViewports);
+        _deviceContext.Rasterizer.SetScissorRectangles(_prevScissorRects);
+        _deviceContext.Rasterizer.SetViewports(_prevViewports);
         _deviceContext.Rasterizer.State = prevRasterizerState;
         _deviceContext.OutputMerger.BlendState = prevBlendState;
         _deviceContext.OutputMerger.BlendFactor = prevBlendFactor;

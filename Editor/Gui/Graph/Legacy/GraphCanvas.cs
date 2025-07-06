@@ -593,7 +593,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         var selectedChildUis = _nodeSelection.GetSelectedChildUis().ToList();
         var nextUndoTitle = UndoRedoStack.CanUndo ? $" ({UndoRedoStack.GetNextUndoTitle()})" : string.Empty;
         if (ImGui.MenuItem("Undo" + nextUndoTitle,
-                           shortcut: KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.Undo, false),
+                           shortcut: UserActions.Undo.ListShortcuts(),
                            selected: false,
                            enabled: UndoRedoStack.CanUndo))
         {
@@ -618,7 +618,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
 
         var allSelectedDisabled = selectedChildUis.TrueForAll(selectedChildUi => selectedChildUi.SymbolChild.IsDisabled);
         if (ImGui.MenuItem("Disable",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleDisabled, false),
+                           UserActions.ToggleDisabled.ListShortcuts(),
                            selected: allSelectedDisabled,
                            enabled: selectedChildUis.Count > 0))
         {
@@ -627,7 +627,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
 
         var allSelectedBypassed = selectedChildUis.TrueForAll(selectedChildUi => selectedChildUi.SymbolChild.IsBypassed);
         if (ImGui.MenuItem("Bypassed",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.ToggleBypassed, false),
+                           UserActions.ToggleBypassed.ListShortcuts(),
                            selected: allSelectedBypassed,
                            enabled: selectedChildUis.Count > 0))
         {
@@ -640,7 +640,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         }
 
         if (ImGui.MenuItem("Add Comment",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.AddComment, false),
+                           UserActions.AddComment.ListShortcuts(),
                            selected: false,
                            enabled: oneOpSelected))
         {
@@ -648,7 +648,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         }
 
         if (ImGui.MenuItem("Arrange sub graph",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.LayoutSelection, false),
+                           UserActions.LayoutSelection.ListShortcuts(),
                            selected: false,
                            enabled: someOpsSelected))
         {
@@ -730,7 +730,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
                           && selectedChildUis[0].SymbolChild.Symbol.OutputDefinitions.Count > 0
                           && selectedChildUis[0].SymbolChild.Symbol.OutputDefinitions[0].ValueType == typeof(T3.Core.DataTypes.Texture2D);
             if (ImGui.MenuItem("Set image as graph background",
-                               KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.DisplayImageAsBackground, false),
+                               UserActions.DisplayImageAsBackground.ListShortcuts(),
                                selected: false,
                                enabled: isImage))
             {
@@ -749,14 +749,14 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         ImGui.Separator();
 
         if (ImGui.MenuItem("Copy",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.CopyToClipboard, false),
+                           UserActions.CopyToClipboard.ListShortcuts(),
                            selected: false,
                            enabled: someOpsSelected))
         {
             NodeActions.CopySelectedNodesToClipboard(_nodeSelection, compositionOp);
         }
 
-        if (ImGui.MenuItem("Paste", KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.PasteFromClipboard, false)))
+        if (ImGui.MenuItem("Paste", UserActions.PasteFromClipboard.ListShortcuts()))
         {
             NodeActions.PasteClipboard(_nodeSelection, this, compositionOp);
         }
@@ -775,7 +775,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
         }
 
         if (ImGui.MenuItem("Duplicate",
-                           KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.Duplicate, false),
+                           UserActions.Duplicate.ListShortcuts(),
                            selected: false,
                            enabled: selectedChildUis.Count > 0 && !isSaving))
         {
@@ -861,7 +861,7 @@ internal sealed class GraphCanvas : ScalableCanvas, IGraphCanvas
             }
 
             if (ImGui.MenuItem("Add Annotation",
-                               shortcut: KeyActionHandling.ListKeyboardShortcutsForAction(UserActions.AddAnnotation, false),
+                               shortcut: UserActions.AddAnnotation.ListShortcuts(),
                                selected: false,
                                enabled: true))
             {

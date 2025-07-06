@@ -20,14 +20,14 @@ internal static class KeyboardActions
         var compositionOp = context.CompositionInstance;
         //var compositionUi = compositionOp.GetSymbolUi();
 
-        if (KeyActionHandling.Triggered(UserActions.FocusSelection))
+        if (UserActions.FocusSelection.Triggered())
         {
             // TODO: Implement
             Log.Debug("Not implemented yet");
             context.Canvas.FocusViewToSelection(context);
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.Duplicate))
+        if (!T3Ui.IsCurrentlySaving && UserActions.Duplicate.Triggered())
         {
             NodeActions.CopySelectedNodesToClipboard(context.Selector, compositionOp);
             NodeActions.PasteClipboard(context.Selector, context.Canvas, compositionOp);
@@ -56,12 +56,12 @@ internal static class KeyboardActions
             NodeActions.ToggleDisabledForSelectedElements(context.Selector);
         }
 
-        if (KeyActionHandling.Triggered(UserActions.ToggleBypassed))
+        if (UserActions.ToggleBypassed.Triggered())
         {
             NodeActions.ToggleBypassedForSelectedElements(context.Selector);
         }
 
-        if (KeyActionHandling.Triggered(UserActions.PinToOutputWindow))
+        if (UserActions.PinToOutputWindow.Triggered())
         {
             if (UserSettings.Config.FocusMode)
             {
@@ -79,7 +79,7 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyActionHandling.Triggered(UserActions.DisplayImageAsBackground))
+        if (UserActions.DisplayImageAsBackground.Triggered())
         {
             var selectedImage = context.Selector.GetFirstSelectedInstance();
             if (selectedImage != null)
@@ -90,7 +90,7 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyActionHandling.Triggered(UserActions.DisplayImageAsBackground))
+        if (UserActions.DisplayImageAsBackground.Triggered())
         {
             var selectedImage = context.Selector.GetFirstSelectedInstance();
             if (selectedImage != null && ProjectView.Focused != null)
@@ -100,18 +100,18 @@ internal static class KeyboardActions
             }
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CopyToClipboard))
+        if (UserActions.CopyToClipboard.Triggered())
         {
             NodeActions.CopySelectedNodesToClipboard(context.Selector, compositionOp);
         }
 
-        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.PasteFromClipboard))
+        if (!T3Ui.IsCurrentlySaving && UserActions.PasteFromClipboard.Triggered())
         {
             NodeActions.PasteClipboard(context.Selector, context.Canvas, compositionOp);
             context.Layout.FlagStructureAsChanged();
         }
         
-        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.PasteValues))
+        if (!T3Ui.IsCurrentlySaving && UserActions.PasteValues.Triggered())
         {
             NodeActions.PasteValues(context.Selector, context.Canvas, context.CompositionInstance);
             context.Layout.FlagStructureAsChanged();
@@ -122,7 +122,7 @@ internal static class KeyboardActions
         //     _nodeGraphLayouting.ArrangeOps(compositionOp);
         // }
 
-        if (!T3Ui.IsCurrentlySaving && KeyActionHandling.Triggered(UserActions.AddAnnotation))
+        if (!T3Ui.IsCurrentlySaving && UserActions.AddAnnotation.Triggered())
         {
             var newAnnotation = NodeActions.AddAnnotation(context.Selector, context.Canvas, compositionOp);
             context.ActiveAnnotationId = newAnnotation.Id;
@@ -167,7 +167,7 @@ internal static class KeyboardActions
         //     NodeNavigation.SelectBelow();
         // }
 
-        if (KeyActionHandling.Triggered(UserActions.AddComment))
+        if (UserActions.AddComment.Triggered())
         {
             context.EditCommentDialog.ShowNextFrame();
         }
@@ -175,7 +175,7 @@ internal static class KeyboardActions
         if (context.StateMachine.CurrentState == GraphStates.Default)
         {
             var oneSelected = context.Selector.Selection.Count == 1;
-            if (oneSelected && KeyActionHandling.Triggered(UserActions.RenameChild))
+            if (oneSelected && UserActions.RenameChild.Triggered())
             {
                 if (context.Layout.Items.TryGetValue(context.Selector.Selection[0].Id, out var item)
                                                      && item.Variant == MagGraphItem.Variants.Operator)

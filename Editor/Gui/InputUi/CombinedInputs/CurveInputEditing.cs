@@ -327,7 +327,7 @@ public static class CurveInputEditing
                     HandleCreateNewKeyframes(curve);
                     if (NeedToAdjustScopeAfterFirstRendering)
                     {
-                        var bounds = GetBoundsOnCanvas(interaction.GetAllKeyframes());
+                        TryGetBoundsOnCanvas(interaction.GetAllKeyframes(), out var bounds);
                         SetScopeToCanvasArea(bounds, flipY: true, ProjectView.Focused?.GraphCanvas, 30, 15);
                         NeedToAdjustScopeAfterFirstRendering = false;
                     }
