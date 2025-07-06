@@ -57,7 +57,12 @@ internal static class TimeClipItem
         var timeStretched = Math.Abs(timeClip.TimeRange.Duration - timeClip.SourceRange.Duration) > 0.001;
 
         // Body and outline
-        attr.DrawList.AddRectFilled(position, itemRectMax, randomColor.Fade(0.25f), rounding);
+        var isWithinPlaybackTime = timeClip.TimeRange.Contains(attr.LayerContext.TimeCanvas.Playback.TimeInBars);
+        var fadeIfInActive = isWithinPlaybackTime ? 1 : 0.4f;
+        
+        var isConnected = attr.CompositionSymbolUi.Symbol.Connections.Any(c => c.SourceParentOrChildId == timeClip.Id);
+        var fadeIfNotConnected = isConnected ? 1f : 0.2f;
+        attr.DrawList.AddRectFilled(position, itemRectMax, randomColor.Fade(0.4f * fadeIfNotConnected * fadeIfInActive), rounding);
 
         if (isSelected)
             attr.DrawList.AddRect(position, itemRectMax, UiColors.Selection, rounding);
@@ -76,7 +81,7 @@ internal static class TimeClipItem
             if (needsClipping)
                 ImGui.PushClipRect(position, itemRectMax - new Vector2(3, 0), true);
 
-            attr.DrawList.AddText(position + new Vector2(4, 1), isSelected ? UiColors.Selection : randomColor, label);
+            attr.DrawList.AddText(position + new Vector2(4, 1), isSelected ? UiColors.Selection : randomColor.Fade(fadeIfNotConnected), label);
 
             if (needsClipping)
                 ImGui.PopClipRect();
@@ -90,13 +95,13 @@ internal static class TimeClipItem
             {
                 attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 4),
                                             position + new Vector2(clipSize.X - 3, clipSize.Y - 2),
-                                            UiColors.StatusAttention, rounding);
+                                            UiColors.StatusAttention.Fade(fadeIfNotConnected), rounding);
             }
             else if (timeRemapped)
             {
                 attr.DrawList.AddRectFilled(position + new Vector2(2, clipSize.Y - 3),
                                             position + new Vector2(clipSize.X - 3, clipSize.Y - 1),
-                                            UiColors.StatusAnimated);
+                                            UiColors.ForegroundFull.Fade(0.3f* fadeIfNotConnected));
             }
         }
 
