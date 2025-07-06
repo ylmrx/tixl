@@ -10,7 +10,7 @@ namespace T3.Editor.Gui.Interaction.StartupCheck;
 /// Looks for required files and folders
 /// and shows a warning popup instead of an exception...
 /// </summary>
-public static class StartupValidation
+internal static class StartupValidation
 {
     public static void CheckInstallation()
     {
@@ -117,7 +117,7 @@ public static class StartupValidation
         }
     }
 
-    public static void ValidateNotRunningFromSystemFolder()
+    internal static void ValidateNotRunningFromSystemFolder()
     {
         var currentDir = Directory.GetCurrentDirectory();
         var specialFolders = new[]
@@ -161,4 +161,65 @@ public static class StartupValidation
                                                @"Error", "Ok");
         EditorUi.Instance.ExitApplication();
     }
+
+    internal static void ValidateExecutionPolicy()
+    {
+        if (IsExecutionPolicySufficient()) 
+            return;
+        
+        if (TrySetExecutionPolicyToRemoteSigned()) 
+            return;
+        
+        BlockingWindow.Instance.ShowMessageBox($"Cannot proceed: PowerShell script execution is too restricted..",
+                                               @"Error", "Ok");
+        EditorUi.Instance.ExitApplication();        
+    }
+    
+    private static bool IsExecutionPolicySufficient()
+    {
+        var process = new System.Diagnostics.Process
+                          {
+                              StartInfo = new System.Diagnostics.ProcessStartInfo
+                                              {
+                                                  FileName = "powershell",
+                                                  Arguments = "-Command \"Get-ExecutionPolicy -Scope CurrentUser\"",
+                                                  RedirectStandardOutput = true,
+                                                  UseShellExecute = false,
+                                                  CreateNoWindow = true
+                                              }
+                          };
+
+        process.Start();
+        var output = process.StandardOutput.ReadToEnd().Trim();
+        process.WaitForExit();
+        return output != "Restricted" && output != "AllSigned";
+    }
+    
+    private static bool TrySetExecutionPolicyToRemoteSigned()
+    {
+        var process = new System.Diagnostics.Process
+                          {
+                              StartInfo = new System.Diagnostics.ProcessStartInfo
+                                              {
+                                                  FileName = "powershell",
+                                                  Arguments = "-Command \"Set-ExecutionPolicy -Scope CurrentUser RemoteSigned -Force\"",
+                                                  UseShellExecute = true, // This allows UAC prompt if needed
+                                                  Verb = "runas" // Elevate
+                                              }
+                          };
+
+        try
+        {
+            process.Start();
+            process.WaitForExit();
+            return process.ExitCode == 0;
+        }
+        catch (System.ComponentModel.Win32Exception ex)
+        {
+            // User refused elevation or it's blocked
+            Log.Warning("Failed to elevate: " + ex.Message);
+            return false;
+        }
+    }    
+    
 }
