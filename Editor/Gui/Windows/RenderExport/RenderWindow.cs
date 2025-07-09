@@ -8,6 +8,7 @@ using T3.Core.DataTypes.Vector;
 using T3.Core.Resource;
 using T3.Core.UserData;
 using T3.Core.Utils;
+using T3.Core.Video;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Output;

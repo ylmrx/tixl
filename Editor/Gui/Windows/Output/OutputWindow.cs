@@ -2,6 +2,7 @@ using ImGuiNET;
 using System.IO;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
+using T3.Core.Video;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.OutputUi;

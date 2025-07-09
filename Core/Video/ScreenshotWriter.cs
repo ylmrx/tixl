@@ -1,14 +1,16 @@
 #nullable enable
 
+using System;
 using SharpDX;
 using SharpDX.IO;
 using SharpDX.WIC;
 using T3.Core.DataTypes;
+using T3.Core.Logging;
 using T3.Core.Resource;
 
-namespace T3.Editor.Gui.Windows.RenderExport;
+namespace T3.Core.Video;
 
-internal static class ScreenshotWriter
+public static class ScreenshotWriter
 {
     public enum FileFormats
     {
@@ -16,13 +18,18 @@ internal static class ScreenshotWriter
         Jpg,
     }
 
-    internal static string? LastFilename { get; private set; }
+    public static string? LastFilename { get; private set; }
 
 
-    internal static bool StartSavingToFile(Texture2D gpuTexture, string filepath, FileFormats format)
+    private static TextureBgraReadAccess? _textureBgraReadAccess;
+
+    public static bool StartSavingToFile(Texture2D gpuTexture, string filepath, FileFormats format)
     {
+        if (_textureBgraReadAccess == null)
+            _textureBgraReadAccess = new TextureBgraReadAccess();
+        
         _useFormats = format;
-        return T3Ui.TextureBgraReadAccess.InitiateReadAndConvert(gpuTexture, OnReadComplete, filepath);
+        return _textureBgraReadAccess.InitiateReadAndConvert(gpuTexture, OnReadComplete, filepath);
     }
     
     private static void OnReadComplete(TextureBgraReadAccess.ReadRequestItem request)
@@ -123,7 +130,7 @@ internal static class ScreenshotWriter
     /// <summary>
     /// Save the requested format for later use by callback.
     /// This is not ideal, but beats the alternative to moving file formats to
-    /// <see cref="TextureBgraReadAccess"/> in core.
+    /// <see cref="_textureBgraReadAccess"/> in core.
     /// </summary>
     private static FileFormats _useFormats = FileFormats.Png;
 
