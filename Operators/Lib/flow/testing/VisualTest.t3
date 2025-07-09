@@ -1,0 +1,15 @@
+{
+  "Id": "f92a1144-55d9-4d8e-bfa6-f80665800e25"/*VisualTest*/,
+  "Inputs": [
+    {
+      "Id": "6c6d3909-3f27-43bd-9900-5bf00fb6015b"/*TestName*/,
+      "DefaultValue": "Test"
+    },
+    {
+      "Id": "ed9887ca-5ee4-4fb7-a835-071de255a893"/*Image*/,
+      "DefaultValue": null
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

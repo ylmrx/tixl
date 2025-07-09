@@ -4,6 +4,7 @@ using System;
 using SharpDX;
 using SharpDX.IO;
 using SharpDX.WIC;
+using T3.Core.Animation;
 using T3.Core.DataTypes;
 using T3.Core.Logging;
 using T3.Core.Resource;
@@ -19,9 +20,18 @@ public static class ScreenshotWriter
     }
 
     public static string? LastFilename { get; private set; }
-
-
+    
     private static TextureBgraReadAccess? _textureBgraReadAccess;
+    private static int _lastUpdateFrame = 0;
+
+    public static void Update()
+    {
+        if (Playback.FrameCount == _lastUpdateFrame) 
+            return;
+        
+        _textureBgraReadAccess?.Update();
+        _lastUpdateFrame = Playback.FrameCount;
+    }
 
     public static bool StartSavingToFile(Texture2D gpuTexture, string filepath, FileFormats format)
     {
@@ -31,6 +41,7 @@ public static class ScreenshotWriter
         _useFormats = format;
         return _textureBgraReadAccess.InitiateReadAndConvert(gpuTexture, OnReadComplete, filepath);
     }
+    
     
     private static void OnReadComplete(TextureBgraReadAccess.ReadRequestItem request)
     {

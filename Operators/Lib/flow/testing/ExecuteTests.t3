@@ -1,0 +1,19 @@
+{
+  "Id": "83cb923e-a387-4be2-b391-4111c7bd90fe"/*ExecuteTests*/,
+  "Inputs": [
+    {
+      "Id": "07c52673-f37f-46c8-baf1-61c16cd512ac"/*Image*/,
+      "DefaultValue": null
+    },
+    {
+      "Id": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerSave*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "7a2f27dd-1ba1-40cc-8361-3a8c30c59fe3"/*FilePath*/,
+      "DefaultValue": ""
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

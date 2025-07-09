@@ -1,0 +1,38 @@
+{
+  "Id": "83cb923e-a387-4be2-b391-4111c7bd90fe"/*ExecuteTests*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "07c52673-f37f-46c8-baf1-61c16cd512ac"/*Image*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "InputId": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerSave*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 150.0
+      }
+    },
+    {
+      "InputId": "7a2f27dd-1ba1-40cc-8361-3a8c30c59fe3"/*FilePath*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 75.0
+      },
+      "Usage": "Default"
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "0b0628f8-94c6-450e-83ba-515da78c7229"/*Command*/,
+      "Position": {
+        "X": 300.0,
+        "Y": 200.0
+      }
+    }
+  ]
+}

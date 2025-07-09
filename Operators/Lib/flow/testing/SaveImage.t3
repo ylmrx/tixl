@@ -1,0 +1,19 @@
+{
+  "Id": "5441cf42-3e48-4bfc-9b14-f8fdf87cefdc"/*SaveImage*/,
+  "Inputs": [
+    {
+      "Id": "01470496-4dfe-45fb-a306-001422a4af92"/*TriggerSave*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "55404f84-2d5b-481c-b21e-60447015449b"/*Image*/,
+      "DefaultValue": null
+    },
+    {
+      "Id": "72c6f29a-6078-4155-a6fa-2340a03707fb"/*FilePath*/,
+      "DefaultValue": ""
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}
