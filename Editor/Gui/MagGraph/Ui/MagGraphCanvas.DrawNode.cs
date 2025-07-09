@@ -1028,7 +1028,6 @@ internal sealed partial class MagGraphCanvas
             }
         }
 
-        #if DEBUG
         return;
         static void DrawInstanceStatus(Instance instance)
         {
@@ -1064,7 +1063,6 @@ internal sealed partial class MagGraphCanvas
                 ImGui.Checkbox($"ResourceFoldersDirty ##resourcedirtyflag{id}", ref isResourceFoldersDirty);
             }
         }
-        #endif
     }
 
 
