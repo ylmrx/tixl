@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using T3.Core.Logging;
+using T3.Core.Operator;
 using T3.Core.Resource;
 using T3.Serialization;
 
@@ -18,8 +19,45 @@ public sealed record AudioClipResourceHandle(AudioClipDefinition Clip, IResource
 {
     public bool TryGetFileResource([NotNullWhen(true)] out FileResource? file)
     {
-        return FileResource.TryGetFileResource(Clip.FilePath, Owner, out file);
+        if (string.IsNullOrEmpty(Clip.FilePath))
+        {
+            file = null;
+            LoadingAttemptFailed = false;
+            return false;
+        }
+
+        if (FileResource.TryGetFileResource(Clip.FilePath, Owner, out file))
+        {
+            LoadingAttemptFailed = false;
+            return true;
+        }
+        
+        file = null;
+        LoadingAttemptFailed = true;
+        return false;
     }
+
+    /// <summary>
+    /// Only applies a newly entered filepath if it can be loaded.
+    /// Otherwise, keeps original value and return false.
+    /// </summary>
+    public bool TryToApplyFilePath(string newFilePath, Instance composition)
+    {
+        if (!ResourceManager.TryResolvePath(newFilePath, composition, out var absolutePath, out var resourceContainer))
+        {
+            Clip.FilePath = string.Empty;
+            return false;
+        }
+        
+        LoadingAttemptFailed = false;
+        Clip.FilePath = newFilePath;
+        return true;
+    }
+
+    /// <summary>
+    /// Keep flag to prevent multiple error messages
+    /// </summary>
+    public bool LoadingAttemptFailed;
 }
 
 /// <summary>

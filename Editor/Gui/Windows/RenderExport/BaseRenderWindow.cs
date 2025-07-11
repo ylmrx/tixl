@@ -21,7 +21,7 @@ internal abstract class BaseRenderWindow : Window
             return AudioEngine.GetClipSampleRate(null);
         
         PlaybackUtils.FindPlaybackSettingsForInstance(composition, out var instanceWithSettings, out var settings);
-        if (settings.GetMainSoundtrack(instanceWithSettings, out var soundtrack))
+        if (settings.TryGetMainSoundtrack(instanceWithSettings, out var soundtrack))
             return AudioEngine.GetClipChannelCount(soundtrack);
         
         return AudioEngine.GetClipChannelCount(null);
@@ -35,7 +35,7 @@ internal abstract class BaseRenderWindow : Window
             return AudioEngine.GetClipSampleRate(null);
         
         PlaybackUtils.FindPlaybackSettingsForInstance(composition, out var instanceWithSettings, out var settings);
-        return AudioEngine.GetClipSampleRate(settings.GetMainSoundtrack(instanceWithSettings, out var soundtrack) 
+        return AudioEngine.GetClipSampleRate(settings.TryGetMainSoundtrack(instanceWithSettings, out var soundtrack) 
                                                  ? soundtrack 
                                                  : null);
     }
@@ -254,7 +254,7 @@ internal abstract class BaseRenderWindow : Window
         var adaptedDeltaTime = Math.Max(Playback.Current.TimeInSecs - oldTimeInSecs + _timingOverhang, 0.0);
 
         // set user time in secs for audio playback
-        if (settings.GetMainSoundtrack(instanceWithSettings, out var soundtrack))
+        if (settings.TryGetMainSoundtrack(instanceWithSettings, out var soundtrack))
             AudioEngine.UseAudioClip(soundtrack, Playback.Current.TimeInSecs);
 
         if (!_audioRecording)

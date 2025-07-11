@@ -383,7 +383,7 @@ internal static partial class PlayerExporter
     private static bool TryFindSoundtrack(Instance instance, Symbol symbol, [NotNullWhen(true)] out FileResource? file, [NotNullWhen(true)] out string? relativePath)
     {
         var playbackSettings = symbol.PlaybackSettings;
-        if (playbackSettings?.GetMainSoundtrack(instance, out var soundtrack) is not true)
+        if (playbackSettings?.TryGetMainSoundtrack(instance, out var soundtrack) is not true)
         {
             if (PlaybackUtils.TryFindingSoundtrack(out soundtrack, out _))
             {

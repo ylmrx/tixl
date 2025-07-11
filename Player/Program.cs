@@ -232,7 +232,7 @@ internal static partial class Program
 
             // Init wasapi input if required
             if (playbackSettings is { AudioSource: PlaybackSettings.AudioSources.ProjectSoundTrack } 
-                && playbackSettings.GetMainSoundtrack(_project, out _soundtrackHandle))
+                && playbackSettings.TryGetMainSoundtrack(_project, out _soundtrackHandle))
             {
                 //var soundtrack = _soundtrackHandle.Value;
                 if (_soundtrackHandle.TryGetFileResource(out var file))

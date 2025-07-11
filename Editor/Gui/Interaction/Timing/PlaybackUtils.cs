@@ -27,7 +27,7 @@ public static class PlaybackUtils
             
         if (settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
         {
-            if (settings.GetMainSoundtrack(audioComposition, out var soundtrack))
+            if (settings.TryGetMainSoundtrack(audioComposition, out var soundtrack))
             {
                 AudioEngine.UseAudioClip(soundtrack, Playback.Current.TimeInSecs);
             }
@@ -124,7 +124,7 @@ public static class PlaybackUtils
     {
         var settings = FindPlaybackSettings(out composition);
         if (composition != null)
-            return settings.GetMainSoundtrack(composition, out soundtrack);
+            return settings.TryGetMainSoundtrack(composition, out soundtrack);
             
         soundtrack = null;
         return false;

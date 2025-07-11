@@ -1,4 +1,5 @@
 ﻿#nullable enable
+using System.Runtime.InteropServices.JavaScript;
 using System.Text;
 using System.Text.RegularExpressions;
 using ImGuiNET;
@@ -16,9 +17,18 @@ using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.Windows.TimeLine;
 
+/// <summary>
+/// Draws playback settings
+/// </summary>
+/// <remarks>
+/// Controlling the primary soundtrack is finicky:
+/// - "Add soundtrack" adds a <see cref="AudioClipResourceHandle"/> with empty filepath. 
+/// - When modifying the path we use to resolve the path (i.e. verify if file exists) before setting the filepath.
+/// - If valid and set, <see cref="AudioEngine"/> will then load them in CompleteFrame.
+/// 
+/// </remarks>
 internal static class PlaybackSettingsPopup
 {
-
     internal static void DrawPlaybackSettings(Instance? composition)
     {
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(2, 2));
@@ -120,7 +130,7 @@ internal static class PlaybackSettingsPopup
 
         if (settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
         {
-            if (!settings.GetMainSoundtrack(compositionWithSettings, out var soundtrackHandle))
+            if (!settings.TryGetMainSoundtrack(compositionWithSettings, out var soundtrackHandle))
             {
                 if (ImGui.Button("Add soundtrack to composition"))
                 {
@@ -128,25 +138,50 @@ internal static class PlaybackSettingsPopup
                                                 {
                                                     IsSoundtrack = true,
                                                 });
+                    _tempSoundtrackFilepathForEdit = string.Empty;
                 }
             }
             else
             {
-                //var soundtrack = soundtrackInfo.Value;
-                var warning = !soundtrackHandle.TryGetFileResource(out var file)
-                                  ? "File not found?"
-                                  : null;
-                    
-                //var path = file?.AbsolutePath ?? string.Empty;
-                var resourcePath = soundtrackHandle.Clip.FilePath;
-                var inputEditStateFlags = FilePickingUi.DrawTypeAheadSearch(FileOperations.FilePickerTypes.File, 
-                                                                            AllFilesAudioFilesMp3WavOggMp3WavOgg,
-                                                                            ref resourcePath);
+                if (string.IsNullOrEmpty(soundtrackHandle.Clip.FilePath))
+                {
+                    _tempSoundtrackFilepathForEdit = string.Empty;
+                }
+                else
+                {
+                    var isSoundtrackFileValid = soundtrackHandle.TryGetFileResource(out _);
+                    if (isSoundtrackFileValid)
+                    {
+                        if (ImGui.IsWindowAppearing())
+                        {
+                            _tempSoundtrackFilepathForEdit = soundtrackHandle.Clip.FilePath;
+                        }
+                    }
+                    else
+                    {
+                        Log.Warning($"Removing invalid soundtrack file: {soundtrackHandle.Clip.FilePath}");
+                        soundtrackHandle.Clip.FilePath = string.Empty;
+                    }
+                }
 
-                var filepathModified = (inputEditStateFlags & InputEditStateFlags.Modified) != 0;
+                var editResult = FilePickingUi.DrawTypeAheadSearch(FileOperations.FilePickerTypes.File, 
+                                                                   AllFilesAudioFilesMp3WavOggMp3WavOgg,
+                                                                   ref _tempSoundtrackFilepathForEdit);
+                
+                
+                var filepathModified = (editResult & InputEditStateFlags.Modified) != 0;
                 if (filepathModified)
                 {
-                    soundtrackHandle.Clip.FilePath = resourcePath;
+                    if (!string.IsNullOrEmpty(_tempSoundtrackFilepathForEdit))
+                    {
+                        _warningMessage = soundtrackHandle.TryToApplyFilePath(_tempSoundtrackFilepathForEdit, composition)
+                                              ? string.Empty
+                                              : "File not found?";
+                    }
+                    else
+                    {
+                        _warningMessage = string.Empty;
+                    }
                 }
                 
                 FormInputs.ApplyIndent();
@@ -400,6 +435,10 @@ internal static class PlaybackSettingsPopup
         }
     }
 
+    /** We use this for modification inside the input field and checking if path is valid before actually assigning it to the soundtrack */
+    private static string? _tempSoundtrackFilepathForEdit = string.Empty;
+
+    private static string _warningMessage = string.Empty;
     public const string PlaybackSettingsPopupId = "##PlaybackSettings";
-    private const string AllFilesAudioFilesMp3WavOggMp3WavOgg = "All Files|*.*|Audio files (mp3,wav,ogg)|*.mp3;*.wav;*.ogg";
+    private const string AllFilesAudioFilesMp3WavOggMp3WavOgg = "Audio files (mp3,wav,ogg)|*.mp3;*.wav;*.ogg";
 }

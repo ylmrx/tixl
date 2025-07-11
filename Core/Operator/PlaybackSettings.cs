@@ -31,7 +31,7 @@ public sealed class PlaybackSettings
     {
     }
 
-    public bool GetMainSoundtrack(IResourceConsumer? instance, [NotNullWhen(true)] out AudioClipResourceHandle? soundtrack)
+    public bool TryGetMainSoundtrack(IResourceConsumer? instance, [NotNullWhen(true)] out AudioClipResourceHandle? soundtrack)
     {
         foreach (var clip in AudioClips)
         {

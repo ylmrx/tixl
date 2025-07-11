@@ -9,17 +9,16 @@ using T3.Core.Resource;
 
 namespace T3.Core.Audio;
 
-
 /// <summary>
 /// Controls the playback of a <see cref="AudioClipDefinition"/> with BASS by the <see cref="AudioEngine"/>.
 /// </summary>
 public sealed class AudioClipStream
 {
     // Private constructor
-    private AudioClipStream() {} 
-    
-    
-    
+    private AudioClipStream()
+    {
+    }
+
     public double Duration;
     internal int StreamHandle;
     internal bool IsInUse;
@@ -29,12 +28,12 @@ public sealed class AudioClipStream
 
     internal AudioClipResourceHandle ResourceHandle = null!;
     //internal AudioClipInfo ClipInfo;
-    
+
     // public bool TryGetFileResource([NotNullWhen(true)] out FileResource? file)
     // {
     //     return FileResource.TryGetFileResource(AudioClip.FilePath, Owner, out file);
     // }
-    
+
     internal void UpdatePlaybackSpeed(double newSpeed)
     {
         if (newSpeed == 0.0)
@@ -61,19 +60,29 @@ public sealed class AudioClipStream
     /// <summary>
     /// Creates an <see cref="AudioClipStream"/> by loading an <see cref="AudioClipResourceHandle"/>. 
     /// </summary>
-    internal static AudioClipStream? LoadClip(AudioClipResourceHandle handle)
+    internal static bool TryLoadClip(AudioClipResourceHandle handle, [NotNullWhen(true)] out AudioClipStream? stream)
     {
+        stream = null;
+
+        if (handle.LoadingAttemptFailed)
+            return false;
+        
+        if (string.IsNullOrEmpty(handle.Clip.FilePath))
+            return false;
+
+        handle.LoadingAttemptFailed = true;
+        
         if (!handle.TryGetFileResource(out var file))
         {
             Log.Error($"AudioClip file '{handle.Clip.FilePath}' does not exist.");
-            return null;
+            return false;
         }
 
         var fileInfo = file.FileInfo;
-        if(fileInfo is not {Exists: true })
+        if (fileInfo is not { Exists: true })
         {
             Log.Error($"AudioClip file '{handle.Clip.FilePath}' does not exist.");
-            return null;
+            return false;
         }
 
         var path = fileInfo.FullName;
@@ -82,16 +91,17 @@ public sealed class AudioClipStream
         if (streamHandle == 0)
         {
             Log.Error($"Error loading audio clip '{path}': {Bass.LastError.ToString()}.");
-            return null;
+            return false;
         }
-        
+
         Bass.ChannelGetAttribute(streamHandle, ChannelAttribute.Frequency, out var defaultPlaybackFrequency);
         Bass.ChannelSetAttribute(streamHandle, ChannelAttribute.Volume, AudioEngine.IsMuted ? 0 : 1);
         if (!Bass.ChannelPlay(streamHandle))
         {
             Log.Error($"Error playing audio clip '{path}': {Bass.LastError.ToString()}.");
-            return null;
+            return false;
         }
+
         var bytes = Bass.ChannelGetLength(streamHandle);
         if (bytes < 0)
         {
@@ -101,7 +111,7 @@ public sealed class AudioClipStream
         var duration = (float)Bass.ChannelBytes2Seconds(streamHandle, bytes);
         handle.Clip.LengthInSeconds = duration;
 
-        var stream = new AudioClipStream()
+        stream = new AudioClipStream()
                          {
                              ResourceHandle = handle,
                              StreamHandle = streamHandle,
@@ -109,11 +119,11 @@ public sealed class AudioClipStream
                              Duration = duration,
                          };
 
-
         stream.UpdatePlaybackSpeed(1.0);
-        return stream;
+        handle.LoadingAttemptFailed = false;
+        return true;
     }
-    
+
     /// <summary>
     /// We try to find a compromise between letting bass play the audio clip in the correct playback speed which
     /// eventually will drift away from Tooll's Playback time. If the delta between playback and audio-clip time exceeds
@@ -124,7 +134,7 @@ public sealed class AudioClipStream
     /// </summary>
     internal void UpdateTime(Playback playback)
     {
-        if (playback.PlaybackSpeed == 0 )
+        if (playback.PlaybackSpeed == 0)
         {
             Bass.ChannelPause(StreamHandle);
             return;
@@ -135,7 +145,7 @@ public sealed class AudioClipStream
         var isOutOfBounds = localTargetTimeInSecs < 0 || localTargetTimeInSecs >= clip.LengthInSeconds;
         var channelIsActive = Bass.ChannelIsActive(StreamHandle);
         var isPlaying = channelIsActive == PlaybackState.Playing; // || channelIsActive == PlaybackState.Stalled;
-        
+
         if (isOutOfBounds)
         {
             if (isPlaying)
@@ -154,16 +164,16 @@ public sealed class AudioClipStream
         var currentStreamBufferPos = Bass.ChannelGetPosition(StreamHandle);
         var currentPosInSec = Bass.ChannelBytes2Seconds(StreamHandle, currentStreamBufferPos) - AudioSyncingOffset;
         var soundDelta = (currentPosInSec - localTargetTimeInSecs) * playback.PlaybackSpeed;
-        
+
         Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.Volume, clip.Volume);
-            
+
         // We may not fall behind or skip ahead in playback
         var maxSoundDelta = ProjectSettings.Config.AudioResyncThreshold * Math.Abs(playback.PlaybackSpeed);
-        if (Math.Abs(soundDelta) <= maxSoundDelta )
+        if (Math.Abs(soundDelta) <= maxSoundDelta)
             return;
 
         //Log.Debug($" Resyncing audio playback. target:{localTargetTimeInSecs:0.00}s  {currentPosInSec:0.00} {soundDelta:0.00} > {maxSoundDelta:0.00}");
-        
+
         // Resync
         var resyncOffset = AudioTriggerDelayOffset * playback.PlaybackSpeed + AudioSyncingOffset;
         var newStreamPos = Bass.ChannelSeconds2Bytes(StreamHandle, localTargetTimeInSecs + resyncOffset);
@@ -182,9 +192,9 @@ public sealed class AudioClipStream
                                : Bass.ChannelSeconds2Bytes(StreamHandle, localTargetTimeInSecs);
 
         // Re-initialize playback?
-        if (!reinitialize) 
+        if (!reinitialize)
             return newStreamPos;
-        
+
         const PositionFlags flags = PositionFlags.Bytes | PositionFlags.MixerNoRampIn | PositionFlags.Decode;
 
         Bass.ChannelSetAttribute(StreamHandle, ChannelAttribute.NoRamp, 1);
@@ -200,8 +210,7 @@ public sealed class AudioClipStream
     {
         Bass.StreamFree(StreamHandle);
     }
-        
-        
+
     private const double AudioSyncingOffset = -2.0 / 60.0;
     private const double AudioTriggerDelayOffset = 2.0 / 60.0;
     private const double RecordSyncingOffset = -1.0 / 60.0;

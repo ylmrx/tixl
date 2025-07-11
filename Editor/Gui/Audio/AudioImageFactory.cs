@@ -9,44 +9,57 @@ namespace T3.Editor.Gui.Audio;
 
 internal static class AudioImageFactory
 {
-    // should be a hashset, but there is no ConcurrentHashset -_-
-    private static readonly ConcurrentDictionary<AudioClipDefinition, bool> LoadingClips = new();
-
-    internal static bool TryGetOrCreateImagePathForClip(AudioClipDefinition audioClip, IResourceConsumer? instance, [NotNullWhen(true)] out string? imagePath)
+    internal static bool TryGetOrCreateImagePathForClip(AudioClipResourceHandle handle, [NotNullWhen(true)] out string? imagePath)
     {
+        var audioClip = handle.Clip;
+        
+        imagePath = null;
         ArgumentNullException.ThrowIfNull(audioClip);
+
+        if (string.IsNullOrEmpty(audioClip.FilePath) || handle.LoadingAttemptFailed)
+            return false;
             
-        if (LoadingClips.ContainsKey(audioClip))
+        if (_loadingClips.ContainsKey(audioClip))
         {
             imagePath = null;
             return false;
         }
-            
-        if (ImageForAudioFiles.TryGetValue(audioClip, out imagePath))
+           
+        // Return from cache
+        if (_imageForAudioFiles.TryGetValue(audioClip, out imagePath))
         {
             return true;
         }
+        
+        // Generate image, if file exists.
+        if (!ResourceManager.TryResolvePath(handle.Clip.FilePath, handle.Owner, out _, out _))
+        {
+            return false;
+        }
+        
             
-        LoadingClips.TryAdd(audioClip, true);
+        _loadingClips.TryAdd(audioClip, true);
 
         Task.Run(() =>
                  {
                      Log.Debug($"Creating sound image for {audioClip.FilePath}");
-                     if (AudioImageGenerator.TryGenerateSoundSpectrumAndVolume(audioClip, instance, out var imagePath))
+                     if (AudioImageGenerator.TryGenerateSoundSpectrumAndVolume(audioClip, handle.Owner, out var imagePath))
                      {
-                         ImageForAudioFiles[audioClip] = imagePath;
+                         _imageForAudioFiles[audioClip] = imagePath;
                      }
                      else
                      {
-                         Log.Error($"Failed to create sound image for {audioClip.FilePath}", instance);
-                         ImageForAudioFiles.TryRemove(audioClip, out _);
+                         Log.Error($"Failed to create sound image for {audioClip.FilePath}", handle.Owner);
+                         _imageForAudioFiles.TryRemove(audioClip, out _);
                      }
 
-                     LoadingClips.TryRemove(audioClip, out _);
+                     _loadingClips.TryRemove(audioClip, out _);
                  });
             
         return false;
     }
-
-    private static readonly ConcurrentDictionary<AudioClipDefinition, string> ImageForAudioFiles = new();
+    
+    // TODO: should be a hashset, but there is no ConcurrentHashset -_-
+    private static readonly ConcurrentDictionary<AudioClipDefinition, bool> _loadingClips = new();
+    private static readonly ConcurrentDictionary<AudioClipDefinition, string> _imageForAudioFiles = new();
 }

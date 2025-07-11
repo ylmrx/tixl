@@ -45,9 +45,9 @@ internal sealed class TimeLineImage
         }
     }
 
-    private static void UpdateSoundTexture(AudioClipResourceHandle soundtrack)
+    private static void UpdateSoundTexture(AudioClipResourceHandle soundtrackHandle)
     {
-        if (!AudioImageFactory.TryGetOrCreateImagePathForClip(soundtrack.Clip, soundtrack.Owner, out var imagePath))
+        if (!AudioImageFactory.TryGetOrCreateImagePathForClip(soundtrackHandle, out var imagePath))
         {
             _loadedImagePath = null;
             return;
@@ -57,7 +57,7 @@ internal sealed class TimeLineImage
             return;
 
         _textureResource?.Dispose();
-        var resource = ResourceManager.CreateTextureResource(imagePath, soundtrack.Owner);
+        var resource = ResourceManager.CreateTextureResource(imagePath, soundtrackHandle.Owner);
         _textureResource = resource;
             
         if (resource.Value != null)
