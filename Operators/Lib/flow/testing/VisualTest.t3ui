@@ -3,12 +3,39 @@
   "Description": "",
   "InputUis": [
     {
-      "InputId": "6c6d3909-3f27-43bd-9900-5bf00fb6015b"/*TestName*/,
+      "InputId": "085ca93b-4167-444c-b3e0-a0628e93c633"/*Resolution*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 225.0
+      }
+    },
+    {
+      "InputId": "27adb1e1-0704-4f1f-894d-bf38e3c8d982"/*StepCount*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 150.0
+      }
+    },
+    {
+      "InputId": "59d30ab3-99d5-441a-a6e7-eb76278f6ac1"/*TimeRange*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 225.0
+      }
+    },
+    {
+      "InputId": "9628a5c6-e731-4df7-b49b-e617c75cfda4"/*Threshold*/,
       "Position": {
         "X": -200.0,
         "Y": 75.0
-      },
-      "Usage": "Default"
+      }
+    },
+    {
+      "InputId": "adfe6fe4-7fa7-4f1c-9d66-1cbf9b383ba1"/*WarmUpStepCount*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 150.0
+      }
     },
     {
       "InputId": "ed9887ca-5ee4-4fb7-a835-071de255a893"/*Image*/,

@@ -162,7 +162,7 @@ internal abstract class MfVideoWriter : IDisposable
         }
 
         // Initiate reading next frame
-        if (!T3Ui.TextureBgraReadAccess.InitiateReadAndConvert(gpuTexture, SaveSampleAfterReadback))
+        if (!T3Ui.TextureBgraReadAccess.InitiateConvertAndReadBack(gpuTexture, SaveSampleAfterReadback))
         {
             Log.Warning("Can't initiate texture readback");
         }

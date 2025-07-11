@@ -8,11 +8,12 @@ namespace Lib.flow.testing;
 [Guid("83cb923e-a387-4be2-b391-4111c7bd90fe")]
 internal sealed class ExecuteTests : Instance<ExecuteTests>
 {
+    [Output(Guid = "0b0628f8-94c6-450e-83ba-515da78c7229")]
+    public readonly Slot<Command> Command = new();
+    
     [Output(Guid = "229A2DD4-419F-43B9-AECD-12EAB9B25DEF")]
     public readonly Slot<string> Result = new();    
     
-    [Output(Guid = "0b0628f8-94c6-450e-83ba-515da78c7229")]
-    public readonly Slot<Command> Command = new();
 
     public ExecuteTests()
     {

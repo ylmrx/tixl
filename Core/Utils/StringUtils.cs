@@ -518,4 +518,15 @@ public static class StringUtils
 
         return results;
     }
+
+    public static string ShortenGuid(this Guid guid, int length = 7)
+    {
+        if (length < 1 || length > 22)
+            throw new ArgumentOutOfRangeException(nameof(length), "Length must be between 1 and 22.");
+
+        var guidBytes = guid.ToByteArray();
+        var base64 = Convert.ToBase64String(guidBytes);
+        var alphanumeric = base64.Replace("+", "").Replace("/", "").Replace("=", "");
+        return alphanumeric[..length];
+    }
 }

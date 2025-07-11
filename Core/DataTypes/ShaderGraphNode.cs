@@ -382,7 +382,7 @@ public class ShaderGraphNode
 
     private static string BuildNodeId(Instance instance)
     {
-        return instance.GetType().Name + "_" + Utilities.ShortenGuid(instance.SymbolChildId) + "_";
+        return instance.GetType().Name + "_" + StringUtils.ShortenGuid(instance.SymbolChildId) + "_";
     }
 
     public override string? ToString() => _prefix;

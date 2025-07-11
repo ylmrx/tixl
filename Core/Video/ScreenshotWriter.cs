@@ -39,7 +39,7 @@ public static class ScreenshotWriter
             _textureBgraReadAccess = new TextureBgraReadAccess();
         
         _useFormats = format;
-        return _textureBgraReadAccess.InitiateReadAndConvert(gpuTexture, OnReadComplete, filepath);
+        return _textureBgraReadAccess.InitiateConvertAndReadBack(gpuTexture, OnReadComplete, filepath);
     }
     
     

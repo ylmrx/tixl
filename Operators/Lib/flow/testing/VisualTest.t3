@@ -2,8 +2,30 @@
   "Id": "f92a1144-55d9-4d8e-bfa6-f80665800e25"/*VisualTest*/,
   "Inputs": [
     {
-      "Id": "6c6d3909-3f27-43bd-9900-5bf00fb6015b"/*TestName*/,
-      "DefaultValue": "Test"
+      "Id": "085ca93b-4167-444c-b3e0-a0628e93c633"/*Resolution*/,
+      "DefaultValue": {
+        "X": 160,
+        "Y": 90
+      }
+    },
+    {
+      "Id": "27adb1e1-0704-4f1f-894d-bf38e3c8d982"/*StepCount*/,
+      "DefaultValue": 1
+    },
+    {
+      "Id": "59d30ab3-99d5-441a-a6e7-eb76278f6ac1"/*TimeRange*/,
+      "DefaultValue": {
+        "X": 0.0,
+        "Y": 1.0
+      }
+    },
+    {
+      "Id": "9628a5c6-e731-4df7-b49b-e617c75cfda4"/*Threshold*/,
+      "DefaultValue": 0.005
+    },
+    {
+      "Id": "adfe6fe4-7fa7-4f1c-9d66-1cbf9b383ba1"/*WarmUpStepCount*/,
+      "DefaultValue": 0
     },
     {
       "Id": "ed9887ca-5ee4-4fb7-a835-071de255a893"/*Image*/,

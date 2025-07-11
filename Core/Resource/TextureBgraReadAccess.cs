@@ -17,6 +17,35 @@ namespace T3.Core.Resource;
 /// </summary>
 public sealed class TextureBgraReadAccess : IDisposable
 {
+    private readonly bool _useImmediateReadback;
+    private readonly Format _targetFormat;
+
+    public TextureBgraReadAccess(bool useImmediateReadback = false, Format targetFormat = Format.B8G8R8A8_UNorm)
+    {
+        _useImmediateReadback = useImmediateReadback;
+        _targetFormat = targetFormat;
+    }    
+    
+    /// <summary>
+    /// A helper method that uses a compute shader to convert the source texture first to 8bit. 
+    /// </summary>
+    public Texture2D ConvertToCpuReadableBgra(Texture2D sourceTexture)
+    {
+        if (sourceTexture == null! || sourceTexture.IsDisposed)
+            throw new ArgumentException("Source texture is null or disposed");
+
+        PrepareCpuAccessTexturesAndConversionTextures(sourceTexture.Description);
+        PrepareResolveShaderResources();
+        ConvertTextureToRgba(sourceTexture);
+
+        var context = ResourceManager.Device.ImmediateContext;
+        var cpuAccessTexture = _imagesWithCpuAccess[0];
+        context.CopyResource(_conversionTexture, cpuAccessTexture);
+        context.Flush();  // Ensure the copy is complete
+
+        return cpuAccessTexture;
+    }
+    
     public sealed class ReadRequestItem
     {
         internal int RequestIndex;
@@ -28,6 +57,8 @@ public sealed class TextureBgraReadAccess : IDisposable
         public required string? Filepath;
         public required Texture2D CpuAccessTexture;
         public required OnReadComplete OnSuccess;
+        public required int CpuAccessTextureCount;
+
 
         internal bool IsReady => RequestIndex == TextureBgraReadAccess._swapCounter - (CpuAccessTextureCount - 2);
         internal bool IsObsolete => RequestIndex < TextureBgraReadAccess._swapCounter - (CpuAccessTextureCount - 2);
@@ -66,32 +97,56 @@ public sealed class TextureBgraReadAccess : IDisposable
     /// Convert into BRGA and initiate the readback process.
     /// It will take several frames, until the texture is accessible and the callback is called.
     /// </summary>
-    public bool InitiateReadAndConvert(Texture2D originalTexture, OnReadComplete onSuccess, string? filepath=null)
+    public bool InitiateConvertAndReadBack(Texture2D originalTexture, OnReadComplete onSuccess, string? filepath = null)
     {
         if (originalTexture == null! || originalTexture.IsDisposed)
             return false;
 
         PrepareCpuAccessTexturesAndConversionTextures(originalTexture.Description);
-        
         PrepareResolveShaderResources();
-
         ConvertTextureToRgba(originalTexture);
 
-        // Copy the original texture to a readable image
-        var immediateContext = ResourceManager.Device.ImmediateContext;
+        var context = ResourceManager.Device.ImmediateContext;
         var cpuAccessTexture = _imagesWithCpuAccess[_swapCounter % CpuAccessTextureCount];
-        immediateContext.CopyResource(_conversionTexture, cpuAccessTexture);
-        immediateContext.UnmapSubresource(cpuAccessTexture, 0);
+        context.CopyResource(_conversionTexture, cpuAccessTexture);
 
-        _readRequests.Add(new ReadRequestItem
-                              {
-                                  RequestIndex = _swapCounter,
-                                  TextureBgraReadAccess = this,
-                                  Filepath = filepath,
-                                  //FileFormat = ScreenshotWriter.FileFormats.Png, // FIXME: this is weird.
-                                  CpuAccessTexture = cpuAccessTexture,
-                                  OnSuccess = onSuccess,
-                              });
+        if (_useImmediateReadback)
+        {
+            context.Flush();  
+            
+            //var dataBox = context.MapSubresource(cpuAccessTexture, 0, MapMode.Read, MapFlags.None);
+            try
+            {
+                var request = new ReadRequestItem
+                                  {
+                                      RequestIndex = _swapCounter,
+                                      TextureBgraReadAccess = this,
+                                      Filepath = filepath,
+                                      CpuAccessTexture = cpuAccessTexture,
+                                      OnSuccess = onSuccess,
+                                      CpuAccessTextureCount = CpuAccessTextureCount,
+                                  };
+                onSuccess(request);
+            }
+            finally
+            {
+                context.UnmapSubresource(cpuAccessTexture, 0);
+            }
+        }
+        else
+        {
+            context.UnmapSubresource(cpuAccessTexture, 0);
+            _readRequests.Add(new ReadRequestItem
+                                  {
+                                      RequestIndex = _swapCounter,
+                                      TextureBgraReadAccess = this,
+                                      Filepath = filepath,
+                                      CpuAccessTexture = cpuAccessTexture,
+                                      OnSuccess = onSuccess,
+                                      CpuAccessTextureCount = CpuAccessTextureCount,
+
+                                  });
+        }
 
         return true;
     }
@@ -118,7 +173,7 @@ public sealed class TextureBgraReadAccess : IDisposable
         var cpuAccessDescription = new Texture2DDescription
                                        {
                                            BindFlags = BindFlags.None,
-                                           Format = Format.B8G8R8A8_UNorm,
+                                           Format = _targetFormat,
                                            Width = currentDesc.Width,
                                            Height = currentDesc.Height,
                                            MipLevels = 1,
@@ -129,6 +184,8 @@ public sealed class TextureBgraReadAccess : IDisposable
                                            ArraySize = 1
                                        };
 
+        
+        
         for (var i = 0; i < CpuAccessTextureCount; ++i)
         {
             _imagesWithCpuAccess.Add(Texture2D.CreateTexture2D(cpuAccessDescription));
@@ -138,7 +195,7 @@ public sealed class TextureBgraReadAccess : IDisposable
         var convertTextureDescription = new Texture2DDescription
                                             {
                                                 BindFlags = BindFlags.UnorderedAccess | BindFlags.RenderTarget | BindFlags.ShaderResource,
-                                                Format = Format.B8G8R8A8_UNorm,
+                                                Format = _targetFormat,
                                                 Width = currentDesc.Width,
                                                 Height = currentDesc.Height,
                                                 MipLevels = 1,
@@ -207,8 +264,8 @@ public sealed class TextureBgraReadAccess : IDisposable
 
 
     
-    private const int CpuAccessTextureCount = 3;
-    private  readonly List<Texture2D> _imagesWithCpuAccess = new(CpuAccessTextureCount);
+    private  int CpuAccessTextureCount => _useImmediateReadback ? 1 : CpuAccessTextureCount;
+    private  readonly List<Texture2D> _imagesWithCpuAccess = [];
 
     /** Skip a certain number of images at the beginning since the
      * final content will only appear after several buffer flips*/

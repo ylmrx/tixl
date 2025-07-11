@@ -1,6 +1,8 @@
 using SharpDX;
 using SharpDX.Direct3D11;
+using SharpDX.IO;
 using SharpDX.WIC;
+using T3.Core.Utils;
 using T3.Core.Video;
 using Utilities = T3.Core.Utils.Utilities;
 
@@ -19,80 +21,41 @@ internal sealed class VisualTest : Instance<VisualTest>
 
     private void Update(EvaluationContext context)
     {
-        var testframeId = "_TestFrame";
-        var testResultId = "_TestResult";
-        var testActionId = "_TestAction";
+        _stepCount = StepCount.GetValue(context).Clamp(1, 100);
+        _threshold = Threshold.GetValue(context);
+        _timeRange = TimeRange.GetValue(context);
+        _warmUpSteps = WarmUpStepCount.GetValue(context).Clamp(0, 100);
+        var res=Resolution.GetValue(context);
+        _defaultResolution = new Int2(res.X.Clamp(1, 16383), 
+                                      res.Y.Clamp(1, 16383));
 
-        var isExecution = context.IntVariables.TryGetValue(testframeId, out var testFrame);
+        var isExecution = context.IntVariables.TryGetValue(TestFrameKey, out var testFrame);
         if (!isExecution)
         {
             Log.Warning("Needs to be run with [ExecuteTests]", this);
             return;
         }
 
-        if (!context.ObjectVariables.TryGetValue(testResultId, out var obj2) || obj2 is not StringBuilder testResult)
+        if (!context.ObjectVariables.TryGetValue(TestResultKey, out var obj2) || obj2 is not StringBuilder testResultBuilder)
         {
             Log.Warning("Test Results missing?", this);
             return;
         }
 
-        if (!context.ObjectVariables.TryGetValue(testActionId, out var obj) || obj is not string testAction)
+        if (!context.ObjectVariables.TryGetValue(TestActionKey, out var obj) || obj is not string testAction)
         {
             Log.Warning("Test Action missing?", this);
             return;
         }
 
-        _testName = TestName.GetValue(context);
-        
-        var image = Image.GetValue(context);
-        //var image2 = Image2.GetValue(context);
-
-        if (image == null)
-        {
-            Log.Warning("Image missing?", this);
-            return;
-        }
-        
         switch (testAction)
         {
             case "Test":
-            {
-                SharpDX.Direct3D11.Texture2D diffColorImage = null;
-
-                var image2 = LoadTextureFromFile( ResourceManager.Device,GetReferenceFilepath(0, 0));
-                
-                // TODO:
-                var threshold = 0.1f;
-                float deviation = CompareImage(image, image2, ref diffColorImage);
-                if (deviation < threshold)
-                {
-                    //RemoveFailureImages(index, count);
-                    //result = true;
-                }
-                else
-                {
-                    // TODO
-                    //StoreImages(index, count, _offscreenRenderer.ColorImage, diffColorImage);
-                    //result = false;
-                }
-                var compareResultString = $"Difference {GetReferenceFilepath(0,0)}: {deviation:0.00}";
-                testResult.AppendLine(compareResultString);
-                
-                //Utilities.Dispose(ref referenceImage);
-                Utilities.Dispose(ref diffColorImage);
-                //return result;
-                
-                Log.Debug("Executing", this);
-                //CompareImage(image, image);
+                ConductTests(context, testResultBuilder);
                 break;
-            }
 
             case "UpdateReferences":
-                Log.Debug("Update references", this);
-                var filepath = GetReferenceFilepath(0,0);
-                Log.Debug("Saving image " + filepath, this);
-                ScreenshotWriter.StartSavingToFile(image, filepath, ScreenshotWriter.FileFormats.Png);
-                testResult.Append("saved " + filepath);
+                UpdateAndSaveReferences(context, testResultBuilder);
                 break;
 
             default:
@@ -101,34 +64,126 @@ internal sealed class VisualTest : Instance<VisualTest>
         }
     }
 
-    
-    void RemoveFailureImages(int index, int count)
+    private Texture2D UpdateImage(EvaluationContext context, int index)
     {
-        FileInfo fi = new FileInfo(GetReferenceFilepath(index, count));
-        string path = Path.GetDirectoryName(fi.FullName);
-        string filename = Path.GetFileNameWithoutExtension(fi.FullName);
-        string ext = Path.GetExtension(fi.FullName);
-        string f1 = String.Format("{0}/{1}.current{2}", path, filename, ext);
-        string f2 = String.Format("{0}/{1}.diff{2}", path, filename, ext);
-        File.Delete(f1);
-        File.Delete(f2);
-    }
-    
-    
-    string GetReferenceFilepath(int index, int count)
-    {
-        //TODO:
-        return $"{_testName}{index}_{count}.png";
+        var previousKeyframeTime = context.LocalTime;
+        var previousEffectTime = context.LocalFxTime;
+        var previousResolution = context.RequestedResolution;
+
+        var f = _stepCount <= 1 ? 0.5f : (float)index / _stepCount;
+        
+        var stepStep = MathUtils.Lerp(_timeRange.X, _timeRange.Y, f);
+        Texture2D image = null;
+        for (int midStepIndex = 0; midStepIndex <= _warmUpSteps; midStepIndex++)
+        {
+            var subTime = _warmUpSteps <= 1 ? 0 : (float)midStepIndex / _warmUpSteps;
+            var time = stepStep + subTime;
+            
+            context.LocalTime = time;
+            context.LocalFxTime = time;
+            context.RequestedResolution = _defaultResolution;
+            // Log.Debug($"Setting time to {time:0.00} and resolution to {_defaultResolution}");
+
+            DirtyFlag.InvalidationRefFrame++;
+            Image.Invalidate();
+
+            image = Image.GetValue(context);
+            
+        }
+
+        context.LocalTime = previousKeyframeTime;
+        context.LocalFxTime = previousEffectTime;
+        context.RequestedResolution = previousResolution;
+        return image;
     }
 
-    private static SharpDX.Direct3D11.Texture2D LoadTextureFromFile(SharpDX.Direct3D11.Device device, string filePath)
+    private void UpdateAndSaveReferences(EvaluationContext context, StringBuilder testResultBuilder)
+    {
+        for (int index = 0; index < _stepCount; index++)
+        {
+            var image = UpdateImage(context, index);
+            var filepath = GetReferenceFilepath(index);
+            Log.Debug("Saving image " + filepath, this);
+
+            SaveTexture(image, filepath);
+            testResultBuilder.AppendLine("saved " + filepath);
+        }
+    }
+
+    private void ConductTests(EvaluationContext context, StringBuilder testResult)
+    {
+        SharpDX.Direct3D11.Texture2D diffColorImage = null;
+        for (int index = 0; index < _stepCount; index++)
+        {
+            var referenceFilepath = GetReferenceFilepath(index);
+            if (!TryLoadTextureFromFile(ResourceManager.Device, referenceFilepath, out var referenceImage))
+            {
+                Log.Warning($"Can't find image... {referenceFilepath}");
+                continue;
+            }
+
+            var image = UpdateImage(context, index);
+            var currentWithCpuAccess = _textureBgraReadAccess.ConvertToCpuReadableBgra(image);
+            var deviation = CompareImage(currentWithCpuAccess, referenceImage);
+            var failPath = GetReferenceFilepath(index, "FAIL");
+            
+            if (deviation < _threshold)
+            {
+                if (File.Exists(failPath))
+                {
+                    File.Delete(failPath);
+                }
+                testResult.AppendLine($"SUCCESS: {referenceFilepath}: ({deviation:0.00})");
+            }
+            else
+            {
+                SaveTexture(image, GetReferenceFilepath(index, "FAIL"));
+                testResult.AppendLine($"FAIL: {referenceFilepath}: ({deviation:0.00})");
+
+            }
+
+            
+            Utilities.Dispose(ref diffColorImage);
+        }
+    }
+
+    private void SaveTexture(Texture2D texture, string filePath)
+    {
+        _textureBgraReadAccess.InitiateConvertAndReadBack(texture, OnReadBackComplete, filePath);
+    }
+    
+    private string GetReferenceFilepath(int index, string suffix =null)
+    {
+        List<string> parts = [];
+
+        if (!string.IsNullOrEmpty(this.Parent?.Symbol.Name))
+            parts.Add(Parent?.Symbol.Name);
+
+        if (!string.IsNullOrEmpty(SymbolChild.Name))
+            parts.Add(SymbolChild.Name);
+
+        parts.Add(SymbolChildId.ShortenGuid(5));
+
+        parts.Add($"{index:00}");
+        
+        if(!string.IsNullOrEmpty(suffix))
+            parts.Add(suffix);
+
+
+        var baseName = string.Join('_', parts);
+        baseName += ".png";
+        return Path.Join(TestReferenceFolder, baseName);
+    }
+
+    private static bool TryLoadTextureFromFile(SharpDX.Direct3D11.Device device, string filePath, out SharpDX.Direct3D11.Texture2D image)
     {
         if (!File.Exists(filePath))
         {
-            return null;
+            image = null;
+            return false;
         }
-        
-        ImagingFactory imagingFactory = new ImagingFactory();
+
+        var imagingFactory = new ImagingFactory();
 
         // Decode the image
         var decoder = new BitmapDecoder(imagingFactory, filePath, DecodeOptions.CacheOnDemand);
@@ -172,40 +227,35 @@ internal sealed class VisualTest : Instance<VisualTest>
         frame.Dispose();
         decoder.Dispose();
         imagingFactory.Dispose();
-        return texture;
+        image = texture;
+        return true;
     }
 
-    private float CompareImage(SharpDX.Direct3D11.Texture2D current, 
-                               SharpDX.Direct3D11.Texture2D reference, 
-                               ref SharpDX.Direct3D11.Texture2D differenceImage)
+    /// <remarks>
+    /// Sadly, we have to deal with BRGA vs RGBA because we convert the current image to brga on the GPU
+    /// to speedup writing as PNG.  
+    /// </remarks>
+    private float CompareImage(SharpDX.Direct3D11.Texture2D currentBgraWithCpuAccess,
+                               SharpDX.Direct3D11.Texture2D reference)
     {
         try
         {
-            if (current == null || reference == null ||
-                current.Description.Width != reference.Description.Width ||
-                current.Description.Height != reference.Description.Height ||
-                current.Description.Format != reference.Description.Format)
+            if (currentBgraWithCpuAccess == null || reference == null ||
+                currentBgraWithCpuAccess.Description.Width != reference.Description.Width ||
+                currentBgraWithCpuAccess.Description.Height != reference.Description.Height)
             {
-                return 6666.0f;
+                Log.Warning($"{GetReferenceFilepath(0)} incorrect size? {currentBgraWithCpuAccess?.Description.Width}x{currentBgraWithCpuAccess?.Description.Height} vs {reference?.Description.Width}×{reference?.Description.Height}");
+                return -1f;
             }
 
+            if (currentBgraWithCpuAccess.Description.Format != Format.B8G8R8A8_UNorm)
+            {
+                Log.Warning($"Source image format {currentBgraWithCpuAccess.Description.Format} is expected to be BGRA8");
+                return -1f;
+            }
+            
+            
             var immediateContext = ResourceManager.Device.ImmediateContext;
-            var currentDesc = new Texture2DDescription()
-                                  {
-                                      BindFlags = BindFlags.None,
-                                      Format = current.Description.Format,
-                                      Width = current.Description.Width,
-                                      Height = current.Description.Height,
-                                      MipLevels = current.Description.MipLevels,
-                                      SampleDescription = new SampleDescription(1, 0),
-                                      Usage = ResourceUsage.Staging,
-                                      OptionFlags = ResourceOptionFlags.None,
-                                      CpuAccessFlags = CpuAccessFlags.Read,
-                                      ArraySize = 1
-                                  };
-            var currentWithCPUAccess = new SharpDX.Direct3D11.Texture2D(ResourceManager.Device, currentDesc);
-            immediateContext.CopyResource(current, currentWithCPUAccess);
-
             var referenceDesc = new Texture2DDescription()
                                     {
                                         BindFlags = BindFlags.None,
@@ -219,63 +269,45 @@ internal sealed class VisualTest : Instance<VisualTest>
                                         CpuAccessFlags = CpuAccessFlags.Read,
                                         ArraySize = 1
                                     };
-            var referenceWithCPUAccess = new SharpDX.Direct3D11.Texture2D(ResourceManager.Device, referenceDesc);
-            immediateContext.CopyResource(reference, referenceWithCPUAccess);
+            var referenceWithCpuAccess = new SharpDX.Direct3D11.Texture2D(ResourceManager.Device, referenceDesc);
+            immediateContext.CopyResource(reference, referenceWithCpuAccess);
 
-            var differenceDesc = new Texture2DDescription()
-                                     {
-                                         BindFlags = BindFlags.None,
-                                         Format = current.Description.Format,
-                                         Width = current.Description.Width,
-                                         Height = current.Description.Height,
-                                         MipLevels = current.Description.MipLevels,
-                                         SampleDescription = new SampleDescription(1, 0),
-                                         Usage = ResourceUsage.Staging,
-                                         OptionFlags = ResourceOptionFlags.None,
-                                         CpuAccessFlags = CpuAccessFlags.Write,
-                                         ArraySize = 1
-                                     };
-            Utilities.Dispose(ref differenceImage);
 
-            differenceImage = new SharpDX.Direct3D11.Texture2D(ResourceManager.Device, differenceDesc);
 
-            var currentDataBox = immediateContext.MapSubresource(currentWithCPUAccess, 0, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None, out var currentStream);
+
+            var currentDataBox =
+                immediateContext.MapSubresource(currentBgraWithCpuAccess, 0, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None, out var currentStream);
             currentStream.Position = 0;
 
-            var refDataBox = immediateContext.MapSubresource(referenceWithCPUAccess, 0, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None, out var referenceStream);
+            var refDataBox =
+                immediateContext.MapSubresource(referenceWithCpuAccess, 0, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None, out var referenceStream);
             referenceStream.Position = 0;
 
-            var diffDataBox = immediateContext.MapSubresource(differenceImage, 0, 0, MapMode.Write, SharpDX.Direct3D11.MapFlags.None, out var differenceStream);
-            differenceStream.Position = 0;
 
             double deviation = 0;
-            for (int y = 0; y < current.Description.Height; ++y)
+            for (int y = 0; y < currentBgraWithCpuAccess.Description.Height; ++y)
             {
-                for (int x = 0; x < current.Description.Width; ++x)
+                for (int x = 0; x < currentBgraWithCpuAccess.Description.Width; ++x)
                 {
-                    Color4 currentC = new Color4(currentStream.Read<Int32>());
-                    Color4 referenceC = new Color4(referenceStream.Read<Int32>());
-                    Color4 diffColor = currentC - referenceC;
-                    Color4 absDiffColor = new Color4(Math.Abs(diffColor.Red), Math.Abs(diffColor.Green), Math.Abs(diffColor.Blue), 1.0f);
-                    differenceStream.Write(absDiffColor.ToRgba());
-                    deviation += Math.Abs(diffColor.Red) + Math.Abs(diffColor.Green) + Math.Abs(diffColor.Blue) + Math.Abs(diffColor.Alpha);
+                    var currentBgra = new Color4(currentStream.Read<Int32>());
+                    var referenceRgba = new Color4(referenceStream.Read<Int32>());
+                    deviation += Math.Abs(currentBgra.Alpha - referenceRgba.Alpha)
+                                 + Math.Abs(currentBgra.Blue - referenceRgba.Red)
+                                 + Math.Abs(currentBgra.Green - referenceRgba.Green)
+                                 + Math.Abs(currentBgra.Red - referenceRgba.Blue);
                 }
 
-                currentStream.Position += currentDataBox.RowPitch - current.Description.Width * 4;
-                referenceStream.Position += refDataBox.RowPitch - current.Description.Width * 4;
-                differenceStream.Position += diffDataBox.RowPitch - current.Description.Width * 4;
+                currentStream.Position += currentDataBox.RowPitch - currentBgraWithCpuAccess.Description.Width * 4;
+                referenceStream.Position += refDataBox.RowPitch - currentBgraWithCpuAccess.Description.Width * 4;
             }
 
-            deviation /= current.Description.Width * current.Description.Height;
+            deviation /= currentBgraWithCpuAccess.Description.Width * currentBgraWithCpuAccess.Description.Height;
 
-            immediateContext.UnmapSubresource(currentWithCPUAccess, 0);
+            immediateContext.UnmapSubresource(currentBgraWithCpuAccess, 0);
             Utilities.Dispose(ref currentStream);
-            immediateContext.UnmapSubresource(referenceWithCPUAccess, 0);
+            immediateContext.UnmapSubresource(referenceWithCpuAccess, 0);
             Utilities.Dispose(ref referenceStream);
-            immediateContext.UnmapSubresource(differenceImage, 0);
-            Utilities.Dispose(ref differenceStream);
-            Utilities.Dispose(ref currentWithCPUAccess);
-            Utilities.Dispose(ref referenceWithCPUAccess);
+            Utilities.Dispose(ref referenceWithCpuAccess);
             return (float)deviation;
         }
         catch (Exception ex)
@@ -285,12 +317,133 @@ internal sealed class VisualTest : Instance<VisualTest>
         }
     }
 
-    private string _testName = "Test";
+    
+    private static void OnReadBackComplete(TextureBgraReadAccess.ReadRequestItem request)
+    {
+        var requestCpuAccessTexture = request.CpuAccessTexture;
+        var requestFilepath = request.Filepath;
+
+        var immediateContext = ResourceManager.Device.ImmediateContext;
+        if (requestCpuAccessTexture.IsDisposed)
+        {
+            Log.Debug("ScreenshotWriter: Texture was disposed before readback was complete");
+            return;
+        }
+        
+        // Make sure target folder exists
+        if (string.IsNullOrEmpty(requestFilepath)) 
+        {
+            Log.Debug("ScreenshotWriter: Target folder missing?");
+            return;
+        }
+
+        var folder = Path.GetDirectoryName(requestFilepath);
+        if (!string.IsNullOrEmpty(folder))
+        {
+            Log.Debug($"Creating {folder}...");
+            Directory.CreateDirectory(folder);
+        }
+
+        var dataBox = immediateContext.MapSubresource(requestCpuAccessTexture,
+                                                      0,
+                                                      0,
+                                                      SharpDX.Direct3D11.MapMode.Read,
+                                                      SharpDX.Direct3D11.MapFlags.None,
+                                                      out var imageStream);
+        using var dataStream = imageStream;
+
+        var width = requestCpuAccessTexture.Description.Width;
+        var height = requestCpuAccessTexture.Description.Height;
+        var factory = new ImagingFactory();
+
+        WICStream stream;
+        try
+        {
+            stream = new WICStream(factory, requestFilepath, NativeFileAccess.Write);
+        }
+        catch (Exception e)
+        {
+            Log.Warning("Failed to export image: " + e.Message);
+            return;
+        }
+
+        BitmapEncoder encoder = new PngBitmapEncoder(factory);
+        encoder.Initialize(stream);
+
+        // Create a Frame encoder
+        var bitmapFrameEncode = new BitmapFrameEncode(encoder);
+        bitmapFrameEncode.Initialize();
+        bitmapFrameEncode.SetSize(width, height);
+        var formatId = PixelFormat.Format32bppRGBA;
+        bitmapFrameEncode.SetPixelFormat(ref formatId);
+
+        var rowStride = PixelFormat.GetStride(formatId, width);
+        var outBufferSize = height * rowStride;
+        var outDataStream = new DataStream(outBufferSize, true, true);
+
+        try
+        {
+            // Note: dataBox.RowPitch and outputStream.RowPitch can diverge if width is not divisible by 16.
+            for (var loopY = 0; loopY < height; loopY++)
+            {
+                imageStream.Position = (long)(loopY) * dataBox.RowPitch;
+                outDataStream.WriteRange(imageStream.ReadRange<byte>(rowStride));
+            }
+
+            // Copy the BGRA pixels from the buffer to the Wic Bitmap Frame encoder
+            bitmapFrameEncode.WritePixels(height, new DataRectangle(outDataStream.DataPointer, rowStride));
+
+            // Commit changes
+            bitmapFrameEncode.Commit();
+            encoder.Commit();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Screenshot internal image copy failed : {e.Message}");
+        }
+        finally
+        {
+            imageStream.Dispose();
+            outDataStream.Dispose();
+            bitmapFrameEncode.Dispose();
+            encoder.Dispose();
+            stream.Dispose();
+        }
+    }
+    
+    private int _warmUpSteps;
+    private int _stepCount;
+    private float _threshold;
+    private Vector2 _timeRange;
+
+    private const string TestReferenceFolder = ".tixl/tests";
+    // private const int DefaultHeight = 120;
+    // private const int DefaultWidth = (int)(DefaultHeight * (16f / 9));
+    private  Int2 _defaultResolution;
+    
+
+    private const string TestFrameKey = "_TestFrame";
+    private const string TestResultKey = "_TestResult";
+    private const string TestActionKey = "_TestAction";
+
+    private static readonly TextureBgraReadAccess _textureBgraReadAccess = new(true);
 
     [Input(Guid = "ed9887ca-5ee4-4fb7-a835-071de255a893")]
     public readonly InputSlot<Texture2D> Image = new();
 
+    [Input(Guid = "9628A5C6-E731-4DF7-B49B-E617C75CFDA4")]
+    public readonly InputSlot<float> Threshold = new();
+
+    [Input(Guid = "ADFE6FE4-7FA7-4F1C-9D66-1CBF9B383BA1")]
+    public readonly InputSlot<int> WarmUpStepCount = new();
     
-    [Input(Guid = "6c6d3909-3f27-43bd-9900-5bf00fb6015b")]
-    public readonly InputSlot<string> TestName = new();
+    [Input(Guid = "27ADB1E1-0704-4F1F-894D-BF38E3C8D982")]
+    public readonly InputSlot<int> StepCount = new();
+
+    [Input(Guid = "085CA93B-4167-444C-B3E0-A0628E93C633")]
+    public readonly InputSlot<Int2> Resolution = new();
+    
+    [Input(Guid = "59D30AB3-99D5-441A-A6E7-EB76278F6AC1")]
+    public readonly InputSlot<Vector2> TimeRange = new();
+
 }
