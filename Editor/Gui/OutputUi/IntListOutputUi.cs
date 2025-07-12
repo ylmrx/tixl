@@ -103,8 +103,6 @@ internal sealed class IntListOutputUi : OutputUi<List<int>>
                 FormInputs.AddVerticalSpace(2);
                 ImGui.BeginChild("ScrollableList");
                 {
-
-
                     int columnIndex = 0;
                     var min = int.MaxValue;
                     var max = int.MinValue;
