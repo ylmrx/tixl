@@ -144,7 +144,11 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
             var f = list[index];
             var ff = f;
 
-            var size = new Vector2(300 * T3Ui.UiScaleFactor, 0);
+            var paddingForEditAndInsert = ImGui.GetFrameHeight() * 2;
+            var additionalPadding = 10;
+            var width = ImGui.GetContentRegionAvail().X - ImGui.GetCursorPosX() - paddingForEditAndInsert - additionalPadding;
+
+            var size = new Vector2(width, 0);
 
             var r = InputEditStateFlags.Nothing;
             //var r = SingleValueEdit.Draw(ref ff, new Vector2(300 * T3Ui.UiScaleFactor,0));
