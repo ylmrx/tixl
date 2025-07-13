@@ -46,7 +46,8 @@ internal sealed class Structure
         {
             if (!current.Symbol.Children.TryGetValue(childPath[i], out current))
             {
-                Log.Error("Did not find child in path provided.\n" + Environment.StackTrace);
+                // Commented out, because this frequently happens after deleting pinned Instance
+                //Log.Error("Did not find child in path provided.\n" + Environment.StackTrace);
                 return null;
             }
         }
