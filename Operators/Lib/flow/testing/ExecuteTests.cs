@@ -83,7 +83,7 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
         {
             if (!context.IntVariables.Remove(testframeId))
                 Log.Warning($"Expected {testframeId} variable for roottest");
-            
+
             _stopwatch.Stop();
 
             _stringBuilder.Clear();
@@ -99,7 +99,7 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
                 else if (line.Contains("PASSED"))
                 {
                     countSuccess++;
-                    if(!onlyShowFails)
+                    if (!onlyShowFails)
                         _stringBuilder.AppendLine(line);
                 }
             }
@@ -107,16 +107,14 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
             var countTotal = countFails + countSuccess;
             var passedLabel = countFails == 0 ? "SUCCESS" : "FAILED";
 
-            _stringBuilder.Insert(0,$"{passedLabel}:   {countSuccess} / {countTotal}  {_stopwatch.ElapsedMilliseconds * 0.001:0.0s}\n\n");
-            
+            _stringBuilder.Insert(0, $"{passedLabel}:   {countSuccess} / {countTotal}  {_stopwatch.ElapsedMilliseconds * 0.001:0.0s}\n\n");
+
             Result.Value = _stringBuilder.ToString();
         }
         else
         {
             Result.Value = "intermediate test";
         }
-        
-        
     }
 
     private readonly StringBuilder _stringBuilder = new();
@@ -134,9 +132,7 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
 
     [Input(Guid = "E1989C94-8F51-414A-9CA0-33631875A9DF")]
     public readonly InputSlot<bool> UpdateReferences = new();
-    
+
     [Input(Guid = "13D66A6D-75E1-4AB0-805D-A2234B3334A4")]
     public readonly InputSlot<bool> OnlyShowFails = new();
-
-    
 }

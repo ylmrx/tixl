@@ -6,8 +6,8 @@
     {
       "InputId": "155c2396-0e05-4437-8171-288048b1158a"/*Filter*/,
       "Position": {
-        "X": 2359.5513,
-        "Y": 4015.878
+        "X": 2404.7104,
+        "Y": 3916.748
       },
       "GroupTitle": "Texture Options",
       "Description": "Defines the mode for texture filtering"
@@ -15,8 +15,8 @@
     {
       "InputId": "2c4b5f3a-e9ec-432e-b1ae-6d999ae44f1b"/*FillMode*/,
       "Position": {
-        "X": 2358.5122,
-        "Y": 4111.546
+        "X": 2404.7104,
+        "Y": 4099.43
       },
       "GroupTitle": "Draw Style",
       "Description": "Toggles between colored Wireframe Rendering or default shading method."
@@ -68,24 +68,24 @@
     {
       "InputId": "9c17fa15-35f1-49d4-802f-a3a796cad96a"/*BlendMode*/,
       "Position": {
-        "X": 2372.6401,
-        "Y": 4207.465
+        "X": 2404.7104,
+        "Y": 4175.523
       },
       "Description": "Selects the Blendmode."
     },
     {
       "InputId": "9e957f4a-6502-4905-8d97-331f8b54097c"/*Culling*/,
       "Position": {
-        "X": 2358.5122,
-        "Y": 4076.5457
+        "X": 2404.7104,
+        "Y": 4064.43
       },
       "Description": "Defines the transparency of the surfaces.\nNone: All surfaces are \"bothsided\" or always visible from all sides\nFront: The normals are flipped (frontside is transparent / backside visible)\nBack: Default (Frontside is visible / backside is invisible)"
     },
     {
       "InputId": "b50b3fc7-35e1-421d-be0a-b3008a54c33c"/*EnableZTest*/,
       "Position": {
-        "X": 2372.6401,
-        "Y": 4242.465
+        "X": 2404.7104,
+        "Y": 4210.523
       },
       "Description": "If enabled discards fragments sorted out by z-buffer.\n\nThis defines whether the mesh covers itself or is covered by or covers other meshes.",
       "AddPadding": "True"
@@ -109,8 +109,8 @@
     {
       "InputId": "dfad3400-885a-4f83-8c39-ec6520f4e2aa"/*EnableZWrite*/,
       "Position": {
-        "X": 2372.6401,
-        "Y": 4277.465
+        "X": 2404.7104,
+        "Y": 4245.523
       },
       "Description": "This defines whether the mesh covers itself or is covered by or covers other meshes."
     }
@@ -145,8 +145,8 @@
     {
       "ChildId": "159b164f-1700-409b-95d7-d91d82b59f13"/*texSampler*/,
       "Position": {
-        "X": 2499.5513,
-        "Y": 4015.878
+        "X": 2544.7104,
+        "Y": 3916.748
       }
     },
     {
@@ -157,8 +157,8 @@
         "Y": 921.4707
       },
       "Position": {
-        "X": 2849.0676,
-        "Y": 3352.1846
+        "X": 3003.2698,
+        "Y": 3271.7793
       }
     },
     {
@@ -176,22 +176,22 @@
         "Y": 35.0
       },
       "Position": {
-        "X": 2499.5513,
-        "Y": 3490.878
+        "X": 2544.7104,
+        "Y": 3391.748
       }
     },
     {
       "ChildId": "44cb1668-6160-42b6-a7fe-803922b5e272"/*InputAssemblerStage*/,
       "Position": {
-        "X": 2709.0676,
-        "Y": 3352.1846
+        "X": 2863.2698,
+        "Y": 3271.7793
       }
     },
     {
       "ChildId": "5080e389-beeb-4de0-b15e-4b858275bbe8"/*ContextCBuffers*/,
       "Position": {
-        "X": 2499.5513,
-        "Y": 3560.878
+        "X": 2544.7104,
+        "Y": 3461.748
       }
     },
     {
@@ -204,8 +204,8 @@
     {
       "ChildId": "6483c4a0-43f8-46c3-83b7-62cc38db958c"/*clampedSampler*/,
       "Position": {
-        "X": 2499.5513,
-        "Y": 4085.878
+        "X": 2544.7104,
+        "Y": 3986.748
       }
     },
     {
@@ -230,8 +230,8 @@
     {
       "ChildId": "69767494-70bc-4ac8-aa51-a552037edf79"/*SetPixelAndVertexShaderStage*/,
       "Position": {
-        "X": 2639.5513,
-        "Y": 3420.878
+        "X": 2684.7104,
+        "Y": 3321.748
       }
     },
     {
@@ -258,8 +258,8 @@
     {
       "ChildId": "8632c707-a14d-4813-96ee-7370558e0502"/*OutputMergerStage*/,
       "Position": {
-        "X": 2652.6401,
-        "Y": 4207.465
+        "X": 2684.7104,
+        "Y": 4175.523
       }
     },
     {
@@ -272,8 +272,8 @@
     {
       "ChildId": "92de3521-0c60-4c9f-a8ec-3993e4c9f4eb"/*RasterizerState*/,
       "Position": {
-        "X": 2498.5122,
-        "Y": 4076.5457
+        "X": 2544.7104,
+        "Y": 4064.43
       }
     },
     {
@@ -293,8 +293,8 @@
     {
       "ChildId": "ac78d542-8551-4d5c-9dc4-8c594f27e4e5"/*VertexShader*/,
       "Position": {
-        "X": 2499.5513,
-        "Y": 3420.878
+        "X": 2544.7104,
+        "Y": 3321.748
       }
     },
     {
@@ -321,15 +321,22 @@
     {
       "ChildId": "e6011858-d023-4c8a-8222-3c0ff4c8018c"/*DepthStencilState*/,
       "Position": {
-        "X": 2512.6401,
-        "Y": 4242.465
+        "X": 2544.7104,
+        "Y": 4210.523
+      }
+    },
+    {
+      "ChildId": "ea860d6e-5284-4dd3-97fc-b7af1b279b34"/*ReadFile*/,
+      "Position": {
+        "X": 1570.1003,
+        "Y": 3117.5342
       }
     },
     {
       "ChildId": "eddca9ff-0408-4623-b5a4-7ff8e9c5917c"/*Rasterizer*/,
       "Position": {
-        "X": 2638.5122,
-        "Y": 4076.5457
+        "X": 2684.7104,
+        "Y": 4064.43
       }
     },
     {
@@ -342,8 +349,8 @@
     {
       "ChildId": "f27c8d6d-0135-47a1-bc31-65f489469d32"/*PickBlendMode*/,
       "Position": {
-        "X": 2512.6401,
-        "Y": 4207.465
+        "X": 2544.7104,
+        "Y": 4175.523
       }
     },
     {
@@ -358,8 +365,8 @@
     {
       "OutputId": "53b3fdca-9d5e-4808-a02f-4aa743cd8456"/*Output*/,
       "Position": {
-        "X": 2849.0676,
-        "Y": 3527.1846
+        "X": 3003.2698,
+        "Y": 3446.7793
       }
     }
   ]

@@ -271,6 +271,6 @@ float4 psMain(psInput pin) : SV_TARGET
     litColor += float4(EmissiveColorMap.Sample(TexSampler, pin.texCoord).rgb * EmissiveColor.rgb, 0);
     litColor.rgb = lerp(litColor.rgb, FogColor.rgb, pin.fog * FogColor.a);
     litColor.a *= albedo.a;
-    litColor.rgb *= GetField(float4(pin.worldPosition.xyz, 0)).rgb;
+    litColor.rgba *= GetField(float4(pin.worldPosition.xyz, 0)).rgba;
     return litColor;
 }
