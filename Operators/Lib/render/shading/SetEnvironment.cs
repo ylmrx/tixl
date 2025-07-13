@@ -37,4 +37,13 @@ internal sealed class SetEnvironment : Instance<SetEnvironment>
         [Input(Guid = "486f4f09-2e4e-43b8-bfbc-2722e77d5dbd")]
         public readonly InputSlot<float> Orientation = new InputSlot<float>();
 
+        [Input(Guid = "de6b9cb3-69ce-4b23-add6-a564648ec3a8", MappedType = typeof(Fallbacks))]
+        public readonly InputSlot<int> Fallback = new InputSlot<int>();
+
+        private enum Fallbacks
+        {
+            Studio,
+            Cathedral,
+            Black,
+        }
 }
