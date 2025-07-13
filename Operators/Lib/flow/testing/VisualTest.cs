@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.IO;
@@ -11,12 +12,12 @@ namespace Lib.flow.testing;
 [Guid("f92a1144-55d9-4d8e-bfa6-f80665800e25")]
 internal sealed class VisualTest : Instance<VisualTest>
 {
-    [Output(Guid = "96222dc9-aa23-4c85-99f1-08fd1107d579")]
-    public readonly Slot<Command> Command = new();
+    [Output(Guid = "0B56A8D8-F7F1-4FEA-A153-B529F49B989D")]
+    public readonly Slot<string> Result = new();
 
     public VisualTest()
     {
-        Command.UpdateAction = Update;
+        Result.UpdateAction = Update;
     }
 
     private void Update(EvaluationContext context)
@@ -24,7 +25,7 @@ internal sealed class VisualTest : Instance<VisualTest>
         _stepCount = StepCount.GetValue(context).Clamp(1, 100);
         _threshold = Threshold.GetValue(context);
         _timeRange = TimeRange.GetValue(context);
-        _warmUpSteps = WarmUpStepCount.GetValue(context).Clamp(0, 100);
+        _warmUpSteps = WarmUpStepCount.GetValue(context).Clamp(0, 1000);
         var res=Resolution.GetValue(context);
         _defaultResolution = new Int2(res.X.Clamp(1, 16383), 
                                       res.Y.Clamp(1, 16383));
@@ -32,11 +33,17 @@ internal sealed class VisualTest : Instance<VisualTest>
         var isExecution = context.IntVariables.TryGetValue(TestFrameKey, out var testFrame);
         if (!isExecution)
         {
-            Log.Warning("Needs to be run with [ExecuteTests]", this);
+            if (!_complainedOnce)
+            {
+                Log.Warning("Needs to be run with [ExecuteTests]", this);
+                _complainedOnce = true;
+            }
             return;
         }
 
-        if (!context.ObjectVariables.TryGetValue(TestResultKey, out var obj2) || obj2 is not StringBuilder testResultBuilder)
+        _complainedOnce = false;
+
+        if (!context.ObjectVariables.TryGetValue(TestResultKey, out var obj2) || obj2 is not List<string> testResultList)
         {
             Log.Warning("Test Results missing?", this);
             return;
@@ -51,11 +58,11 @@ internal sealed class VisualTest : Instance<VisualTest>
         switch (testAction)
         {
             case "Test":
-                ConductTests(context, testResultBuilder);
+                ConductTests(context, testResultList);
                 break;
 
             case "UpdateReferences":
-                UpdateAndSaveReferences(context, testResultBuilder);
+                UpdateAndSaveReferences(context, testResultList);
                 break;
 
             default:
@@ -64,8 +71,9 @@ internal sealed class VisualTest : Instance<VisualTest>
         }
     }
 
-    private Texture2D UpdateImage(EvaluationContext context, int index)
+    private Texture2D UpdateImage(EvaluationContext context, int index, out float usedTime)
     {
+        usedTime = 0;
         var previousKeyframeTime = context.LocalTime;
         var previousEffectTime = context.LocalFxTime;
         var previousResolution = context.RequestedResolution;
@@ -78,14 +86,15 @@ internal sealed class VisualTest : Instance<VisualTest>
         {
             var subTime = _warmUpSteps <= 1 ? 0 : (float)midStepIndex / _warmUpSteps;
             var time = stepStep + subTime;
+            usedTime = time;
             
             context.LocalTime = time;
             context.LocalFxTime = time;
             context.RequestedResolution = _defaultResolution;
-            // Log.Debug($"Setting time to {time:0.00} and resolution to {_defaultResolution}");
 
             DirtyFlag.InvalidationRefFrame++;
             Image.Invalidate();
+            Image.DirtyFlag.ForceInvalidate();
 
             image = Image.GetValue(context);
             
@@ -97,51 +106,53 @@ internal sealed class VisualTest : Instance<VisualTest>
         return image;
     }
 
-    private void UpdateAndSaveReferences(EvaluationContext context, StringBuilder testResultBuilder)
+    private void UpdateAndSaveReferences(EvaluationContext context, List<string> testResultBuilder)
     {
         for (int index = 0; index < _stepCount; index++)
         {
-            var image = UpdateImage(context, index);
+            var image = UpdateImage(context, index, out var time);
             var filepath = GetReferenceFilepath(index);
             Log.Debug("Saving image " + filepath, this);
 
             SaveTexture(image, filepath);
-            testResultBuilder.AppendLine("saved " + filepath);
+            testResultBuilder.Add("saved " + filepath);
         }
     }
 
-    private void ConductTests(EvaluationContext context, StringBuilder testResult)
+    private void ConductTests(EvaluationContext context, List<string> testResult)
     {
         SharpDX.Direct3D11.Texture2D diffColorImage = null;
         for (int index = 0; index < _stepCount; index++)
         {
             var referenceFilepath = GetReferenceFilepath(index);
+            var testName = GetTestName(index);
+            
             if (!TryLoadTextureFromFile(ResourceManager.Device, referenceFilepath, out var referenceImage))
             {
                 Log.Warning($"Can't find image... {referenceFilepath}");
                 continue;
             }
 
-            var image = UpdateImage(context, index);
+            var image = UpdateImage(context, index, out var time);
             var currentWithCpuAccess = _textureBgraReadAccess.ConvertToCpuReadableBgra(image);
             var deviation = CompareImage(currentWithCpuAccess, referenceImage);
             var failPath = GetReferenceFilepath(index, "FAIL");
             
+            var timeLabel = time == 0 ? string.Empty : $"@{time:0.00}";
             if (deviation < _threshold)
             {
                 if (File.Exists(failPath))
                 {
                     File.Delete(failPath);
                 }
-                testResult.AppendLine($"SUCCESS: {referenceFilepath}: ({deviation:0.00})");
+
+                testResult.Add($"{testName} {timeLabel}: PASSED");
             }
             else
             {
                 SaveTexture(image, GetReferenceFilepath(index, "FAIL"));
-                testResult.AppendLine($"FAIL: {referenceFilepath}: ({deviation:0.00})");
-
+                testResult.Add($"{testName} {timeLabel}: FAILED ({deviation:0.00} > {_threshold})");
             }
-
             
             Utilities.Dispose(ref diffColorImage);
         }
@@ -149,18 +160,37 @@ internal sealed class VisualTest : Instance<VisualTest>
 
     private void SaveTexture(Texture2D texture, string filePath)
     {
-        _textureBgraReadAccess.InitiateConvertAndReadBack(texture, OnReadBackComplete, filePath);
+        _textureBgraReadAccess.InitiateConvertAndReadBack(texture, WriteTextureToFile, filePath);
     }
-    
+
+    private string GetTestName(int index)
+    {
+        List<string> parts = [];
+        
+        parts.Add(GetCompositionName());
+
+        if (!string.IsNullOrEmpty(SymbolChild.Name))
+        {
+            parts.Add(SymbolChild.Name);
+        }
+        else
+        {
+            parts.Add("Test_" + SymbolChildId.ShortenGuid(5));
+        }
+        
+        parts.Add($"{index:00}");
+        
+        return string.Join(" / ", parts);
+    }
+
     private string GetReferenceFilepath(int index, string suffix =null)
     {
         List<string> parts = [];
 
-        if (!string.IsNullOrEmpty(this.Parent?.Symbol.Name))
-            parts.Add(Parent?.Symbol.Name);
-
         if (!string.IsNullOrEmpty(SymbolChild.Name))
-            parts.Add(SymbolChild.Name);
+        {
+            parts.Add(Regex.Replace(SymbolChild.Name, @"[^a-zA-Z0-9_]", "_"));
+        }
 
         parts.Add(SymbolChildId.ShortenGuid(5));
 
@@ -168,11 +198,19 @@ internal sealed class VisualTest : Instance<VisualTest>
         
         if(!string.IsNullOrEmpty(suffix))
             parts.Add(suffix);
-
-
+        
         var baseName = string.Join('_', parts);
         baseName += ".png";
-        return Path.Join(TestReferenceFolder, baseName);
+
+        return Path.Join(TestReferenceFolder, GetCompositionName(), baseName);
+    }
+
+    private string GetCompositionName()
+    {
+        var compositionName = !string.IsNullOrEmpty(Parent?.Symbol.Name) 
+                                  ? Parent.Symbol.Name 
+                                  : "Misc";
+        return compositionName;
     }
 
     private static bool TryLoadTextureFromFile(SharpDX.Direct3D11.Device device, string filePath, out SharpDX.Direct3D11.Texture2D image)
@@ -271,9 +309,8 @@ internal sealed class VisualTest : Instance<VisualTest>
                                     };
             var referenceWithCpuAccess = new SharpDX.Direct3D11.Texture2D(ResourceManager.Device, referenceDesc);
             immediateContext.CopyResource(reference, referenceWithCpuAccess);
-
-
-
+            ResourceManager.Device.ImmediateContext.Flush();  // Ensure the copy is complete
+            
 
             var currentDataBox =
                 immediateContext.MapSubresource(currentBgraWithCpuAccess, 0, 0, MapMode.Read, SharpDX.Direct3D11.MapFlags.None, out var currentStream);
@@ -318,7 +355,7 @@ internal sealed class VisualTest : Instance<VisualTest>
     }
 
     
-    private static void OnReadBackComplete(TextureBgraReadAccess.ReadRequestItem request)
+    private static void WriteTextureToFile(TextureBgraReadAccess.ReadRequestItem request)
     {
         var requestCpuAccessTexture = request.CpuAccessTexture;
         var requestFilepath = request.Filepath;
@@ -340,7 +377,7 @@ internal sealed class VisualTest : Instance<VisualTest>
         var folder = Path.GetDirectoryName(requestFilepath);
         if (!string.IsNullOrEmpty(folder))
         {
-            Log.Debug($"Creating {folder}...");
+            //Log.Debug($"Creating {folder}...");
             Directory.CreateDirectory(folder);
         }
 
@@ -415,6 +452,7 @@ internal sealed class VisualTest : Instance<VisualTest>
     private int _stepCount;
     private float _threshold;
     private Vector2 _timeRange;
+    private bool _complainedOnce;
 
     private const string TestReferenceFolder = ".tixl/tests";
     // private const int DefaultHeight = 120;

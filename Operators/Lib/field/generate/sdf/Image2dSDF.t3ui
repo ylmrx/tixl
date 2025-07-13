@@ -18,6 +18,7 @@
     },
     {
       "InputId": "c817ea37-e994-462b-ad8a-7e4cadf2f9a5"/*SdfImage*/,
+      "Relevancy": "Required",
       "Position": {
         "X": 1033.9694,
         "Y": 617.1224
