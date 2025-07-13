@@ -13,6 +13,13 @@ internal sealed class Once : Instance<Once>
 
     private void Update(EvaluationContext context)
     {
+        if (Math.Abs(context.LocalFxTime - _lastUpdateTime) < 0.0001f)
+        {
+            return;
+        }
+
+        _lastUpdateTime = context.LocalFxTime;
+        
         var dirtyFlagIsDirty = Trigger.DirtyFlag.IsDirty;
         OutputTrigger.Value = dirtyFlagIsDirty;
         
@@ -26,6 +33,8 @@ internal sealed class Once : Instance<Once>
         }
         Trigger.DirtyFlag.Clear();
     }
+
+    private double _lastUpdateTime = -1;
 
     [Input(Guid = "1da5310b-ecad-4f5b-871f-b0321a521ef6")]
     public readonly InputSlot<bool> Trigger = new(true);
