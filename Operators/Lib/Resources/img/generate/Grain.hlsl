@@ -6,16 +6,16 @@ cbuffer ParamConstants : register(b0)
     float Color;
     float Exponent;
     float Brightness;
-    float Speed;
+    float Time;
     float Scale;
 }
 
 cbuffer TimeConstants : register(b1)
 {
-    float globalTime;
-    float time;
-    float runTime;
-    float beatTime;
+//     float globalTime;
+//     float time;
+//     float runTime;
+//     float beatTime;
 }
 
 cbuffer Resolution : register(b2)
@@ -42,7 +42,7 @@ float4 GetNoiseFromRandom(float2 uv)
 {
     // Animation
     float pxHash = hash12( uv * 431 + 111);
-    float t = beatTime * Speed + pxHash;
+    float t = Time + pxHash;
 
     // Color Noise
     float4 hash1 = hash42(( uv * 431 + (int)t));

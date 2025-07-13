@@ -91,6 +91,13 @@
   ],
   "SymbolChildUis": [
     {
+      "ChildId": "b7f99a6d-7c1f-4767-bc8a-77632bcf1661"/*Time2*/,
+      "Position": {
+        "X": 7.808319,
+        "Y": 213.48698
+      }
+    },
+    {
       "ChildId": "c083e018-013a-4b05-a516-6c6af93d3ebb"/*_ImageFxShaderSetup2*/,
       "Style": "Resizable",
       "Size": {
