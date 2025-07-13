@@ -209,6 +209,9 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             selectedChildren.Add(child);                    
         }
 
+        if (selectedChildren.Count == 0)
+            return;
+
         UndoRedoStack.AddAndExecute(new DeleteSymbolChildrenCommand(compositionSymbolUi, selectedChildren));
         //_context.ClipSelection.Clear();
         _context.TimeCanvas.NodeSelection.Clear();

@@ -85,7 +85,7 @@ internal class AnimationOperations
                 {
                     foreach (var keyframe in selectKeyframesForCurve)
                     {
-                        commands.Add(new DeleteKeyframeCommand(curve, keyframe));
+                        commands.Add(new DeleteKeyframeCommand(curve, keyframe, true));
                         selectedKeyframes.Remove(keyframe);
                     }
                 }

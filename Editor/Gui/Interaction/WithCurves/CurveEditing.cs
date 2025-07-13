@@ -19,7 +19,7 @@ namespace T3.Editor.Gui.Interaction.WithCurves;
 /// <remarks>This provides basic curve editing functionality outside a timeline context, e.g. for CurveParameters</remarks>
 public abstract class CurveEditing
 {
-    protected readonly HashSet<VDefinition> SelectedKeyframes = new();
+    protected internal readonly HashSet<VDefinition> SelectedKeyframes = new();
     protected abstract IEnumerable<Curve> GetAllCurves();
     protected abstract void ViewAllOrSelectedKeys(bool alsoChangeTimeRange = false);
     protected abstract void DeleteSelectedKeyframes(Instance composition);
@@ -46,6 +46,20 @@ public abstract class CurveEditing
         }
 
         return result;
+    }
+
+    internal bool TrySelectKeyFrame(Curve curve, VDefinition vDef)
+    {
+        foreach (var c in GetAllCurves())
+        {
+            if (c == curve)
+            {
+                SelectedKeyframes.Add(vDef);
+                return true;
+            }
+        }
+
+        return false;
     }
 
     protected void DrawContextMenu(Instance composition)

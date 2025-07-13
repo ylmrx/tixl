@@ -798,7 +798,10 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     void ITimeObjectManipulation.DeleteSelectedElements(Instance compositionOp)
     {
-        AnimationOperations.DeleteSelectedKeyframesFromAnimationParameters(SelectedKeyframes, AnimationParameters, compositionOp);
+        AnimationOperations
+           .DeleteSelectedKeyframesFromAnimationParameters(SelectedKeyframes, 
+                                                           AnimationParameters, 
+                                                           compositionOp);
         RebuildCurveTables();
     }
     #endregion
