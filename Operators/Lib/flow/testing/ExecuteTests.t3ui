@@ -1,38 +1,54 @@
 {
   "Id": "83cb923e-a387-4be2-b391-4111c7bd90fe"/*ExecuteTests*/,
-  "Description": "",
+  "Description": "Groups and executes integration tests.\n\nAlso see [VisualTest] and [AllTests].",
   "InputUis": [
     {
-      "InputId": "07c52673-f37f-46c8-baf1-61c16cd512ac"/*Image*/,
+      "InputId": "13d66a6d-75e1-4ab0-805d-a2234b3334a4"/*OnlyShowFails*/,
       "Position": {
         "X": -200.0,
-        "Y": 0.0
+        "Y": 300.0
       }
     },
     {
-      "InputId": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerSave*/,
+      "InputId": "18023689-423a-4fb8-bc3c-9e74d0148c78"/*Tests*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      },
+      "Usage": "Default"
+    },
+    {
+      "InputId": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerTest*/,
       "Position": {
         "X": -200.0,
         "Y": 150.0
       }
     },
     {
-      "InputId": "7a2f27dd-1ba1-40cc-8361-3a8c30c59fe3"/*FilePath*/,
+      "InputId": "e1989c94-8f51-414a-9ca0-33631875a9df"/*UpdateReferences*/,
       "Position": {
         "X": -200.0,
-        "Y": 75.0
-      },
-      "Usage": "Default"
+        "Y": 225.0
+      }
     }
   ],
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "0b0628f8-94c6-450e-83ba-515da78c7229"/*Command*/,
+      "OutputId": "229a2dd4-419f-43b9-aecd-12eab9b25def"/*Result*/,
       "Position": {
         "X": 300.0,
         "Y": 200.0
       }
+    }
+  ],
+  "Links": [
+    {
+      "Id": "4a5f5989-4919-42e1-900c-0f292f86368e",
+      "Title": "Documentation.",
+      "Description": "",
+      "LinkUrl": "https://github.com/tixl3d/tixl/wiki/dev.IntegrationTests",
+      "LinkType": "Documentation"
     }
   ]
 }

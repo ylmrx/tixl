@@ -10,16 +10,12 @@ namespace Lib.flow.testing;
 [Guid("83cb923e-a387-4be2-b391-4111c7bd90fe")]
 internal sealed class ExecuteTests : Instance<ExecuteTests>
 {
-    // [Output(Guid = "0b0628f8-94c6-450e-83ba-515da78c7229")]
-    // public readonly Slot<Command> Command = new();
-    //
     [Output(Guid = "229A2DD4-419F-43B9-AECD-12EAB9B25DEF")]
     public readonly Slot<string> Result = new();
 
     public ExecuteTests()
     {
         Result.UpdateAction = Update;
-        // Command.UpdateAction = Update;
     }
 
     private void Update(EvaluationContext context)
@@ -44,13 +40,13 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
         }
 
         var needsUpdate = MathUtils.WasChanged(TriggerTest.GetValue(context), ref _testTriggered);
-        needsUpdate |= MathUtils.WasChanged(TriggerUpdateReferences.GetValue(context), ref _updateReferences);
+        needsUpdate |= MathUtils.WasChanged(UpdateReferences.GetValue(context), ref _updateReferences);
 
         if (isTestRoot && !needsUpdate)
             return;
 
         TriggerTest.SetTypedInputValue(false);
-        TriggerUpdateReferences.SetTypedInputValue(false);
+        UpdateReferences.SetTypedInputValue(false);
 
         if (isTestRoot)
         {
@@ -74,28 +70,15 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
             context.ObjectVariables[testResultId] = _testResults;
         }
 
-        //
-        var commandResults = SubTests.CollectedInputs;
-
-        // // do preparation if needed
-        // for (int i = 0; i < commandResults.Count; i++)
-        // {
-        //     commandResults[i].Value?.PrepareAction?.Invoke(context);
-        // }
+        var testSlots = Tests.CollectedInputs;
 
         // execute commands
-        for (int i = 0; i < commandResults.Count; i++)
+        for (int i = 0; i < testSlots.Count; i++)
         {
-            commandResults[i].DirtyFlag.ForceInvalidate();
-            commandResults[i].GetValue(context);
+            testSlots[i].DirtyFlag.ForceInvalidate();
+            testSlots[i].GetValue(context);
         }
 
-        // cleanup after usage
-        // for (int i = 0; i < commandResults.Count; i++)
-        // {
-        //     commandResults[i].Value?.RestoreAction?.Invoke(context);
-        // }
-        
         if (isTestRoot)
         {
             if (!context.IntVariables.Remove(testframeId))
@@ -144,13 +127,13 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
     private readonly Stopwatch _stopwatch = new();
 
     [Input(Guid = "18023689-423A-4FB8-BC3C-9E74D0148C78")]
-    public readonly MultiInputSlot<string> SubTests = new();
+    public readonly MultiInputSlot<string> Tests = new();
 
     [Input(Guid = "31937a13-1e53-45dd-8e6f-91ca5f3aaa19")]
     public readonly InputSlot<bool> TriggerTest = new();
 
     [Input(Guid = "E1989C94-8F51-414A-9CA0-33631875A9DF")]
-    public readonly InputSlot<bool> TriggerUpdateReferences = new();
+    public readonly InputSlot<bool> UpdateReferences = new();
     
     [Input(Guid = "13D66A6D-75E1-4AB0-805D-A2234B3334A4")]
     public readonly InputSlot<bool> OnlyShowFails = new();

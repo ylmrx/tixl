@@ -466,22 +466,22 @@ internal sealed class VisualTest : Instance<VisualTest>
 
     private static readonly TextureBgraReadAccess _textureBgraReadAccess = new(true);
 
-    [Input(Guid = "ed9887ca-5ee4-4fb7-a835-071de255a893")]
-    public readonly InputSlot<Texture2D> Image = new();
+        [Input(Guid = "ed9887ca-5ee4-4fb7-a835-071de255a893")]
+        public readonly InputSlot<T3.Core.DataTypes.Texture2D> Image = new InputSlot<T3.Core.DataTypes.Texture2D>();
 
-    [Input(Guid = "9628A5C6-E731-4DF7-B49B-E617C75CFDA4")]
-    public readonly InputSlot<float> Threshold = new();
+        [Input(Guid = "9628A5C6-E731-4DF7-B49B-E617C75CFDA4")]
+        public readonly InputSlot<float> Threshold = new InputSlot<float>();
 
-    [Input(Guid = "ADFE6FE4-7FA7-4F1C-9D66-1CBF9B383BA1")]
-    public readonly InputSlot<int> WarmUpStepCount = new();
-    
-    [Input(Guid = "27ADB1E1-0704-4F1F-894D-BF38E3C8D982")]
-    public readonly InputSlot<int> StepCount = new();
+        [Input(Guid = "59D30AB3-99D5-441A-A6E7-EB76278F6AC1")]
+        public readonly InputSlot<System.Numerics.Vector2> TimeRange = new InputSlot<System.Numerics.Vector2>();
 
-    [Input(Guid = "085CA93B-4167-444C-B3E0-A0628E93C633")]
-    public readonly InputSlot<Int2> Resolution = new();
-    
-    [Input(Guid = "59D30AB3-99D5-441A-A6E7-EB76278F6AC1")]
-    public readonly InputSlot<Vector2> TimeRange = new();
+        [Input(Guid = "27ADB1E1-0704-4F1F-894D-BF38E3C8D982")]
+        public readonly InputSlot<int> StepCount = new InputSlot<int>();
+
+        [Input(Guid = "ADFE6FE4-7FA7-4F1C-9D66-1CBF9B383BA1")]
+        public readonly InputSlot<int> WarmUpStepCount = new InputSlot<int>();
+
+        [Input(Guid = "085CA93B-4167-444C-B3E0-A0628E93C633")]
+        public readonly InputSlot<T3.Core.DataTypes.Vector.Int2> Resolution = new InputSlot<T3.Core.DataTypes.Vector.Int2>();
 
 }

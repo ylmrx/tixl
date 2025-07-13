@@ -1,41 +1,53 @@
 {
   "Id": "f92a1144-55d9-4d8e-bfa6-f80665800e25"/*VisualTest*/,
-  "Description": "",
+  "Description": "Executes visual integration tests needs [ExecuteTests]. \n",
   "InputUis": [
     {
       "InputId": "085ca93b-4167-444c-b3e0-a0628e93c633"/*Resolution*/,
       "Position": {
         "X": -200.0,
         "Y": 225.0
-      }
+      },
+      "Description": "You can override this for outputs like GradientsToTextures of ValuesToTextures.",
+      "AddPadding": "True"
     },
     {
       "InputId": "27adb1e1-0704-4f1f-894d-bf38e3c8d982"/*StepCount*/,
       "Position": {
         "X": -200.0,
         "Y": 150.0
-      }
+      },
+      "Description": "The number of references images generate for  giving TimeRange."
     },
     {
       "InputId": "59d30ab3-99d5-441a-a6e7-eb76278f6ac1"/*TimeRange*/,
       "Position": {
         "X": -200.0,
         "Y": 225.0
-      }
+      },
+      "GroupTitle": "Range",
+      "Description": "For animations like projects, with multiple scenes it can be useful to generate multiple images.\nUse the StepCount parameter to adjust the number of images.\nThe WarmUpSteps will be applied to for every step.\n",
+      "Min": 0.0,
+      "Max": 200.0
     },
     {
       "InputId": "9628a5c6-e731-4df7-b49b-e617c75cfda4"/*Threshold*/,
       "Position": {
         "X": -200.0,
         "Y": 75.0
-      }
+      },
+      "Description": "The threshold for when tests will fail.\nFor noisy and very complex scene this value can be adjustsed to avoid false positives.\nValues above 1 are no longer meaningful.",
+      "Min": 0.0,
+      "Max": 1.0
     },
     {
       "InputId": "adfe6fe4-7fa7-4f1c-9d66-1cbf9b383ba1"/*WarmUpStepCount*/,
       "Position": {
         "X": -200.0,
         "Y": 150.0
-      }
+      },
+      "GroupTitle": "Options",
+      "Description": "Non-Deterministic effects like feedback and particles will need a warmup of 2-30 frames to generate meaningful images.\nShader graph also require a single frame for compiling the shader."
     },
     {
       "InputId": "ed9887ca-5ee4-4fb7-a835-071de255a893"/*Image*/,
@@ -48,11 +60,20 @@
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "96222dc9-aa23-4c85-99f1-08fd1107d579"/*Command*/,
+      "OutputId": "0b56a8d8-f7f1-4fea-a153-b529f49b989d"/*Result*/,
       "Position": {
         "X": 300.0,
         "Y": 200.0
       }
+    }
+  ],
+  "Links": [
+    {
+      "Id": "6923a24d-5bf5-4a41-b06d-8bef40595c40",
+      "Title": "Documentation",
+      "Description": "",
+      "LinkUrl": "https://github.com/tixl3d/tixl/wiki/dev.IntegrationTests",
+      "LinkType": "Documentation"
     }
   ]
 }
