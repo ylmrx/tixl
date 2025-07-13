@@ -1,0 +1,37 @@
+{
+  "Id": "9eab73c1-bcca-4a10-8af8-7aa13649a9b6"/*PointTests*/,
+  "Description": "A selection of integration tests related to creating and modifying points.",
+  "InputUis": [],
+  "SymbolChildUis": [
+    {
+      "ChildId": "8bacc42b-e92b-4425-9a3e-d240a8a377b2"/*SelectPointsExample*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "ChildId": "ea0aa684-494c-4f0f-a9c3-b75f29430849"/*Particles*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 35.0
+      }
+    },
+    {
+      "ChildId": "fc443f4a-50ae-4bfd-aaf1-15c1c859ea0f"/*ExecuteTests*/,
+      "Position": {
+        "X": 107.69998,
+        "Y": 146.841
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "a0f103c6-1d04-4391-97d7-2b9651bad1c3"/*Result*/,
+      "Position": {
+        "X": 410.0,
+        "Y": 30.0
+      }
+    }
+  ]
+}

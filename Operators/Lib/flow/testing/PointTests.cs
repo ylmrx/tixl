@@ -5,10 +5,10 @@ using T3.Core.Operator.Slots;
 using System.Runtime.InteropServices;
 
 namespace Lib.flow.testing{
-    [Guid("b4a9f19a-bbb0-4d65-8d4a-560460e2505c")]
-    internal sealed class AllTests : Instance<AllTests>
+    [Guid("9eab73c1-bcca-4a10-8af8-7aa13649a9b6")]
+    internal sealed class PointTests : Instance<PointTests>
     {
-        [Output(Guid = "f9ddc7da-91fa-4a7c-b59d-d1ba8fc5eb74")]
+        [Output(Guid = "a0f103c6-1d04-4391-97d7-2b9651bad1c3")]
         public readonly Slot<string> Result = new Slot<string>();
 
 
