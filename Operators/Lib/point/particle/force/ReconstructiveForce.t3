@@ -15,7 +15,7 @@
     },
     {
       "Id": "5c3e885d-ba4c-4a8d-aaa0-f0d942e1457a"/*Strength*/,
-      "DefaultValue": 1.0
+      "DefaultValue": 0.1
     },
     {
       "Id": "6be3ff09-439f-4506-86d9-27e70422bb41"/*VolumeCenter*/,
