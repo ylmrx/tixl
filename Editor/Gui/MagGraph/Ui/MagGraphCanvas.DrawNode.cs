@@ -618,8 +618,8 @@ internal sealed partial class MagGraphCanvas
                     //var showTriangleAnchor = true;
                     var hoverOutputFactor = isInputHovered ? 1.3f : 1;
 
-                    drawList.AddCircleFilled(center, (1 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
-                    drawList.AddCircle(center, (1 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
+                    drawList.AddCircleFilled(center, (3 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
+                    drawList.AddCircle(center, (3 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
                     //showTriangleAnchor = false;
 
                     var e = MathF.Round(2 * CanvasScale);
@@ -858,13 +858,13 @@ internal sealed partial class MagGraphCanvas
             }
 
             var hoverOutputFactor = isOutputHovered ? 1.3f : 1;
-
+ 
             if (!hasSnappedConnection
                 || isItemHovered
                 || isOutputHovered)
             {
-                drawList.AddCircleFilled(center, (1 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
-                drawList.AddCircle(center, (1 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
+                drawList.AddCircleFilled(center, (2 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
+                drawList.AddCircle(center, (2 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
             }
 
             if (isOutputHovered)
