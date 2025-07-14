@@ -45,7 +45,7 @@
       "Description": "Increases or decreases the size of the areas which are darkened.",
       "AddPadding": "True",
       "Min": 0.1,
-      "Max": 30.0,
+      "Max": 100.0,
       "Clamp": true
     },
     {
