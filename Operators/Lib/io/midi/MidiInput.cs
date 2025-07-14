@@ -26,6 +26,7 @@ public sealed class MidiInput : Instance<MidiInput>, MidiConnectionManager.IMidi
     }
 
     private bool _initialized;
+    private double _lastUpdateTime = -1;
         
     protected override void Dispose(bool isDisposing)
     {
@@ -37,6 +38,11 @@ public sealed class MidiInput : Instance<MidiInput>, MidiConnectionManager.IMidi
 
     private void Update(EvaluationContext context)
     {
+        if (Math.Abs(context.LocalFxTime - _lastUpdateTime) < 0.0001f)
+            return;
+        
+        _lastUpdateTime= context.LocalFxTime;
+        
         if (!_initialized)
         {
             MidiConnectionManager.RegisterConsumer(this);
@@ -186,9 +192,9 @@ public sealed class MidiInput : Instance<MidiInput>, MidiConnectionManager.IMidi
         Result.Value = _dampedOutputValue;
         Range.Value = _valuesForControlRange;
             
-        Result.DirtyFlag.Clear();
-        Range.DirtyFlag.Clear();
-        WasHit.DirtyFlag.Clear();
+        // Result.DirtyFlag.Clear();
+        // Range.DirtyFlag.Clear();
+        // WasHit.DirtyFlag.Clear();
     }
 
     public void ErrorReceivedHandler(object sender, MidiInMessageEventArgs msg)
