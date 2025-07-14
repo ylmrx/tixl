@@ -19,14 +19,14 @@ internal static class AudioImageFactory
         if (string.IsNullOrEmpty(audioClip.FilePath) || handle.LoadingAttemptFailed)
             return false;
             
-        if (_loadingClips.ContainsKey(audioClip.FilePath))
+        if (_loadingClips.ContainsKey(audioClip))
         {
             imagePath = null;
             return false;
         }
            
         // Return from cache
-        if (_imageForAudioFiles.TryGetValue(audioClip.FilePath, out imagePath))
+        if (_imageForAudioFiles.TryGetValue(audioClip, out imagePath))
         {
             return true;
         }
@@ -38,28 +38,34 @@ internal static class AudioImageFactory
         }
         
             
-        _loadingClips.TryAdd(audioClip.FilePath, true);
+        _loadingClips.TryAdd(audioClip, true);
 
         Task.Run(() =>
                  {
                      Log.Debug($"Creating sound image for {audioClip.FilePath}");
                      if (AudioImageGenerator.TryGenerateSoundSpectrumAndVolume(audioClip, handle.Owner, out var imagePath))
                      {
-                         _imageForAudioFiles[audioClip.FilePath] = imagePath;
+                         _imageForAudioFiles[audioClip] = imagePath;
                      }
                      else
                      {
                          Log.Error($"Failed to create sound image for {audioClip.FilePath}", handle.Owner);
-                         _imageForAudioFiles.TryRemove(audioClip.FilePath, out _);
+                         _imageForAudioFiles.TryRemove(audioClip, out _);
                      }
 
-                     _loadingClips.TryRemove(audioClip.FilePath, out _);
+                     _loadingClips.TryRemove(audioClip, out _);
                  });
             
         return false;
     }
     
+    public static void ResetImageCache()
+    {
+        _imageForAudioFiles.Clear();
+    }
+
+    
     // TODO: should be a hashset, but there is no ConcurrentHashset -_-
-    private static readonly ConcurrentDictionary<string, bool> _loadingClips = new();
-    private static readonly ConcurrentDictionary<string, string> _imageForAudioFiles = new();
+    private static readonly ConcurrentDictionary<AudioClipDefinition, bool> _loadingClips = new();
+    private static readonly ConcurrentDictionary<AudioClipDefinition, string> _imageForAudioFiles = new();
 }
