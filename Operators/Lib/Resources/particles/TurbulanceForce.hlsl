@@ -3,18 +3,49 @@
 #include "shared/point.hlsl"
 #include "shared/quat-functions.hlsl"
 
+/*{ADDITIONAL_INCLUDES}*/
+
 cbuffer Params : register(b0)
 {
     float Amount;
     float Frequency;
     float Phase;
     float Variation;
-    float3 AmountDistribution;
-    float UseCurlNoise;
-    float AmountFromVelocity;
+}
+
+cbuffer Params : register(b1)
+{
+    /*{FLOAT_PARAMS}*/
 }
 
 RWStructuredBuffer<Particle> Particles : u0; 
+
+sampler ClampedSampler : register(s0);
+
+//=== Globals =======================================================
+/*{GLOBALS}*/
+
+//=== Resources =====================================================
+/*{RESOURCES(t0)}*/
+
+//=== Field functions ===============================================
+/*{FIELD_FUNCTIONS}*/
+
+//-------------------------------------------------------------------
+float4 GetField(float4 p)
+{
+    float4 f = 1;
+    /*{FIELD_CALL}*/
+    return f;
+}
+
+inline float GetDistance(float3 p3)
+{
+    return GetField(float4(p3.xyz, 0)).w;
+}
+
+//===================================================================
+
 
 [numthreads(64,1,1)]
 void main(uint3 i : SV_DispatchThreadID)
@@ -30,10 +61,11 @@ void main(uint3 i : SV_DispatchThreadID)
     float3 noiseLookup = (pos + variationOffset + Phase* float3(1,-1,0)  ) * Frequency;
     float3 velocity = Particles[i.x].Velocity;
     float speed = length(velocity);
-    float3 amount =  (Amount/100 + speed * AmountFromVelocity / 100 ) * AmountDistribution;
 
-    Particles[i.x].Velocity = velocity + (UseCurlNoise < 0.5 
-        ? snoiseVec3(noiseLookup)
-        : curlNoise(noiseLookup)) * amount;
+    float4 field = GetField(float4(pos, 0));
+    float fieldAmount = (field.r + field.g + field.b)/3;
+
+    float amount =  Amount/100 * fieldAmount;
+    Particles[i.x].Velocity = velocity + curlNoise(noiseLookup) * amount;
 }
 

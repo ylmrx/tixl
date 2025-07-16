@@ -30,4 +30,7 @@ internal sealed class TurbulenceForce : Instance<TurbulenceForce>
 
     [Input(Guid = "671a04f9-0f40-45ea-a2df-4f06c08d9647")]
     public readonly InputSlot<float> AmountFromVelocity = new();
+
+        [Input(Guid = "f3d0c69e-3788-49e8-bd70-361c446b4d62")]
+        public readonly InputSlot<T3.Core.DataTypes.ShaderGraphNode> ValueField = new InputSlot<T3.Core.DataTypes.ShaderGraphNode>();
 }

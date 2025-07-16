@@ -6,16 +6,16 @@
     {
       "InputId": "419b5ec5-8f6d-4c2d-a633-37d125cfcf07"/*Phase*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 288.40384
+        "X": 349.7188,
+        "Y": 140.57773
       },
       "Description": "Defines the phase of the noise and can be animated with a [Value], e.g. using [Time]."
     },
     {
       "InputId": "56144ddb-9d4b-4e08-9169-7853a767f794"/*Variation*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 333.4038
+        "X": 349.7188,
+        "Y": 175.57773
       },
       "Description": "Adds more variance and detail to the noise.",
       "Min": 0.0,
@@ -25,8 +25,8 @@
     {
       "InputId": "671a04f9-0f40-45ea-a2df-4f06c08d9647"/*AmountFromVelocity*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 558.4038
+        "X": 349.7188,
+        "Y": 210.57773
       },
       "Description": "Defines whether the particles with more momentum should be more affected by the noise.",
       "AddPadding": "True"
@@ -34,16 +34,16 @@
     {
       "InputId": "d1ebfcaa-ce47-4064-9169-7afa64f942f5"/*ShowGizmo*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 513.4038
+        "X": -1614.8599,
+        "Y": 562.71277
       },
       "Description": "Defines whether and how a helper gizmo should be visible in the output window."
     },
     {
       "InputId": "dfa6e67f-140b-4f96-bfb7-a8897edce28f"/*AmountDistribution*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 378.40393
+        "X": -1682.9531,
+        "Y": 346.31403
       },
       "Description": "Multiplier for the individual axes to amplify/attenuate the noise in certain directions.",
       "AddPadding": "True",
@@ -54,20 +54,19 @@
     {
       "InputId": "e27a97ce-3d0f-41a9-93c3-a1691f4029aa"/*Amount*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 198.4042
+        "X": 349.7188,
+        "Y": 70.57773
       },
       "Description": "Defines the total intensity of the random movements.",
       "Min": 0.0,
       "Max": 5.0,
-      "Clamp": true,
       "Format": "{0:0.000} ×"
     },
     {
       "InputId": "ebf8276f-2df8-4e70-ba57-30288fb184d1"/*UseCurlNoise*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 468.40387
+        "X": -1657.1246,
+        "Y": 462.14246
       },
       "GroupTitle": "Additional options",
       "Description": "Switches back and forth between different noise variants"
@@ -75,61 +74,40 @@
     {
       "InputId": "f0345217-29f4-48f8-babd-8aed134cb0d5"/*Frequency*/,
       "Position": {
-        "X": -1348.7484,
-        "Y": 243.40396
+        "X": 349.7188,
+        "Y": 105.57773
       },
       "GroupTitle": "Settings",
       "Description": "Defines the frequency, i.e. how fast the points move."
+    },
+    {
+      "InputId": "f3d0c69e-3788-49e8-bd70-361c446b4d62"/*ValueField*/,
+      "Position": {
+        "X": -249.08997,
+        "Y": -483.98523
+      }
     }
   ],
   "SymbolChildUis": [
     {
       "ChildId": "12d8e577-9d3b-433a-bd27-7eca7d1bd30f"/*CalcDispatchCount*/,
       "Position": {
-        "X": -120.28223,
-        "Y": 51.26735
-      }
-    },
-    {
-      "ChildId": "1e38393e-aa7d-4336-9840-f2fd2601827f"/*DrawLines*/,
-      "Position": {
-        "X": -183.01123,
-        "Y": 1250.201
-      }
-    },
-    {
-      "ChildId": "1f4c4bac-6e22-4c99-8175-d5df4bd28093"/*Multiply*/,
-      "Position": {
-        "X": -940.7539,
-        "Y": 856.93555
+        "X": 497.9104,
+        "Y": -109.15093
       }
     },
     {
       "ChildId": "237e26a0-9f78-4557-8420-ad17facd8578"/*GetParticleComponents*/,
       "Position": {
-        "X": -590.80896,
-        "Y": 121.3598
-      }
-    },
-    {
-      "ChildId": "27e67d99-3609-408f-8b74-79f692f428ed"/*Execute*/,
-      "Position": {
-        "X": 281.6228,
-        "Y": 776.403
-      }
-    },
-    {
-      "ChildId": "33e42388-a011-492a-bda5-997f0f831a03"/*VisibleGizmos*/,
-      "Position": {
-        "X": 431.6228,
-        "Y": 776.403
+        "X": 192.91751,
+        "Y": -33.23529
       }
     },
     {
       "ChildId": "45ae00a3-5f83-4424-84d2-05a8284ebcff"/*_ExecuteParticleUpdate*/,
       "Position": {
-        "X": 911.1948,
-        "Y": 118.95688
+        "X": 839.1881,
+        "Y": 71.77539
       }
     },
     {
@@ -140,174 +118,69 @@
         "Y": 229.21771
       },
       "Position": {
-        "X": -148.55838,
-        "Y": 203.31119
+        "X": 489.71893,
+        "Y": 35.57773
       }
     },
     {
       "ChildId": "506b0c26-f5b0-462a-8973-f294d77d5950"/*Execute*/,
       "Position": {
-        "X": 654.13245,
-        "Y": 157.3877
+        "X": 1118.7731,
+        "Y": 0.85113525
       }
     },
     {
-      "ChildId": "50fea008-78a7-40c8-94dc-d35c7e324ea6"/*Sigmoid*/,
+      "ChildId": "591dd78a-61b5-4d2d-9b7b-493b13c7ec7e"/*ReadFile*/,
       "Position": {
-        "X": -1083.0112,
-        "Y": 1376.201
-      }
-    },
-    {
-      "ChildId": "548dbc98-d33f-421a-9a21-443be75b2e05"/*Abs*/,
-      "Position": {
-        "X": -783.0112,
-        "Y": 1336.201
-      }
-    },
-    {
-      "ChildId": "582bc10e-89e6-47bf-b6ef-4481d25440e4"/*Transform*/,
-      "Position": {
-        "X": -33.01129,
-        "Y": 1250.201
-      }
-    },
-    {
-      "ChildId": "5a6873be-17f1-4d14-95fd-e9393d372855"/*Add*/,
-      "Position": {
-        "X": -790.75397,
-        "Y": 856.93555
-      }
-    },
-    {
-      "ChildId": "664793e7-e308-4ad9-97b1-c458e2cbd3e7"/*Vector3*/,
-      "Position": {
-        "X": -633.0112,
-        "Y": 1336.201
-      }
-    },
-    {
-      "ChildId": "6e66b9b2-56ef-43ed-b85c-f2d4d8a6bbc0"/*Remap*/,
-      "Position": {
-        "X": -933.0112,
-        "Y": 1376.201
-      }
-    },
-    {
-      "ChildId": "74eef807-84f1-42ee-a0f4-465c07a4f0dd"/*BoolToFloat*/,
-      "Position": {
-        "X": -320.49094,
-        "Y": 1062.1364
-      }
-    },
-    {
-      "ChildId": "8c0de59b-ebc8-4639-a2e1-ebf8599ed5f9"/*TransformPoints*/,
-      "Position": {
-        "X": -483.01123,
-        "Y": 1293.201
-      }
-    },
-    {
-      "ChildId": "921311bd-cb31-4dd4-b706-5726c5d3cc24"/*GridPoints*/,
-      "Position": {
-        "X": -790.75397,
-        "Y": 813.93555
-      }
-    },
-    {
-      "ChildId": "a37fdc4f-5581-463b-afa4-04680d200195"/*CommonPointSets*/,
-      "Position": {
-        "X": -633.0112,
-        "Y": 1293.201
+        "X": -62.761566,
+        "Y": -390.20306
       }
     },
     {
       "ChildId": "a4c4627d-93fd-4f5c-a5f7-b14a2b8b027f"/*ComputeShaderStage*/,
       "Position": {
-        "X": 129.43546,
-        "Y": 67.00871
+        "X": 839.1881,
+        "Y": -138.22461
       }
     },
     {
-      "ChildId": "a7c592b8-6e78-47c4-9980-66f1da611523"/*TransformPoints*/,
+      "ChildId": "a82a5cb4-be6c-4d6a-a3cf-6c1fd4459ef5"/*GenerateShaderGraphCode*/,
       "Position": {
-        "X": -640.75397,
-        "Y": 813.93555
+        "X": 77.238434,
+        "Y": -425.20306
       }
     },
     {
-      "ChildId": "adc48e05-1793-4979-a73c-b3093be49535"/*ComputeShaderStage*/,
-      "Position": {
-        "X": 110.8858,
-        "Y": 768.76447
-      }
-    },
-    {
-      "ChildId": "b9b9f78a-aeb8-4f21-8952-4af66b33ff3e"/*Value*/,
-      "Position": {
-        "X": -320.49094,
-        "Y": 963.13635
-      }
-    },
-    {
-      "ChildId": "ba0bdf6d-330d-4bdc-ac25-a3cec6d63c02"/*FloatsToBuffer*/,
+      "ChildId": "af05e7fd-b6b1-4d81-82c3-07b8cf833704"/*Source*/,
       "Style": "Resizable",
       "Size": {
-        "X": 133.98141,
-        "Y": 229.21771
+        "X": 140.0,
+        "Y": 35.0
       },
       "Position": {
-        "X": -146.50952,
-        "Y": 963.13635
-      }
-    },
-    {
-      "ChildId": "c0c2c63e-5f31-4db4-8485-70e8e1c58b11"/*CalcDispatchCount*/,
-      "Position": {
-        "X": -126.914795,
-        "Y": 773.93555
+        "X": -202.76157,
+        "Y": -390.20306
       }
     },
     {
       "ChildId": "c1310b7e-5ad8-42ac-a283-ce67f2318210"/*ComputeShader*/,
       "Position": {
-        "X": -564.9549,
-        "Y": 632.30273
-      }
-    },
-    {
-      "ChildId": "cbfd2899-473d-4ac6-b07f-793dd293c8a0"/*Vector3Components*/,
-      "Position": {
-        "X": -320.49094,
-        "Y": 1006.13635
-      }
-    },
-    {
-      "ChildId": "d7042485-8c8a-410b-ad20-24e8c2ef9b5d"/*GetBufferComponents*/,
-      "Position": {
-        "X": -490.75397,
-        "Y": 813.93555
-      }
-    },
-    {
-      "ChildId": "d81a2449-42a3-4573-ab5d-704eccb4d94d"/*Time*/,
-      "Position": {
-        "X": -1090.7539,
-        "Y": 856.93555
+        "X": 130.13611,
+        "Y": -129.67865
       }
     },
     {
       "ChildId": "dd25aa58-36f9-4f59-823f-7fc284473a72"/*HasTimeChanged*/,
       "Position": {
-        "X": 276.45862,
-        "Y": 354.84665
+        "X": 699.1881,
+        "Y": 106.77539
       }
     },
     {
-      "ChildId": "f49c6f32-22b8-4d69-a2c4-fd812589f9ec"/*RepeatAtGPoints*/,
+      "ChildId": "e72c7c15-808f-4d17-8572-49e6f22f0cb4"/*ComputeShaderFromSource*/,
       "Position": {
-        "X": -333.01123,
-        "Y": 1250.201
+        "X": 313.24554,
+        "Y": -284.78217
       }
     }
   ],
@@ -315,28 +188,8 @@
     {
       "OutputId": "e5bbe22e-e3f6-4f1f-9db0-fc7632c10639"/*Particles*/,
       "Position": {
-        "X": 1061.1948,
-        "Y": 118.95688
-      }
-    }
-  ],
-  "Annotations": [
-    {
-      "Id": "d936a21f-f51c-457c-8921-79dc40974917",
-      "Title": "Gizmo Visualization",
-      "Color": {
-        "X": 0.6,
-        "Y": 0.6,
-        "Z": 0.6,
-        "W": 1.0
-      },
-      "Position": {
-        "X": -1150.7539,
-        "Y": 708.76447
-      },
-      "Size": {
-        "X": 1752.3767,
-        "Y": 763.4366
+        "X": 839.1881,
+        "Y": 141.77539
       }
     }
   ]
