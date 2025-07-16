@@ -77,6 +77,8 @@ internal sealed class VisualTest : Instance<VisualTest>
         var previousKeyframeTime = context.LocalTime;
         var previousEffectTime = context.LocalFxTime;
         var previousResolution = context.RequestedResolution;
+        var previousGizmo = context.ShowGizmos;
+        context.ShowGizmos = GizmoVisibility.Off;
 
         var f = _stepCount <= 1 ? 0.5f : (float)index / _stepCount;
         
@@ -100,6 +102,7 @@ internal sealed class VisualTest : Instance<VisualTest>
             
         }
 
+        context.ShowGizmos = previousGizmo;
         context.LocalTime = previousKeyframeTime;
         context.LocalFxTime = previousEffectTime;
         context.RequestedResolution = previousResolution;
