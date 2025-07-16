@@ -17,7 +17,7 @@ internal sealed partial class EditableSymbolProject
             Log.Error($"{CsProjectFile.Name}: Saving is already in progress.");
             return;
         }
-        
+
         Log.Debug($"{CsProjectFile.Name}: Saving...");
 
         MarkAsSaving();
@@ -27,7 +27,7 @@ internal sealed partial class EditableSymbolProject
 
     internal void Update(out bool needsUpdating)
     {
-        if(CodeExternallyModified)
+        if (CodeExternallyModified)
         {
             CodeExternallyModified = false;
             if (_lastRecompilationTimeUtc.HasValue && (DateTime.UtcNow - _lastRecompilationTimeUtc.Value).TotalSeconds < 0.5f)
@@ -36,10 +36,10 @@ internal sealed partial class EditableSymbolProject
                 needsUpdating = false;
                 return;
             }
-            
+
             Log.Info($"{DisplayName}: Recompiling project due to external code change...");
             needsUpdating = true;
-            if(!TryRecompile(false))
+            if (!TryRecompile(false))
             {
                 Log.Error($"{DisplayName}: Recompilation failed.");
             }
@@ -57,7 +57,7 @@ internal sealed partial class EditableSymbolProject
             Log.Error($"{CsProjectFile.Name}: Saving is already in progress.");
             return;
         }
-        
+
         MarkAsSaving();
 
         var modifiedSymbolUis = SymbolUiDict
@@ -74,7 +74,7 @@ internal sealed partial class EditableSymbolProject
 
         UnmarkAsSaving();
     }
-   
+
     protected override void OnSymbolAdded(string? path, Symbol symbol)
     {
         path ??= SymbolPathHandler.GetCorrectPath(symbol.Name, symbol.Namespace, Folder, CsProjectFile.RootNamespace, SymbolExtension);
@@ -82,13 +82,12 @@ internal sealed partial class EditableSymbolProject
 
         if (!AutoOrganizeOnStartup)
             return;
-        
+
         // ReSharper disable once HeuristicUnreachableCode
         #pragma warning disable CS0162 // Unreachable code detected
         FilePathHandlers[symbol.Id].AllFilesReady += CorrectFileLocations;
         #pragma warning restore CS0162 // Unreachable code detected
     }
-    
 
     protected override void OnSymbolUiLoaded(string? path, SymbolUi symbolUi)
     {
@@ -96,7 +95,6 @@ internal sealed partial class EditableSymbolProject
         path ??= SymbolPathHandler.GetCorrectPath(symbolUi.Symbol.Name, symbolUi.Symbol.Namespace, Folder, CsProjectFile.RootNamespace, SymbolUiExtension);
         base.OnSymbolUiLoaded(path, symbolUi);
     }
-
 
     private void OnSymbolUpdated(Symbol symbol)
     {
@@ -106,7 +104,7 @@ internal sealed partial class EditableSymbolProject
         {
             throw new Exception("Symbol mismatch when updating symbol files");
         }
-        
+
         filePathHandler.UpdateFromSymbol();
     }
 
@@ -117,9 +115,9 @@ internal sealed partial class EditableSymbolProject
     private void OnSymbolRemoved(Guid id)
     {
         SymbolDict.Remove(id, out var symbol);
-        
+
         Debug.Assert(symbol != null);
-        
+
         SymbolUiDict.Remove(id, out _);
 
         Log.Info($"Removed symbol {symbol.Name}");
@@ -130,8 +128,6 @@ internal sealed partial class EditableSymbolProject
                                                                          handler.AllFilesReady -= CorrectFileLocations;
                                                                          handler.UpdateFromSymbol();
                                                                      };
-
-
 
     private void WriteAllSymbolFilesOf(IEnumerable<SymbolUi> symbolUis)
     {
@@ -153,33 +149,26 @@ internal sealed partial class EditableSymbolProject
             return;
         }
 
-        try
-        {
-            var sourceCodePath = pathHandler.SourceCodePath;
-            if (sourceCodePath != null)
-                WriteSymbolSourceToFile(id, sourceCodePath);
-            else
-                throw new Exception($"{CsProjectFile.Name}: No source code path found for symbol {id}");
+        var sourceCodePath = pathHandler.SourceCodePath;
+        if (sourceCodePath != null)
+            WriteSymbolSourceToFile(id, sourceCodePath);
+        else
+            throw new Exception($"{CsProjectFile.Name}: No source code path found for symbol {id}");
 
-            var symbolPath = pathHandler.SymbolFilePath ??= SymbolPathHandler.GetCorrectPath(symbol, this);
-            SaveSymbolDefinition(symbol, symbolPath);
-            pathHandler.SymbolFilePath = symbolPath;
-                
-            var uiFilePath = pathHandler.UiFilePath ??= SymbolPathHandler.GetCorrectPath(symbolUi, this);
-            WriteSymbolUi(symbolUi, uiFilePath);
-            pathHandler.UiFilePath = uiFilePath;
+        var symbolPath = pathHandler.SymbolFilePath ??= SymbolPathHandler.GetCorrectPath(symbol, this);
+        SaveSymbolDefinition(symbol, symbolPath);
+        pathHandler.SymbolFilePath = symbolPath;
 
-            #if DEBUG
-                var debug = $"{CsProjectFile.Name}: Saved [{symbol.Name}] to:\nSymbol: \"{symbolPath}\"\nUi: \"{uiFilePath}\"\nSource: \"{sourceCodePath}\"\n";
-            #else
+        var uiFilePath = pathHandler.UiFilePath ??= SymbolPathHandler.GetCorrectPath(symbolUi, this);
+        WriteSymbolUi(symbolUi, uiFilePath);
+        pathHandler.UiFilePath = uiFilePath;
+
+        #if DEBUG
+        var debug = $"{CsProjectFile.Name}: Saved [{symbol.Name}] to:\nSymbol: \"{symbolPath}\"\nUi: \"{uiFilePath}\"\nSource: \"{sourceCodePath}\"\n";
+        #else
                 var debug = $"{DisplayName}: Saved [{symbol.Name}]";
-            #endif
-            Log.Debug(debug);
-        }
-        catch (Exception e)
-        {
-            Log.Error($"{DisplayName}: Failed to save [{symbol.Name}] {id}\n{e}");
-        }
+        #endif
+        Log.Debug(debug);
     }
 
     private static void WriteSymbolUi(SymbolUi symbolUi, string uiFilePath)
@@ -203,7 +192,7 @@ internal sealed partial class EditableSymbolProject
 
     private void WriteSymbolSourceToFile(Guid id, string sourcePath)
     {
-        if(!_pendingSource.Remove(id, out var sourceCode))
+        if (!_pendingSource.Remove(id, out var sourceCode))
             return;
 
         using var sw = new StreamWriter(sourcePath, _saveOptions);
@@ -223,7 +212,7 @@ internal sealed partial class EditableSymbolProject
             Log.Error($"Saving count is negative: {count}. This should not happen.");
             _savingCount = count = 0;
         }
-        
+
         _csFileWatcher.EnableRaisingEvents = count <= 0;
     }
 
@@ -232,9 +221,9 @@ internal sealed partial class EditableSymbolProject
         var name = args.Name;
         if (name == null)
             return;
-        
+
         // generated file by dotnet - ignore
-        if(name.EndsWith("AssemblyInfo.cs"))
+        if (name.EndsWith("AssemblyInfo.cs"))
             return;
 
         Log.Info($"{DisplayName}: Code file changed: {name}");

@@ -46,7 +46,7 @@ public sealed partial class Symbol : IDisposable, IResource
 
     #endregion Saved Properties
 
-    public string Name => InstanceType.Name;
+    public string Name => InstanceType?.Name;
     public string Namespace => InstanceType.Namespace ?? SymbolPackage.AssemblyInformation.Name;
     public Animator Animator { get; private set; } = new();
     public PlaybackSettings PlaybackSettings { get; set; } = new();
