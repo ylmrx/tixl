@@ -30,6 +30,11 @@
       "SymbolId": "83cb923e-a387-4be2-b391-4111c7bd90fe",
       "InputValues": [
         {
+          "Id": "13d66a6d-75e1-4ab0-805d-a2234b3334a4"/*OnlyShowFails*/,
+          "Type": "System.Boolean",
+          "Value": true
+        },
+        {
           "Id": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerTest*/,
           "Type": "System.Boolean",
           "Value": false
@@ -98,6 +103,11 @@
       "Id": "dff1caad-9921-4d27-9916-5f15ed93151a"/*ExecuteTests*/,
       "SymbolId": "83cb923e-a387-4be2-b391-4111c7bd90fe",
       "InputValues": [
+        {
+          "Id": "13d66a6d-75e1-4ab0-805d-a2234b3334a4"/*OnlyShowFails*/,
+          "Type": "System.Boolean",
+          "Value": true
+        },
         {
           "Id": "31937a13-1e53-45dd-8e6f-91ca5f3aaa19"/*TriggerTest*/,
           "Type": "System.Boolean",
