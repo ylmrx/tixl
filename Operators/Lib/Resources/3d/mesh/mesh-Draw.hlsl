@@ -162,10 +162,7 @@ float4 psMain(psInput pin) : SV_TARGET
 {
     // Sample input textures to get shading model params.
     float4 albedo = BaseColorMap.Sample(TexSampler, pin.texCoord);
-    if (AlphaCutOff > 0 && albedo.a < AlphaCutOff)
-    {
-        discard;
-    }
+
 
     float4 roughnessMetallicOcclusion = RSMOMap.Sample(TexSampler, pin.texCoord);
     frag.Roughness = saturate(roughnessMetallicOcclusion.x + Roughness);
@@ -272,5 +269,9 @@ float4 psMain(psInput pin) : SV_TARGET
     litColor.rgb = lerp(litColor.rgb, FogColor.rgb, pin.fog * FogColor.a);
     litColor.a *= albedo.a;
     litColor.rgba *= GetField(float4(pin.worldPosition.xyz, 0)).rgba;
+    if (AlphaCutOff > 0 && litColor.a < AlphaCutOff)
+    {
+        discard;
+    }
     return litColor;
 }
