@@ -85,16 +85,6 @@ float3 GetFieldNormal(float3 p)
     if ( isnan(d) || isnan(n.x))
         return;
 
-    // if ( d>0 ) 
-    // {
-    //     Particles[i.x].Position.y += 0.1;
-    //     return;
-    // }
-    // else {
-    //     Particles[i.x].Position.x += 1;
-    //     return;
-    // }        
-
     if(d > 0) {
         p.Velocity -= n * Attraction * Amount;
     }

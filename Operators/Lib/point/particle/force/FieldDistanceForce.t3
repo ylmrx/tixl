@@ -15,7 +15,7 @@
     },
     {
       "Id": "8145f581-65bf-4965-81e9-2aed3622039f"/*Amount*/,
-      "DefaultValue": 0.0
+      "DefaultValue": 1.0
     },
     {
       "Id": "be2df23e-d32c-4cfe-947b-352113ccdff8"/*Repulsion*/,
