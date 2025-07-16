@@ -19,6 +19,8 @@ cbuffer Params : register(b0)
     float ShrinkWithDistance;
     float OffsetU;
     float UvScale;
+
+    float FadeTooLong;
 };
 
 cbuffer Params : register(b1)
@@ -83,10 +85,18 @@ psInput vsMain(uint id : SV_VertexID)
                                ? SegmentCount - 2
                                : particleId + 2];
 
+    float3 pointAPos = pointA.Position;
+    float3 pointBPos = pointB.Position;
+
+    float len = length(pointAPos - pointBPos);
+    float fade =  smoothstep(2*FadeTooLong,  FadeTooLong, len);
+    if(fade < 0.001)
+        discardFactor = 0;
+
     float f = cornerFactors.x;
     float3 posInObject = f < 0.5
-                             ? pointA.Position
-                             : pointB.Position;
+                             ? pointAPos
+                             : pointBPos;
 
     float4 aaInScreen = mul(float4(pointAA.Position, 1), ObjectToClipSpace) * aspect;
     aaInScreen /= aaInScreen.w;
@@ -170,7 +180,12 @@ psInput vsMain(uint id : SV_VertexID)
     n = normalize(n);
 
     output.fog = pow(saturate(-posInCamSpace.z / FogDistance), FogBias);
+
     output.color = Color * lerp(pointA.Color, pointB.Color, cornerFactors.x);
+
+
+    output.color.a *= fade;
+    
     return output;
 }
 

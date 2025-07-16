@@ -52,6 +52,9 @@ internal sealed class DrawLines : Instance<DrawLines>
 
         [Input(Guid = "567794ab-b3d3-43f6-ae95-4d654f797577")]
         public readonly InputSlot<bool> UseWAsTexCoordV = new InputSlot<bool>();
+
+        [Input(Guid = "c78378f5-8306-4586-af6b-99cea40fa9a9")]
+        public readonly InputSlot<float> FadeOutTooLong = new InputSlot<float>();
         
         private enum WidthFXs
         {

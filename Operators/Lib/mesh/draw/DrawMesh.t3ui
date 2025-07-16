@@ -24,8 +24,8 @@
     {
       "InputId": "2fdf0184-1459-4589-9633-2c739462ed66"/*FragmentField*/,
       "Position": {
-        "X": 1816.4573,
-        "Y": 3098.7122
+        "X": 1508.6431,
+        "Y": 3009.2537
       },
       "GroupTitle": "Field Overrides...",
       "Description": "An optional shader graph with a color function. \n\nIt will use the world position.xyz to generate a color that is multiplied before drawing the fragment.\nTry [SphereField]->[SdfToColor]->.FragmentField."
@@ -50,8 +50,8 @@
     {
       "InputId": "96df9e72-189f-4efc-82a6-b2f482166e34"/*ShaderDefines*/,
       "Position": {
-        "X": 1816.4573,
-        "Y": 3168.7122
+        "X": 1428.8037,
+        "Y": 3171.598
       },
       "Description": "Additional shader code that can be injected before rendering. \nUsing this requirese knowledge about the internal implementation. Passing invalid code will break the rendering.\nThis is similar to shader flags but most powerful because it also allows to define methods that are applied before rendering the fragment.\n\nOptions are...\n\n#define USE_WORLDSPACE",
       "Usage": "Multiline"
@@ -328,8 +328,8 @@
     {
       "ChildId": "ea860d6e-5284-4dd3-97fc-b7af1b279b34"/*ReadFile*/,
       "Position": {
-        "X": 1570.1003,
-        "Y": 3117.5342
+        "X": 1432.2252,
+        "Y": 3097.4941
       }
     },
     {
