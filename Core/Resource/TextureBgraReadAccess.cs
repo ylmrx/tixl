@@ -264,7 +264,9 @@ public sealed class TextureBgraReadAccess : IDisposable
 
 
     
-    private  int CpuAccessTextureCount => _useImmediateReadback ? 1 : CpuAccessTextureCount;
+    private  int CpuAccessTextureCount => _useImmediateReadback ? 1 : DefaultCpuAccessTextureCount;
+    private const int DefaultCpuAccessTextureCount = 3;
+    
     private  readonly List<Texture2D> _imagesWithCpuAccess = [];
 
     /** Skip a certain number of images at the beginning since the
