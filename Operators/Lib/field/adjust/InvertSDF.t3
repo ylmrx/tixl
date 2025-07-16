@@ -1,0 +1,23 @@
+{
+  "Id": "0707a816-d118-4419-84d6-7bdcbeee318d"/*InvertSDF*/,
+  "Inputs": [
+    {
+      "Id": "532b4f4f-59b3-4f1d-8bca-f61c3e6a9e16"/*InputField*/,
+      "DefaultValue": null
+    },
+    {
+      "Id": "b63ffbe1-05f4-42ad-843b-14cbaa81805a"/*Offset*/,
+      "DefaultValue": 0.0
+    },
+    {
+      "Id": "f48f4a84-7ca3-4604-8fe4-3bf0f9caa5b0"/*PlaneNormal*/,
+      "DefaultValue": {
+        "X": 0.0,
+        "Y": 0.0,
+        "Z": 1.0
+      }
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}
