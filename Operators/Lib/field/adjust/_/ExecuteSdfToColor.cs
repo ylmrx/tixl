@@ -45,7 +45,7 @@ internal sealed class ExecuteSdfToColor : Instance<ExecuteSdfToColor>
 
         // Will be clamped by shader
         c.AppendCall($"float _t{c} = f{c}.w/({ShaderNode}Range.y-{ShaderNode}Range.x) + {ShaderNode}Range.x;");
-        c.AppendCall($"f{c} = {ShaderNode}RemapGradient.Sample(ClampedSampler, float2(_t{c}, 0.5));");
+        c.AppendCall($"f{c} = {ShaderNode}RemapGradient.SampleLevel(ClampedSampler, float2(_t{c}, 0.5),0);");
         return true;
     }
 
