@@ -114,7 +114,7 @@
         {
           "Id": "9628a5c6-e731-4df7-b49b-e617c75cfda4"/*Threshold*/,
           "Type": "System.Single",
-          "Value": 0.01
+          "Value": 0.025
         },
         {
           "Id": "adfe6fe4-7fa7-4f1c-9d66-1cbf9b383ba1"/*WarmUpStepCount*/,

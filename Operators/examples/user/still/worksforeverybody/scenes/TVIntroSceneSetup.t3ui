@@ -110,6 +110,13 @@
       }
     },
     {
+      "ChildId": "1481e271-c5da-4a0e-bf3a-91e20fd8b3eb"/*MeshProjectUV*/,
+      "Position": {
+        "X": -516.74255,
+        "Y": 2437.6597
+      }
+    },
+    {
       "ChildId": "1ce5daff-507b-4be6-8f04-a8a35214e548"/*DrawMesh*/,
       "Position": {
         "X": 1281.5103,
@@ -518,8 +525,8 @@
     {
       "ChildId": "a8534350-e8e1-4cd4-80db-6bf7a3324b8f"/*MeshProjectUV*/,
       "Position": {
-        "X": -486.72443,
-        "Y": 2373.949
+        "X": -542.0781,
+        "Y": 2362.4604
       }
     },
     {

@@ -22,6 +22,8 @@
 - [ ] Fix Variations not saved to project folder but `Editor\bin\Debug\net9.0-windows\.tixl\variations`
 - [ ] Fix Multiinput connection editing
 
+- [ ] File-browser auto complete shows .hlsl file 3 times ?
+
 ## Project handling
 
 - [x] Reduce size of backups

@@ -65,8 +65,8 @@
           "Id": "590e24cc-00cc-4c9a-8f96-850857686c4a"/*Pivot*/,
           "Type": "System.Numerics.Vector3",
           "Value": {
-            "X": -0.49,
-            "Y": -0.55,
+            "X": 0.49,
+            "Y": 0.403,
             "Z": 0.0
           }
         },
@@ -159,6 +159,41 @@
             "X": 2.004066,
             "Y": 0.0,
             "Z": -4.2283664
+          }
+        }
+      ],
+      "Outputs": []
+    },
+    {
+      "Id": "1481e271-c5da-4a0e-bf3a-91e20fd8b3eb"/*MeshProjectUV*/,
+      "SymbolId": "97ffb173-f4cc-4143-a479-80cf3465cc7e",
+      "InputValues": [
+        {
+          "Id": "02c87571-ebaa-4cf9-bc6d-335911b50d07"/*ToTexCoord2*/,
+          "Type": "System.Boolean",
+          "Value": false
+        },
+        {
+          "Id": "2ce29895-0bfd-4b73-ad57-50aca7fd1a96"/*Scale*/,
+          "Type": "System.Single",
+          "Value": 0.45
+        },
+        {
+          "Id": "432c3388-907b-4b7f-8c6e-73a5100bc43a"/*Stretch*/,
+          "Type": "System.Numerics.Vector3",
+          "Value": {
+            "X": -1.69,
+            "Y": 1.0,
+            "Z": 1.0
+          }
+        },
+        {
+          "Id": "8a991e5f-361c-4ab9-9660-bdf759c87594"/*Translate*/,
+          "Type": "System.Numerics.Vector3",
+          "Value": {
+            "X": -0.05,
+            "Y": 0.29,
+            "Z": 0.0
           }
         }
       ],
@@ -301,7 +336,7 @@
         {
           "Id": "c3c815fa-8672-4d99-99a7-986844f2fc45"/*UpdateLive*/,
           "Type": "System.Boolean",
-          "Value": true
+          "Value": false
         }
       ],
       "Outputs": []
@@ -358,6 +393,11 @@
       "Id": "2f2dc4b1-e8d5-46e0-8ba2-34a711c29141"/*MeshProjectUV*/,
       "SymbolId": "97ffb173-f4cc-4143-a479-80cf3465cc7e",
       "InputValues": [
+        {
+          "Id": "02c87571-ebaa-4cf9-bc6d-335911b50d07"/*ToTexCoord2*/,
+          "Type": "System.Boolean",
+          "Value": false
+        },
         {
           "Id": "2ce29895-0bfd-4b73-ad57-50aca7fd1a96"/*Scale*/,
           "Type": "System.Single",
