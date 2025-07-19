@@ -427,48 +427,49 @@ internal class EditorSymbolPackage : SymbolPackage
     protected sealed override void OnSymbolsLoaded()
     {
         var assemblyInformation = AssemblyInformation;
-        var types = assemblyInformation.TypesInheritingFrom(typeof(IEditorUiExtension)).ToArray();
+        //var types = assemblyInformation.TypesInheritingFrom(typeof(IEditorUiExtension)).ToArray();
         
         // register descriptive UI
-        foreach (var operatorInfo in assemblyInformation.OperatorTypeInfo.Values)
-        {
-            if (operatorInfo.IsDescriptiveFileNameType)
-            {
-                CustomChildUiRegistry.Register(operatorInfo.Type, DescriptiveUi.DrawChildUiDelegate, _descriptiveUiTypes);
-            }
-        }
+        // TODO: Implement this
+        // foreach (var operatorInfo in assemblyInformation.OperatorTypeInfo.Values)
+        // {
+        //     if (operatorInfo.IsDescriptiveFileNameType)
+        //     {
+        //         CustomChildUiRegistry.Register(operatorInfo.Type, DescriptiveUi.DrawChildUiDelegate, _descriptiveUiTypes);
+        //     }
+        // }
 
         // load ui initializers
-        foreach (var type in types)
-        {
-            var activated = assemblyInformation.CreateInstance(type);
-            if (activated == null)
-            {
-                Log.Error($"Created null object for {type.Name}");
-                continue;
-            }
+        // foreach (var type in types)
+        // {
+        //     var activated = assemblyInformation.CreateInstance(type);
+        //     if (activated == null)
+        //     {
+        //         Log.Error($"Created null object for {type.Name}");
+        //         continue;
+        //     }
+        //
+        //     // var extension = (IEditorUiExtension)activated;
+        //     // try
+        //     // {
+        //     //     extension.Initialize();
+        //     // }
+        //     // catch (Exception e)
+        //     // {
+        //     //     Log.Error($"Failed to initialize UI extension {type.Name}: {e}");
+        //     //     continue;
+        //     // }
+        //
+        //     // Log.Info($"Loaded UI initializer for {assemblyInformation.Name}: {type.Name}");
+        //     // _extensions.Add(extension);
+        // }
 
-            var extension = (IEditorUiExtension)activated;
-            try
-            {
-                extension.Initialize();
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to initialize UI extension {type.Name}: {e}");
-                continue;
-            }
-
-            Log.Info($"Loaded UI initializer for {assemblyInformation.Name}: {type.Name}");
-            _extensions.Add(extension);
-        }
-
-        if (_extensions.Count != 0 && assemblyInformation.OperatorTypeInfo.Count > 0)
-        {
-            BlockingWindow.Instance.ShowMessageBox("Custom UI extensions are not supported in projects that also have symbols defined. " +
-                                                   "This may cause issues with exporting. It is recommended to start a new C# project for custom UIs.",
-                                                   "Warning");
-        }
+        // if (_extensions.Count != 0 && assemblyInformation.OperatorTypeInfo.Count > 0)
+        // {
+        //     BlockingWindow.Instance.ShowMessageBox("Custom UI extensions are not supported in projects that also have symbols defined. " +
+        //                                            "This may cause issues with exporting. It is recommended to start a new C# project for custom UIs.",
+        //                                            "Warning");
+        // }
     }
 
     public bool NeedsAssemblyLoad { get; private set; } = true;
@@ -497,26 +498,27 @@ internal class EditorSymbolPackage : SymbolPackage
         
         
         // unload custom UIs
-        for (var index = _extensions.Count - 1; index >= 0; index--)
-        {
-            var extension = _extensions[index];
-            _extensions.RemoveAt(index);
-            try
-            {
-                extension.Uninitialize();
-            }
-            catch (Exception e)
-            {
-                Log.Error($"Failed to uninitialize UI extension {extension.GetType().Name}: {e}");
-            }
-        }
+        // for (var index = _extensions.Count - 1; index >= 0; index--)
+        // {
+        //     var extension = _extensions[index];
+        //     _extensions.RemoveAt(index);
+        //     try
+        //     {
+        //         extension.Uninitialize();
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         Log.Error($"Failed to uninitialize UI extension {extension.GetType().Name}: {e}");
+        //     }
+        // }
         
         // unload descriptive uis
-        for (var index = _descriptiveUiTypes.Count - 1; index >= 0; index--)
-        {
-            var type = _descriptiveUiTypes[index];
-            CustomChildUiRegistry.Remove(type, _descriptiveUiTypes);
-        }
+        // FIXME: implement this.
+        // for (var index = _descriptiveUiTypes.Count - 1; index >= 0; index--)
+        // {
+        //     var type = _descriptiveUiTypes[index];
+        //     CustomChildUiRegistry.Remove(type, _descriptiveUiTypes);
+        // }
         
         NeedsAssemblyLoad = true;
     }
@@ -524,5 +526,6 @@ internal class EditorSymbolPackage : SymbolPackage
     protected bool UnloadInProgress { get; private set; }
     public event Action? AssemblyUnloading;
     private readonly List<Type> _descriptiveUiTypes = [];
-    private readonly List<IEditorUiExtension> _extensions = [];
+    
+    //private readonly List<IEditorUiExtension> _extensions = [];
 }

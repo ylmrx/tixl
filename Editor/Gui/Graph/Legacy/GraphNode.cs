@@ -9,6 +9,7 @@ using T3.Core.Operator.Slots;
 using T3.Core.Resource;
 using T3.Core.Utils;
 using T3.Editor.Gui.ChildUi;
+using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Graph.Legacy.Interaction;
@@ -66,7 +67,7 @@ internal sealed class GraphNode
             framesSinceLastUpdate = Math.Min(framesSinceLastUpdate, output.DirtyFlag.FramesSinceLastUpdate);
         }
 
-        SymbolUi.Child.CustomUiResult customUiResult  = SymbolUi.Child.CustomUiResult.None;
+        OpUi.CustomUiResult customUiResult  = OpUi.CustomUiResult.None;
 
         var newNodeSize = ComputeNodeSize(childUi, visibleInputUis, _sorter);
         AdjustGroupLayoutAfterResize(childUi, newNodeSize, instance.Parent.GetSymbolUi());
@@ -155,10 +156,10 @@ internal sealed class GraphNode
                                        backgroundColorWithHover.Fade(opacity));
 
                 // Custom ui
-                customUiResult = DrawCustomUi(instance, drawList, _selectableScreenRect, _canvas.Scale);
+                customUiResult =  instance.DrawCustomUi(drawList, _selectableScreenRect, _canvas.Scale);
 
                 // Size toggle
-                if (customUiResult == SymbolUi.Child.CustomUiResult.None && _canvas.Scale.X > 0.7f)
+                if (customUiResult == OpUi.CustomUiResult.None && _canvas.Scale.X > 0.7f)
                 {
                     var pos = new Vector2(_usableScreenRect.Max.X - 15, _usableScreenRect.Min.Y + 2);
 
@@ -235,7 +236,7 @@ internal sealed class GraphNode
                     //FrameStats.Current.HoveredIds.Remove(childUi.SymbolChild.Id);
                 }
                 else if (UserSettings.Config.EditorHoverPreview
-                         && (customUiResult & SymbolUi.Child.CustomUiResult.PreventTooltip) != SymbolUi.Child.CustomUiResult.PreventTooltip)
+                         && (customUiResult & OpUi.CustomUiResult.PreventTooltip) != OpUi.CustomUiResult.PreventTooltip)
                 {
                     if (UserSettings.Config.SmartGroupDragging)
                         _canvas.SelectableNodeMovement.HighlightSnappedNeighbours(childUi);
@@ -291,7 +292,7 @@ internal sealed class GraphNode
                 var justOpenedChild = false;
                 if (hovered && ImGui.IsMouseDoubleClicked(0)
                             && !RenamingOperator.IsOpen
-                            && (customUiResult & SymbolUi.Child.CustomUiResult.PreventOpenSubGraph) == 0)
+                            && (customUiResult & OpUi.CustomUiResult.PreventOpenSubGraph) == 0)
                 {
                     if (ImGui.IsWindowFocused() || ImGui.IsWindowHovered(ImGuiHoveredFlags.AllowWhenBlockedByPopup))
                     {
@@ -375,7 +376,7 @@ internal sealed class GraphNode
                 }
 
                 // Label
-                if (customUiResult == SymbolUi.Child.CustomUiResult.None
+                if (customUiResult == OpUi.CustomUiResult.None
                     && _selectableScreenRect.GetHeight() > 8)
                 {
                     drawList.PushClipRect(_usableScreenRect.Min, _usableScreenRect.Max, true);
@@ -434,7 +435,7 @@ internal sealed class GraphNode
             var connectedLines = _sorter.GetLinesToNodeInputSlot(childUi, inputDefinition.Id);
                 
             // Render input Label
-            if ((customUiResult & SymbolUi.Child.CustomUiResult.PreventInputLabels) == 0)
+            if ((customUiResult & OpUi.CustomUiResult.PreventInputLabels) == 0)
             {
                 var inputLabelOpacity = MathUtils.RemapAndClamp(_canvas.Scale.X,
                                                                 0.75f, 1.5f,
@@ -712,16 +713,16 @@ internal sealed class GraphNode
     }
 
         
-    // todo - move outta here
-    internal static SymbolUi.Child.CustomUiResult DrawCustomUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
-    {
-        var type = instance.Type;
-        var result = CustomChildUiRegistry.TryGetValue(type, out var drawFunction) 
-                         ? drawFunction(instance, drawList, selectableScreenRect, canvasScale) 
-                         : SymbolUi.Child.CustomUiResult.None;
-            
-        return result;
-    }
+    // // todo - move outta here
+    // internal static SymbolUi.Child.CustomUiResult DrawCustomUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+    // {
+    //     var type = instance.Type;
+    //     // var result = CustomChildUiRegistry.TryGetValue(instance.Symbol.Id, out var drawFunction) 
+    //     //                  ? drawFunction(instance, drawList, selectableScreenRect, canvasScale) 
+    //     //                  : SymbolUi.Child.CustomUiResult.None;
+    //         
+    //     return result;
+    // }
 
     private void DrawIndicator(ImDrawListPtr drawList, Color color, float opacity, ref int indicatorCount)
     {

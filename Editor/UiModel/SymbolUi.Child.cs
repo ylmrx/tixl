@@ -88,23 +88,6 @@ public partial class SymbolUi
             _parentSymbolPackage = parentSymbolPackage;
         }
 
-
-
-        /// <summary>
-        /// 
-        /// </summary>
-        [Flags]
-        public enum CustomUiResult
-        {
-            None = 0,
-            Rendered = 1 << 2,
-            IsActive = 1 << 3,
-            PreventTooltip = 1 << 4,
-            PreventOpenSubGraph = 1 << 5,
-            PreventOpenParameterPopUp = 1 << 6,
-            PreventInputLabels = 1 << 7,
-        }
-
         internal Child Clone(SymbolUi parent, Symbol.Child symbolChild)
         {
             return new Child(symbolChild.Id, parent._id, (EditorSymbolPackage)parent.Symbol.SymbolPackage)

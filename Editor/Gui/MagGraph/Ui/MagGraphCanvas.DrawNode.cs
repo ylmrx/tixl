@@ -9,6 +9,7 @@ using T3.Core.Resource;
 using T3.Core.Utils;
 using T3.Editor.Gui.ChildUi;
 using T3.Editor.Gui.Graph;
+using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.MagGraph.Interaction;
 using T3.Editor.Gui.MagGraph.Model;
 using T3.Editor.Gui.MagGraph.States;
@@ -159,16 +160,16 @@ internal sealed partial class MagGraphCanvas
         
 
         // Custom Ui
-        SymbolUi.Child.CustomUiResult customUiResult = SymbolUi.Child.CustomUiResult.None;
+        OpUi.CustomUiResult customUiResult = OpUi.CustomUiResult.None;
         if (item.Variant == MagGraphItem.Variants.Operator)
         {
             var additionalRightPadding = item.Instance.Outputs.Count> 1 ? 6 * CanvasScale:0; 
-            customUiResult = DrawCustomUi(item.Instance, 
-                                          drawList, 
-                                          new ImRect(pMinVisible + Vector2.One, 
-                                                     pMaxVisible - Vector2.One - new Vector2(additionalRightPadding,0)), 
-                                          Vector2.One * CanvasScale);
-            if ((customUiResult & SymbolUi.Child.CustomUiResult.IsActive) != 0)
+            customUiResult = OpUi.DrawCustomUi(item.Instance, 
+                                             drawList, 
+                                             new ImRect(pMinVisible + Vector2.One, 
+                                                        pMaxVisible - Vector2.One - new Vector2(additionalRightPadding,0)), 
+                                             Vector2.One * CanvasScale);
+            if ((customUiResult & OpUi.CustomUiResult.IsActive) != 0)
             {
                 context.ItemWithActiveCustomUi = item;
             }
@@ -183,10 +184,10 @@ internal sealed partial class MagGraphCanvas
 
         if (_context.StateMachine.CurrentState == GraphStates.Default
             && isItemHovered
-            && (customUiResult & SymbolUi.Child.CustomUiResult.IsActive) == 0)
+            && (customUiResult & OpUi.CustomUiResult.IsActive) == 0)
             _context.ActiveItem = item;
 
-        if ((customUiResult & SymbolUi.Child.CustomUiResult.IsActive) != 0)
+        if ((customUiResult & OpUi.CustomUiResult.IsActive) != 0)
         {
             //context.StateMachine.SetState(GraphStates.Default, context);
         }
@@ -207,7 +208,7 @@ internal sealed partial class MagGraphCanvas
         //     item.Select(_nodeSelection);
         // }
 
-        if (customUiResult == SymbolUi.Child.CustomUiResult.None && CanvasScale > 0.2f)
+        if (customUiResult == OpUi.CustomUiResult.None && CanvasScale > 0.2f)
         {
             // Draw Texture thumbnail
             var hasPreview = TryDrawTexturePreview(item, pMinVisible, pMaxVisible, drawList, typeColor);
@@ -374,7 +375,7 @@ internal sealed partial class MagGraphCanvas
         if (CanvasScale > 0.25f)
         {
             // Input labels...
-            if ((customUiResult & SymbolUi.Child.CustomUiResult.PreventInputLabels) == 0)
+            if ((customUiResult & OpUi.CustomUiResult.PreventInputLabels) == 0)
             {
                 int inputIndex;
                 var itemWidth = pMax.X - pMin.X;
@@ -575,7 +576,7 @@ internal sealed partial class MagGraphCanvas
         }
 
         // Hide additional UI elements when custom ui-op is hovered with control
-        if (isItemHovered && ImGui.GetIO().KeyCtrl && customUiResult != SymbolUi.Child.CustomUiResult.None || context.ItemWithActiveCustomUi != null)
+        if (isItemHovered && ImGui.GetIO().KeyCtrl && customUiResult != OpUi.CustomUiResult.None || context.ItemWithActiveCustomUi != null)
         {
             return;
         }
@@ -1129,22 +1130,7 @@ internal sealed partial class MagGraphCanvas
                          UiColors.WindowBackground.Fade(0.4f * opacity));
         indicatorCount++;
     }
-
-    // todo - move outta here
-    private static SymbolUi.Child.CustomUiResult DrawCustomUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
-    {
-        var type = instance.Type;
-
-        if (!CustomChildUiRegistry.TryGetValue(type, out var drawFunction))
-            return SymbolUi.Child.CustomUiResult.None;
-
-        // Unfortunately we have to test if symbolChild of instance is still valid.
-        // This might not be the case for operators like undo/redo.
-        if (instance.Parent != null && instance.Parent.Children.TryGetChildInstance(instance.SymbolChildId, out _))
-            return drawFunction(instance, drawList, selectableScreenRect, canvasScale);
-
-        return SymbolUi.Child.CustomUiResult.None;
-    }
+    
 
     private bool TryDrawTexturePreview(MagGraphItem item, Vector2 itemMin, Vector2 itemMax, ImDrawListPtr drawList, Color typeColor)
     {

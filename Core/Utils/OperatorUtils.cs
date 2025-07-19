@@ -1,14 +1,15 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using T3.Core.Operator;
 
 namespace T3.Core.Utils;
 
 public static class OperatorUtils
 {
-
-    public static long ComputeInstanceHash(IReadOnlyList<Guid> idPath)
+    
+    
+    internal static long ComputeInstanceHash(IReadOnlyList<Guid> idPath)
     {
         unchecked
         {
@@ -27,4 +28,6 @@ public static class OperatorUtils
             return (long)hash;
         }
     }
+
+
 }

@@ -6,7 +6,7 @@ using T3.Core.Operator.Slots;
 
 namespace T3.Core.Utils;
 
-// Todo: this probably deserves a better name
+// Todo: this class needs to be cleaned up!
 public static class Utilities
 {
     // This has been implemented by the C# compiler and is unnecessary. i.e. (a,b) = (b,a), (a, b) = kvp

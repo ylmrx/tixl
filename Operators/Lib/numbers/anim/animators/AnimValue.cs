@@ -18,8 +18,9 @@ public sealed class AnimValue : Instance<AnimValue>
         WasHit.UpdateAction += Update;
     }
 
+    
     public double _normalizedTime; // only public for Ui
-    public AnimMath.Shapes _shape; // only public for Ui 
+    private AnimMath.Shapes _shape; // only public for Ui 
 
     private void Update(EvaluationContext context)
     {

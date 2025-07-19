@@ -2,6 +2,7 @@
 using ImGuiNET;
 using T3.Core.Operator;
 using T3.Core.Utils;
+using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows;
@@ -16,7 +17,7 @@ namespace T3.Editor.Gui.Graph;
 
 internal static class ParameterPopUp
 {
-    public static void HandleOpenParameterPopUp(SymbolUi.Child childUi, Instance instance, SymbolUi.Child.CustomUiResult customUiResult, ImRect nodeScreenRect)
+    public static void HandleOpenParameterPopUp(SymbolUi.Child childUi, Instance instance, OpUi.CustomUiResult customUiResult, ImRect nodeScreenRect)
     {
         var activatedWithLeftMouse = ImGui.IsItemHovered()
                                      && ImGui.IsMouseReleased(ImGuiMouseButton.Left)
@@ -32,7 +33,7 @@ internal static class ParameterPopUp
                                   && !ParameterWindow.IsAnyInstanceVisible();
 
         if ((activatedWithLeftMouse || activatedWithMiddleMouse || activationRequested)
-            && (customUiResult & SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp) == 0
+            && (customUiResult & OpUi.CustomUiResult.PreventOpenParameterPopUp) == 0
            )
         {
             Open(instance);
