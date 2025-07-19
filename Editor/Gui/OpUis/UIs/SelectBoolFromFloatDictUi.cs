@@ -6,7 +6,7 @@ using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
 
-namespace T3.Editor.Gui.ChildUi;
+namespace T3.Editor.Gui.OpUis;
 
 public static class SelectBoolFromFloatDictUi
 {

@@ -3,7 +3,7 @@ using T3.Core.Utils;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
-namespace T3.Editor.Gui.ChildUi.WidgetUi;
+namespace T3.Editor.Gui.OpUis.OpUiHelpers;
 
 public static class MicroGraph
 {

@@ -5,7 +5,7 @@ using ImGuiNET;
 using libEditor.CustomUi;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
-using T3.Editor.Gui.ChildUi;
+using T3.Editor.Gui.OpUis;
 using T3.Editor.Gui.Graph.CustomUi.UIs;
 using T3.Editor.Gui.UiHelpers;
 

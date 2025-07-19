@@ -7,7 +7,7 @@ using T3.Core.Operator.Interfaces;
 using T3.Core.Operator.Slots;
 using T3.Core.Resource;
 using T3.Core.Utils;
-using T3.Editor.Gui.ChildUi;
+using T3.Editor.Gui.OpUis;
 using T3.Editor.Gui.Graph;
 using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.MagGraph.Interaction;

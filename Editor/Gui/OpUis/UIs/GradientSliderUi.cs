@@ -4,7 +4,7 @@ using ImGuiNET;
 using T3.Core.Logging;
 using T3.Core.Operator;
 using T3.Core.Utils;
-using T3.Editor.Gui.ChildUi.WidgetUi;
+using T3.Editor.Gui.OpUis.OpUiHelpers;
 using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;

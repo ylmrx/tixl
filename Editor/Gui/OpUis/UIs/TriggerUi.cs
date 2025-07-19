@@ -5,7 +5,7 @@ using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Core.Utils;
-using T3.Editor.Gui.ChildUi.WidgetUi;
+using T3.Editor.Gui.OpUis.OpUiHelpers;
 using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;

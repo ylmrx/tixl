@@ -12,7 +12,7 @@ using T3.Core.UserData;
 using T3.Core.Utils;
 using T3.Editor.Compilation;
 using T3.Editor.External;
-using T3.Editor.Gui.ChildUi;
+using T3.Editor.Gui.OpUis;
 
 namespace T3.Editor.UiModel;
 
