@@ -1,16 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
-using T3.Editor.UiModel.InputsAndTypes;
 
-
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 internal static class StringUi
 {
@@ -29,13 +21,13 @@ internal static class StringUi
     ///
     /// Using an invisibleButton interfered with the drag interaction of the node.
     /// </remarks>
-    internal static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    internal static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (!(instance is String stringInstance))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         if (stringInstance.InputString.HasInputConnections)
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
         var usableArea = screenRect;
@@ -94,7 +86,7 @@ internal static class StringUi
 
         ImGui.PopFont();
         ImGui.PopID();
-        return SymbolUi.Child.CustomUiResult.Rendered | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph | SymbolUi.Child.CustomUiResult.PreventTooltip | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+        return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventOpenSubGraph | OpUi.CustomUiResult.PreventTooltip | OpUi.CustomUiResult.PreventOpenParameterPopUp;
     }
 
     private static Guid _focusedInstanceId;

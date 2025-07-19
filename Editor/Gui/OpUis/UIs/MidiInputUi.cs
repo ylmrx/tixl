@@ -1,15 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-using T3.Core.Animation;
-using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class MidiInputUi
 {
@@ -18,11 +11,11 @@ public static class MidiInputUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (!(instance is MidiInput midiInput)
             || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
 
 
@@ -95,9 +88,9 @@ public static class MidiInputUi
 
         ImGui.PopFont();
 
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventTooltip;
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventTooltip;
     }*/
 }

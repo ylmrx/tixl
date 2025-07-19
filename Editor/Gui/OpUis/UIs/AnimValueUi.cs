@@ -4,18 +4,16 @@ using ImGuiNET;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
-namespace T3.Editor.Gui.Graph.CustomUi.UIs;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 // ReSharper disable once UnusedType.Global
-internal abstract class AnimValueUi 
+internal static class AnimValueUi 
 {
-    //private static readonly Guid _symbolId = OpUi.RegisterUi(new Guid("ea7b8491-2f8e-4add-b0b1-fd068ccfed0d"), DrawChildUi);
-
-    private sealed class ParamSet : CustomUiParamSet
+    internal sealed class ParamSet : CustomUiParamSet
     {
         internal ParamSet(Instance instance)
         {
@@ -50,26 +48,24 @@ internal abstract class AnimValueUi
         internal readonly InputSlot<float> Ratio;
     }
     
-
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, 
+                                                  ImDrawListPtr drawList, 
+                                                  ImRect screenRect, 
+                                                  Vector2 canvasScale,
+                                                  ref CustomUiParamSet? data1)
     {
-        // if (instance.Symbol.Id != _symbolId
-        //     || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-        // {
-        //     return OpUi.CustomUiResult.None;
-        // }
-
-        // Should be cached later...
-        var pars = new ParamSet(instance);
-        if (!pars.IsValid)
+        data1 ??= new ParamSet(instance);
+        var data = (ParamSet)data1;
+        
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var isNodeActivated = false;
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
-        if (WidgetElements.DrawRateLabelWithTitle(pars.Rate,
+        if (WidgetElements.DrawRateLabelWithTitle(data.Rate,
                                                   screenRect,
                                                   drawList,
-                                                  "Anim " + (AnimMath.Shapes)pars.Shape.TypedInputValue.Value, canvasScale))
+                                                  "Anim " + (AnimMath.Shapes)data.Shape.TypedInputValue.Value, canvasScale))
         {
             isNodeActivated = true;
             // animValue.Rate.Input.IsDefault = false;
@@ -89,8 +85,8 @@ internal abstract class AnimValueUi
 
         if (h > 14 * T3Ui.UiScaleFactor)
         {
-            isNodeActivated |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 0), pars.Amplitude);
-            isNodeActivated |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 1), pars.Offset);
+            isNodeActivated |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 0), data.Amplitude);
+            isNodeActivated |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 1), data.Offset);
         }
 
         var isGraphActive = false;
@@ -119,22 +115,22 @@ internal abstract class AnimValueUi
             if (ImGui.IsItemActivated())
             {
                 //_dragStartPosition = ImGui.GetMousePos();
-                _dragStartBias = pars.Bias.TypedInputValue.Value;
-                _dragStartRatio = pars.Ratio.TypedInputValue.Value;
+                _dragStartBias = data.Bias.TypedInputValue.Value;
+                _dragStartRatio = data.Ratio.TypedInputValue.Value;
             }
 
             if (Math.Abs(dragDelta.X) > 0.5f)
             {
-                pars.Ratio.TypedInputValue.Value = (_dragStartRatio + dragDelta.X / 100f).Clamp(0.001f, 1f);
-                pars.Ratio.DirtyFlag.Invalidate();
-                pars.Ratio.Input.IsDefault = false;
+                data.Ratio.TypedInputValue.Value = (_dragStartRatio + dragDelta.X / 100f).Clamp(0.001f, 1f);
+                data.Ratio.DirtyFlag.Invalidate();
+                data.Ratio.Input.IsDefault = false;
             }
 
             if (Math.Abs(dragDelta.Y) > 0.5f)
             {
-                pars.Bias.TypedInputValue.Value = (_dragStartBias - dragDelta.Y / 100f).Clamp(0.01f, 0.99f);
-                pars.Bias.DirtyFlag.Invalidate();
-                pars.Bias.Input.IsDefault = false;
+                data.Bias.TypedInputValue.Value = (_dragStartBias - dragDelta.Y / 100f).Clamp(0.01f, 0.99f);
+                data.Bias.DirtyFlag.Invalidate();
+                data.Bias.Input.IsDefault = false;
             }
         }
 
@@ -143,9 +139,9 @@ internal abstract class AnimValueUi
             var graphWidth = graphRect.GetWidth();
             var h1 = graphRect.GetHeight();
 
-            var shapeIndex = pars.Shape.HasInputConnections // Todo check for animated 
-                                 ? pars.Shape.Value
-                                 : pars.Shape.TypedInputValue.Value;
+            var shapeIndex = data.Shape.HasInputConnections // Todo check for animated 
+                                 ? data.Shape.Value
+                                 : data.Shape.TypedInputValue.Value;
 
             var shape1 = (AnimMath.Shapes)shapeIndex.Clamp(0, Enum.GetNames(typeof(AnimMath.Shapes)).Length);
 
@@ -166,7 +162,7 @@ internal abstract class AnimValueUi
 
                 // Fragment line 
                 var cycleWidth = graphWidth * (1 - relativeX);
-                var normalizedTime = pars.NormalizedTime;
+                var normalizedTime = data.NormalizedTime;
                 var dx = new Vector2(MathUtils.Fmod((float)normalizedTime, 1f) * cycleWidth - 1, 0);
 
                 drawList.AddRectFilled(lv1 + dx, lv2 + dx, UiColors.WidgetActiveLine);
@@ -187,8 +183,8 @@ internal abstract class AnimValueUi
                     var v = AnimMath.CalcValueForNormalizedTime(shape1,
                                                                 fragment,
                                                                 0,
-                                                                pars.Bias.TypedInputValue.Value,
-                                                                pars.Ratio.TypedInputValue.Value).Clamp(-1, 1);
+                                                                data.Bias.TypedInputValue.Value,
+                                                                data.Ratio.TypedInputValue.Value).Clamp(-1, 1);
                     var vv = (0.5f - v / 2) * h1;
 
                     _graphLinePoints[i] = new Vector2(f * graphWidth,

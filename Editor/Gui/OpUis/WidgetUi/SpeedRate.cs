@@ -1,4 +1,4 @@
-﻿namespace T3.Editor.Gui.OpUis.OpUiHelpers;
+﻿namespace T3.Editor.Gui.OpUis.WidgetUi;
 
 public struct SpeedRate
 {

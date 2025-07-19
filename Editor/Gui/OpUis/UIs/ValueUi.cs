@@ -1,17 +1,9 @@
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Operator.Slots;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Interaction;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
-
 using Vector2 = System.Numerics.Vector2;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class ValueUi
 {
@@ -20,10 +12,10 @@ public static class ValueUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
     {
         if (!(instance is Value valueInstance))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(area, drawList, canvasScale);
         area.Min.X += dragWidth;
@@ -106,11 +98,11 @@ public static class ValueUi
         }
 
         drawList.PopClipRect();
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | (isActive  ? SymbolUi.Child.CustomUiResult.IsActive : SymbolUi.Child.CustomUiResult.None);
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventTooltip
+               | (isActive  ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     private static Vector2 _jogDialCenter;

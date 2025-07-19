@@ -1,45 +1,70 @@
-using System.Numerics;
+using System.Reflection;
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class Jitter2dUi
+internal static class Jitter2dUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class ParamSet : CustomUiParamSet
     {
-        return OpUi.CustomUiResult.None;
-    }
-/*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
-    {
-        if (!(instance is _Jitter2d jitter2d)
-            ||!ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-
-            return SymbolUi.Child.CustomUiResult.None;
-
-        if (WidgetElements.DrawRateLabelWithTitle(jitter2d.Rate, screenRect, drawList, nameof(jitter2d), canvasScale))
+        internal ParamSet(Instance instance)
         {
-            jitter2d.Rate.Input.IsDefault = false;
-            jitter2d.Rate.DirtyFlag.Invalidate();
-        }
-        var label = $"±{jitter2d.JumpDistance.TypedInputValue.Value:0.0}";
+            if (OpUi.TryGetInput(instance, new Guid("1DF95BEB-DA6D-4263-8273-7A180FD190F5"), out Rate) &&
+                OpUi.TryGetInput(instance, new Guid("F101AF0C-DE31-4AFB-ACB4-8166C62C2EC8"), out JumpDistance) &&
+                OpUi.TryGetInput(instance, new Guid("38086D8A-15E0-4F3E-B161-A46A79FC5CC3"), out Blending) &&
+                OpUi.TryGetProperty(instance, "Fragment", out _fragmentProp)
+               )
+            {
+                IsValid = true;
+            }
 
-        if (MicroGraph.Draw(ref jitter2d.JumpDistance.TypedInputValue.Value,
-                            ref jitter2d.Blending.TypedInputValue.Value,
-                            jitter2d.Fragment,
+            _instance = instance;
+        }
+
+        private readonly PropertyInfo _fragmentProp;
+        private readonly Instance _instance;
+        internal float Fragment => (float)(_fragmentProp?.GetValue(_instance) ?? 0);
+
+        internal readonly InputSlot<float> Rate;
+        internal readonly InputSlot<float> JumpDistance;
+        internal readonly InputSlot<float> Blending;
+    }
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref CustomUiParamSet data1)
+    {
+        data1 ??= new ParamSet(instance);
+        var data = (ParamSet)data1;
+
+        if (!data.IsValid)
+            return OpUi.CustomUiResult.None;
+
+        if (WidgetElements.DrawRateLabelWithTitle(data.Rate, screenRect, drawList, "Jitter2D", canvasScale))
+        {
+            data.Rate.Input.IsDefault = false;
+            data.Rate.DirtyFlag.Invalidate();
+        }
+
+        var label = $"±{data.JumpDistance.TypedInputValue.Value:0.0}";
+
+        if (MicroGraph.Draw(ref data.JumpDistance.TypedInputValue.Value,
+                            ref data.Blending.TypedInputValue.Value,
+                            data.Fragment,
                             screenRect, drawList, label))
         {
-            jitter2d.Blending.Input.IsDefault = false;
-            jitter2d.Blending.DirtyFlag.Invalidate();
-            jitter2d.JumpDistance.Input.IsDefault = false;
-            jitter2d.JumpDistance.DirtyFlag.Invalidate();
+            data.Blending.Input.IsDefault = false;
+            data.Blending.DirtyFlag.Invalidate();
+            data.JumpDistance.Input.IsDefault = false;
+            data.JumpDistance.DirtyFlag.Invalidate();
         }
-        return SymbolUi.Child.CustomUiResult.Rendered  | SymbolUi.Child.CustomUiResult.PreventInputLabels;
-    }*/
+
+        return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventInputLabels;
+    }
 }

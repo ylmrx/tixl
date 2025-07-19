@@ -1,12 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace T3.Editor.Gui.OpUis;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class SelectBoolFromFloatDictUi
 {
@@ -14,7 +10,7 @@ public static class SelectBoolFromFloatDictUi
     {
         // TODO: @pixtur fix this
         // if (instance1 is not SelectBoolFromFloatDict instance)
-        //     return SymbolUi.Child.CustomUiResult.PreventOpenSubGraph;
+        //     return OpUi.CustomUiResult.PreventOpenSubGraph;
         //
         // var symbolChild = instance.Parent.Symbol.Children[instance.SymbolChildId];
         // drawList.PushClipRect(area.Min, area.Max, true);

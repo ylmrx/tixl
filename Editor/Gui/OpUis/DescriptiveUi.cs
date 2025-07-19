@@ -3,17 +3,16 @@ using ImGuiNET;
 using T3.Core.Operator;
 using T3.Core.Operator.Interfaces;
 using T3.Core.Utils;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
 
 namespace T3.Editor.Gui.OpUis;
 
-public static class DescriptiveUi
+internal static class DescriptiveUi
 {
     internal static readonly DrawChildUiDelegate DrawChildUiDelegate = DrawChildUi;
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale, ref CustomUiParamSet data1)
     {
         if(instance is not IDescriptiveFilename descriptiveGraphNode)
             return OpUi.CustomUiResult.None;

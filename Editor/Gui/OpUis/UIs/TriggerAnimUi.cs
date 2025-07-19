@@ -1,15 +1,8 @@
-﻿using System.Numerics;
-using ImGuiNET;
-
+﻿using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class TriggerAnimUi
 {
@@ -18,11 +11,11 @@ public static class TriggerAnimUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (!(instance is TriggerAnim anim)
             || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
         // if (RateEditLabel.Draw(ref triggerAnimation.Rate.TypedInputValue.Value,
@@ -39,7 +32,7 @@ public static class TriggerAnimUi
 
         if (h < 10)
         {
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
         }
 
 
@@ -142,11 +135,11 @@ public static class TriggerAnimUi
         }
         drawList.PopClipRect();
         ImGui.PopID();
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | (isEditActive ? SymbolUi.Child.CustomUiResult.IsActive : SymbolUi.Child.CustomUiResult.None);
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventTooltip
+               | (isEditActive ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     private static float _dragStartBias;

@@ -1,15 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 internal static class BooleanUi
 {
@@ -18,14 +11,14 @@ internal static class BooleanUi
             return OpUi.CustomUiResult.None;
         }
 /*        
-    internal static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    internal static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         
         if (instance is not Boolean boolean)
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         if (!ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
         var colorAsVec4 = boolean.ColorInGraph.TypedInputValue.Value;
@@ -95,11 +88,11 @@ internal static class BooleanUi
 
         ImGui.PopClipRect();
         ImGui.PopID();
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels;
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventTooltip
+               | OpUi.CustomUiResult.PreventOpenParameterPopUp
+               | OpUi.CustomUiResult.PreventInputLabels;
     }
 
     /// <summary>

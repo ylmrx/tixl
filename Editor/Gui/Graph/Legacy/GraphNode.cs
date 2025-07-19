@@ -9,7 +9,6 @@ using T3.Core.Operator.Slots;
 using T3.Core.Resource;
 using T3.Core.Utils;
 using T3.Editor.Gui.OpUis;
-using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.Graph.Dialogs;
 using T3.Editor.Gui.Graph.Interaction;
 using T3.Editor.Gui.Graph.Legacy.Interaction;
@@ -714,12 +713,12 @@ internal sealed class GraphNode
 
         
     // // todo - move outta here
-    // internal static SymbolUi.Child.CustomUiResult DrawCustomUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+    // internal static OpUi.CustomUiResult DrawCustomUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
     // {
     //     var type = instance.Type;
     //     // var result = CustomChildUiRegistry.TryGetValue(instance.Symbol.Id, out var drawFunction) 
     //     //                  ? drawFunction(instance, drawList, selectableScreenRect, canvasScale) 
-    //     //                  : SymbolUi.Child.CustomUiResult.None;
+    //     //                  : OpUi.CustomUiResult.None;
     //         
     //     return result;
     // }

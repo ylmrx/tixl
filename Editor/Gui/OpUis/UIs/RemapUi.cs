@@ -1,15 +1,9 @@
 using ImGuiNET;
-
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 using Vector2 = System.Numerics.Vector2;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class RemapUi
 {
@@ -20,11 +14,11 @@ public static class RemapUi
 /*
     private const float GraphRangePadding = 0.06f;
 
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (instance is not Remap remap
             || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         screenRect.Expand(-2);
         var biasGraphRect = screenRect;
@@ -139,11 +133,11 @@ public static class RemapUi
         isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 0), remap.RangeOutMax);
         isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 1), remap.RangeOutMin);
 
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | (isActive ? SymbolUi.Child.CustomUiResult.IsActive : SymbolUi.Child.CustomUiResult.None);
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventTooltip
+               | (isActive ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     private static Vector2 _biasAndGainStart = Vector2.One;

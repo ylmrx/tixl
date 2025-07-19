@@ -1,14 +1,9 @@
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
-
 using Vector2 = System.Numerics.Vector2;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class DataListUi
 {
@@ -17,7 +12,7 @@ public static class DataListUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
     {
         if (!(instance is DataList dataList)
             || !ImGui.IsRectVisible(selectableScreenRect.Min, selectableScreenRect.Max))
@@ -49,10 +44,10 @@ public static class DataListUi
         return DefaultResult;
     }
         
-    private const SymbolUi.Child.CustomUiResult  DefaultResult =             SymbolUi.Child.CustomUiResult.Rendered
-                                                                             | SymbolUi.Child.CustomUiResult.PreventTooltip
-                                                                             | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-                                                                             | SymbolUi.Child.CustomUiResult.PreventInputLabels
-                                                                             | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+    private const OpUi.CustomUiResult  DefaultResult =             OpUi.CustomUiResult.Rendered
+                                                                             | OpUi.CustomUiResult.PreventTooltip
+                                                                             | OpUi.CustomUiResult.PreventOpenSubGraph
+                                                                             | OpUi.CustomUiResult.PreventInputLabels
+                                                                             | OpUi.CustomUiResult.PreventOpenParameterPopUp;
 */
 }

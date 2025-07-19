@@ -1,14 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class _JitterUi
 {
@@ -16,7 +10,7 @@ public static class _JitterUi
     {
         return OpUi.CustomUiResult.None;
         // if (!(instance is _Jitter jitter))
-        //     return SymbolUi.Child.CustomUiResult.None;
+        //     return OpUi.CustomUiResult.None;
         //     
         // if (WidgetElements.DrawRateLabelWithTitle(jitter.Rate, screenRect, drawList, nameof(jitter), canvasScale))
         // {
@@ -35,6 +29,6 @@ public static class _JitterUi
         //     jitter.JumpDistance.Input.IsDefault = false;
         //     jitter.JumpDistance.DirtyFlag.Invalidate();
         // }
-        // return SymbolUi.Child.CustomUiResult.Rendered | SymbolUi.Child.CustomUiResult.PreventInputLabels;
+        // return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventInputLabels;
     }
 }

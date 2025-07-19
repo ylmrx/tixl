@@ -1,14 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class SequenceAnimUi
 {
@@ -17,11 +11,11 @@ public static class SequenceAnimUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (!(instance is SequenceAnim sequenceAnim)
             || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
 
@@ -47,7 +41,7 @@ public static class SequenceAnimUi
         var w = screenRect.GetWidth();
         if (h < 10 || sequenceAnim.CurrentSequence == null || sequenceAnim.CurrentSequence.Count == 0)
         {
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
         }
 
 
@@ -121,11 +115,11 @@ public static class SequenceAnimUi
 
         drawList.PopClipRect();
         ImGui.PopID();
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | (isEditActive ? SymbolUi.Child.CustomUiResult.IsActive : SymbolUi.Child.CustomUiResult.None);
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventTooltip
+               | (isEditActive ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     // private static float _dragStartBias;

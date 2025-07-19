@@ -1,19 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.InputUi.CombinedInputs;
-using T3.Editor.Gui.Interaction;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
-using T3.Editor.UiModel.InputsAndTypes;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class SampleCurveUi
 {
@@ -22,10 +11,10 @@ public static class SampleCurveUi
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
     {
         if (!(instance is SampleCurve sampleCurve))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(selectableScreenRect, drawList, canvasScale);
         var innerRect = selectableScreenRect;
@@ -33,10 +22,10 @@ public static class SampleCurveUi
         innerRect.Min.Y += 1;
 
         if (innerRect.GetHeight() < 0)
-            return SymbolUi.Child.CustomUiResult.PreventTooltip
-                   | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-                   | SymbolUi.Child.CustomUiResult.PreventInputLabels
-                   | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+            return OpUi.CustomUiResult.PreventTooltip
+                   | OpUi.CustomUiResult.PreventOpenSubGraph
+                   | OpUi.CustomUiResult.PreventInputLabels
+                   | OpUi.CustomUiResult.PreventOpenParameterPopUp;
 
         var curve = (sampleCurve.Curve.HasInputConnections)
                         ? sampleCurve.Curve.Value
@@ -46,10 +35,10 @@ public static class SampleCurveUi
         if (curve == null)
         {
             //Log.Warning("Can't draw undefined gradient");
-            return SymbolUi.Child.CustomUiResult.PreventTooltip
-                   | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-                   | SymbolUi.Child.CustomUiResult.PreventInputLabels
-                   | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+            return OpUi.CustomUiResult.PreventTooltip
+                   | OpUi.CustomUiResult.PreventOpenSubGraph
+                   | OpUi.CustomUiResult.PreventInputLabels
+                   | OpUi.CustomUiResult.PreventOpenParameterPopUp;
         }
 
         ImGui.PushClipRect(innerRect.Min, innerRect.Max, true);
@@ -91,11 +80,11 @@ public static class SampleCurveUi
         ImGui.EndChild();
         ImGui.PopClipRect();
 
-        return SymbolUi.Child.CustomUiResult.Rendered
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+        return OpUi.CustomUiResult.Rendered
+               | OpUi.CustomUiResult.PreventTooltip
+               | OpUi.CustomUiResult.PreventOpenSubGraph
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventOpenParameterPopUp;
 
         void DrawSamplePointIndicator()
         {

@@ -1,15 +1,8 @@
-using System.Numerics;
 using ImGuiNET;
-
 using T3.Core.Operator;
-using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
-using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
 public static class AnimVec2Ui
 {
@@ -18,11 +11,11 @@ public static class AnimVec2Ui
         return OpUi.CustomUiResult.None;
     }
 /*
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
     {
         if (!(instance is AnimVec2 animVec2)
             || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
         var isNodeActivated = false;
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
@@ -92,11 +85,11 @@ public static class AnimVec2Ui
         DrawCurve(drawList, graphRect, animVec2, highlightEditable);
             
         ImGui.PopID();
-        return SymbolUi.Child.CustomUiResult.Rendered 
-               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph 
-               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-               | SymbolUi.Child.CustomUiResult.PreventTooltip
-               | (isNodeActivated ? SymbolUi.Child.CustomUiResult.IsActive : SymbolUi.Child.CustomUiResult.None);
+        return OpUi.CustomUiResult.Rendered 
+               | OpUi.CustomUiResult.PreventOpenSubGraph 
+               | OpUi.CustomUiResult.PreventInputLabels
+               | OpUi.CustomUiResult.PreventTooltip
+               | (isNodeActivated ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     private static void DrawCurve(ImDrawListPtr drawList, ImRect graphRect, AnimVec2 animValue, bool highlightEditable)

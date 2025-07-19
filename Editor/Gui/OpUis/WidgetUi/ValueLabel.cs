@@ -6,7 +6,7 @@ using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
-namespace T3.Editor.Gui.OpUis.OpUiHelpers;
+namespace T3.Editor.Gui.OpUis.WidgetUi;
 
 public static class ValueLabel
 {

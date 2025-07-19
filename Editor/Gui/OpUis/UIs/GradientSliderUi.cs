@@ -1,51 +1,69 @@
-using System.Numerics;
 using ImGuiNET;
-
-using T3.Core.Logging;
+using T3.Core.DataTypes;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
 using T3.Core.Utils;
-using T3.Editor.Gui.OpUis.OpUiHelpers;
-using T3.Editor.Gui.Graph.CustomUi;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
-using T3.Editor.UiModel;
 using T3.Editor.UiModel.Commands;
 using T3.Editor.UiModel.Commands.Graph;
 using T3.Editor.UiModel.InputsAndTypes;
 
-namespace libEditor.CustomUi;
+namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class GradientSliderUi
+internal static class GradientSliderUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class ParamSet : CustomUiParamSet
     {
-        return OpUi.CustomUiResult.None;
+        internal ParamSet(Instance instance)
+        {
+            if (OpUi.TryGetInput(instance, new Guid("a4527e01-f19a-4200-85e5-00144f3ce061"), out SamplePos) &&
+                OpUi.TryGetInput(instance, new Guid("EFF10FAD-CF95-4133-91DB-EFC41258CD1B"), out Gradient) &&
+                OpUi.TryGetOutput(instance, new Guid("9F3D0701-86E8-436E-8652-918BA23B2CEF"), out OutGradient) &&
+                OpUi.TryGetOutput(instance, new Guid("963611E7-F55E-4C94-96E6-34E195558A2B"), out OutColor))
+            {
+                IsValid = true;
+            }
+        }
+
+        internal readonly InputSlot<Gradient> Gradient;
+        internal readonly Slot<Vector4> OutColor;
+        internal readonly Slot<Gradient> OutGradient;
+
+        internal readonly InputSlot<float> SamplePos;
     }
-/*
+
     private static ChangeInputValueCommand _inputValueCommandInFlight;
     private static object _inputSlotForActiveCommand;
 
-    public static SymbolUi.Child.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref CustomUiParamSet data1)
     {
-        if (instance is not SampleGradient gradientInstance
-            || !ImGui.IsRectVisible(selectableScreenRect.Min, selectableScreenRect.Max))
-            return SymbolUi.Child.CustomUiResult.None;
+        data1 ??= new ParamSet(instance);
+        var data = (ParamSet)data1;
 
-        var gradient = gradientInstance.Gradient.HasInputConnections
-                           ? gradientInstance.Gradient.Value
-                           : gradientInstance.Gradient.TypedInputValue.Value;
+        if (!data.IsValid)
+            return OpUi.CustomUiResult.None;
+
+        var gradient = data.Gradient.HasInputConnections
+                           ? data.Gradient.Value
+                           : data.Gradient.TypedInputValue.Value;
 
         if (gradient == null || instance.Parent == null)
-            return SymbolUi.Child.CustomUiResult.None;
+            return OpUi.CustomUiResult.None;
 
-        var innerRect = selectableScreenRect;
+        var innerRect = screenRect;
 
-        var dragHandleWidth = WidgetElements.DrawOperatorDragHandle(selectableScreenRect, drawList, canvasScale);
+        var dragHandleWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
         innerRect.Min.X += dragHandleWidth;
 
-        var cloneIfModified = gradientInstance.Gradient.Input.IsDefault;
+        var cloneIfModified = data.Gradient.Input.IsDefault;
         var editState = GradientEditor.Draw(ref gradient, drawList, innerRect, cloneIfModified);
-        var inputSlot = gradientInstance.Gradient;
+        var inputSlot = data.Gradient;
 
         if (editState.HasFlag(InputEditStateFlags.Started))
         {
@@ -58,11 +76,11 @@ public static class GradientSliderUi
         {
             if (cloneIfModified)
             {
-                gradientInstance.Gradient.SetTypedInputValue(gradient);
+                data.Gradient.SetTypedInputValue(gradient);
             }
 
-            gradientInstance.Color.DirtyFlag.Invalidate();
-            gradientInstance.OutGradient.DirtyFlag.Invalidate();
+            data.OutColor.DirtyFlag.Invalidate();
+            data.OutGradient.DirtyFlag.Invalidate();
 
             if (_inputValueCommandInFlight == null || _inputSlotForActiveCommand != inputSlot)
             {
@@ -85,21 +103,20 @@ public static class GradientSliderUi
             _inputValueCommandInFlight = null;
         }
 
-        var x = gradientInstance.SamplePos.Value.Clamp(0, 1) * innerRect.GetWidth();
+        var x = data.SamplePos.Value.Clamp(0, 1) * innerRect.GetWidth();
         var pMin = new Vector2(innerRect.Min.X + x, innerRect.Min.Y);
         var pMax = new Vector2(innerRect.Min.X + x + 2, innerRect.Max.Y);
         drawList.AddRectFilled(pMin, pMax, UiColors.StatusAnimated);
 
-        const SymbolUi.Child.CustomUiResult defaultHandlingForInteractiveOps = SymbolUi.Child.CustomUiResult.Rendered
-                                                                               | SymbolUi.Child.CustomUiResult.PreventInputLabels
-                                                                               | SymbolUi.Child.CustomUiResult.PreventOpenSubGraph
-                                                                               | SymbolUi.Child.CustomUiResult.PreventTooltip
-                                                                               | SymbolUi.Child.CustomUiResult.PreventOpenParameterPopUp;
+        const OpUi.CustomUiResult defaultHandlingForInteractiveOps = OpUi.CustomUiResult.Rendered
+                                                                     | OpUi.CustomUiResult.PreventInputLabels
+                                                                     | OpUi.CustomUiResult.PreventOpenSubGraph
+                                                                     | OpUi.CustomUiResult.PreventTooltip
+                                                                     | OpUi.CustomUiResult.PreventOpenParameterPopUp;
 
         if (editState == InputEditStateFlags.Nothing)
             return defaultHandlingForInteractiveOps;
 
-        return defaultHandlingForInteractiveOps | SymbolUi.Child.CustomUiResult.IsActive;
+        return defaultHandlingForInteractiveOps | OpUi.CustomUiResult.IsActive;
     }
-    */
 }
