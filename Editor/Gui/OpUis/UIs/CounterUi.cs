@@ -9,40 +9,41 @@ namespace T3.Editor.Gui.OpUis.UIs;
 
 internal static class CounterUi
 {
-    private sealed class ParamSet : CustomUiParamSet
+    private sealed class Binding : OpUiBinding
     {
-        internal ParamSet(Instance instance)
+        internal Binding(Instance instance)
         {
-            if (OpUi.TryGetInput(instance, new Guid("286CBBFB-796D-499F-93D3-D467512110BE"), out Rate) &&
-                OpUi.TryGetInput(instance, new Guid("BCA3F7B2-A093-4CB3-89A5-0E2681760607"), out Increment) &&
-                OpUi.TryGetInput(instance, new Guid("B04D475B-A898-421B-BF26-AE5CF982A351"), out Blending) &&
-                OpUi.TryGetInput(instance, new Guid("73B493CB-91D1-4D4F-B9A8-005017ECAC8F"), out Modulo) &&
-                OpUi.TryGetProperty(instance, "Fragment", out _fragmentField))
-            {
-                IsValid = true;
-            }
-
+            IsValid = AutoBind(instance);
             _instance = instance;
         }
-
-        private readonly PropertyInfo _fragmentField;
+        
         private readonly Instance _instance;
+        
+        [BindProperty("Fragment")]
+        private readonly PropertyInfo _fragmentField = null!;
         internal float Fragment => (float)(_fragmentField?.GetValue(_instance) ?? 0);
 
-        internal readonly InputSlot<float> Rate;
-        internal readonly InputSlot<float> Increment;
-        internal readonly InputSlot<float> Blending;
-        internal readonly InputSlot<float> Modulo;
+        [BindInput("286CBBFB-796D-499F-93D3-D467512110BE")]
+        internal readonly InputSlot<float> Rate = null!;
+        
+        [BindInput("BCA3F7B2-A093-4CB3-89A5-0E2681760607")]
+        internal readonly InputSlot<float> Increment = null!;
+        
+        [BindInput("B04D475B-A898-421B-BF26-AE5CF982A351")]
+        internal readonly InputSlot<float> Blending = null!;
+        
+        [BindInput("73B493CB-91D1-4D4F-B9A8-005017ECAC8F")]
+        internal readonly InputSlot<float> Modulo = null!;
     }
 
     internal static OpUi.CustomUiResult DrawChildUi(Instance instance,
                                                     ImDrawListPtr drawList,
                                                     ImRect screenRect,
                                                     Vector2 canvasScale,
-                                                    ref CustomUiParamSet? data1)
+                                                    ref OpUiBinding data1)
     {
-        data1 ??= new ParamSet(instance);
-        var data = (ParamSet)data1;
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
 
         if (!data.IsValid)
             return OpUi.CustomUiResult.None;

@@ -12,7 +12,7 @@ namespace T3.Editor.Gui.OpUis;
 internal static class DescriptiveUi
 {
     internal static readonly DrawChildUiDelegate DrawChildUiDelegate = DrawChildUi;
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale, ref CustomUiParamSet data1)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale, ref OpUiBinding data1)
     {
         if(instance is not IDescriptiveFilename descriptiveGraphNode)
             return OpUi.CustomUiResult.None;

@@ -1,9 +1,6 @@
 ﻿#nullable enable
-using System.Diagnostics.CodeAnalysis;
-using System.Reflection;
 using ImGuiNET;
 using T3.Core.Operator;
-using T3.Core.Operator.Slots;
 using T3.Editor.Gui.OpUis.UIs;
 using T3.Editor.Gui.UiHelpers;
 
@@ -13,7 +10,7 @@ internal delegate OpUi.CustomUiResult DrawChildUiDelegate(Instance instance,
                                                           ImDrawListPtr drawList,
                                                           ImRect area,
                                                           Vector2 scale,
-                                                          ref CustomUiParamSet? data);
+                                                          ref OpUiBinding? data);
 
 /// <summary>
 /// CustomUi are interfaces rendered within the graph interface operators.
@@ -34,72 +31,10 @@ public static class OpUi
         if (instance.IsDisposed || instance.Parent == null || !instance.Parent.Children.TryGetChildInstance(instance.SymbolChildId, out _))
             return OpUi.CustomUiResult.None;
 
-        CustomUiParamSet? data = null;
+        OpUiBinding? data = null;
         return drawFunction(instance, drawList, selectableScreenRect, canvasScale, ref data);
     }
-
-    /// <summary>
-    /// Each custom op needs to collect the input slots for its parameters
-    /// </summary>
-    internal static bool TryGetInput<T>(Instance instance, Guid id, [NotNullWhen(true)] out InputSlot<T>? slot)
-    {
-        var someSlot = instance.Inputs.FirstOrDefault(i => i.Id == id);
-        if (someSlot is not InputSlot<T> matchingSlot)
-        {
-            Log.Warning($"Can't find input slot {id} in {instance} to draw custom ui");
-            slot = null;
-            return false;
-        }
-
-        slot = matchingSlot;
-        return true;
-    }
-
-    /// <summary>
-    /// Each custom op needs to collect the input slots for its parameters
-    /// </summary>
-    internal static bool TryGetOutput<T>(Instance instance, Guid id, [NotNullWhen(true)] out Slot<T>? slot)
-    {
-        var someSlot = instance.Outputs.FirstOrDefault(i => i.Id == id);
-        if (someSlot is not Slot<T> matchingSlot)
-        {
-            Log.Warning($"Can't find output slot {id} in {instance} to draw custom ui");
-            slot = null;
-            return false;
-        }
-
-        slot = matchingSlot;
-        return true;
-    }
-
-    /// <summary>
-    /// For certain edge-cases the opUi needs access to public field of the instance.
-    /// Referencing those by name is unfortunate but allows decoupling the type definition from the ui.
-    /// </summary>
-    internal static bool TryGetField(Instance instance, string name, [NotNullWhen(true)] out FieldInfo? fieldInfo)
-    {
-        fieldInfo = instance.GetType().GetField(name);
-        if (fieldInfo == null)
-        {
-            Log.Warning($"Can't find field '{name}' in {instance} to draw custom ui");
-        }
-        return fieldInfo != null;
-    }
-
-    /// <summary>
-    /// For certain edge-cases the opUi needs access to public field of the instance.
-    /// Referencing those by name is unfortunate but allows decoupling the type definition from the ui.
-    /// </summary>
-    internal static bool TryGetProperty(Instance instance, string name, [NotNullWhen(true)] out PropertyInfo? propInfo)
-    {
-        propInfo = instance.GetType().GetProperty(name);
-        if (propInfo == null)
-        {
-            Log.Warning($"Can't find property slot '{name}' in {instance} to draw custom ui");
-        }
-        return propInfo != null;
-    }
-
+    
     /// <summary>
     /// Results return when drawing custom UIs
     /// </summary>
@@ -152,12 +87,4 @@ public static class OpUi
                   // { Guid.Parse("96b1e8f3-0b42-4a01-b82b-44ccbd857400"), SelectVec2FromDictUi.DrawChildUi },
                   // { Guid.Parse("05295c65-7dfd-4570-866e-9b5c4e735569"), SelectBoolFromFloatDictUi.DrawChildUi },
               };
-}
-
-/// <summary>
-/// This abstract class will later allow caching of the parameter input references.
-/// </summary>
-internal abstract class CustomUiParamSet
-{
-    public bool IsValid;
 }

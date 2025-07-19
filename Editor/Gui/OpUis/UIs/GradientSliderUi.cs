@@ -14,24 +14,24 @@ namespace T3.Editor.Gui.OpUis.UIs;
 
 internal static class GradientSliderUi
 {
-    private sealed class ParamSet : CustomUiParamSet
+    private sealed class Binding : OpUiBinding
     {
-        internal ParamSet(Instance instance)
+        internal Binding(Instance instance)
         {
-            if (OpUi.TryGetInput(instance, new Guid("a4527e01-f19a-4200-85e5-00144f3ce061"), out SamplePos) &&
-                OpUi.TryGetInput(instance, new Guid("EFF10FAD-CF95-4133-91DB-EFC41258CD1B"), out Gradient) &&
-                OpUi.TryGetOutput(instance, new Guid("9F3D0701-86E8-436E-8652-918BA23B2CEF"), out OutGradient) &&
-                OpUi.TryGetOutput(instance, new Guid("963611E7-F55E-4C94-96E6-34E195558A2B"), out OutColor))
-            {
-                IsValid = true;
-            }
+            IsValid = AutoBind(instance);
         }
 
-        internal readonly InputSlot<Gradient> Gradient;
-        internal readonly Slot<Vector4> OutColor;
-        internal readonly Slot<Gradient> OutGradient;
+        [BindInput("EFF10FAD-CF95-4133-91DB-EFC41258CD1B")]
+        internal readonly InputSlot<Gradient> Gradient = null!;
 
-        internal readonly InputSlot<float> SamplePos;
+        [BindInput("a4527e01-f19a-4200-85e5-00144f3ce061")]
+        internal readonly InputSlot<float> SamplePos = null!;
+
+        [BindOutput("963611E7-F55E-4C94-96E6-34E195558A2B")]
+        internal readonly Slot<Vector4> OutColor = null!;
+
+        [BindOutput("9F3D0701-86E8-436E-8652-918BA23B2CEF")]
+        internal readonly Slot<Gradient> OutGradient = null!;
     }
 
     private static ChangeInputValueCommand _inputValueCommandInFlight;
@@ -41,10 +41,10 @@ internal static class GradientSliderUi
                                                   ImDrawListPtr drawList,
                                                   ImRect screenRect,
                                                   Vector2 canvasScale,
-                                                  ref CustomUiParamSet data1)
+                                                  ref OpUiBinding data1)
     {
-        data1 ??= new ParamSet(instance);
-        var data = (ParamSet)data1;
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
 
         if (!data.IsValid)
             return OpUi.CustomUiResult.None;

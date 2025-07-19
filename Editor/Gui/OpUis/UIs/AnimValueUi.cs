@@ -11,52 +11,66 @@ using T3.Editor.Gui.UiHelpers;
 namespace T3.Editor.Gui.OpUis.UIs;
 
 // ReSharper disable once UnusedType.Global
-internal static class AnimValueUi 
+internal static class AnimValueUi
 {
-    internal sealed class ParamSet : CustomUiParamSet
+    private sealed class Binding : OpUiBinding
     {
-        internal ParamSet(Instance instance)
+        internal Binding(Instance instance)
         {
-            if (OpUi.TryGetInput(instance, new Guid("48005727-0158-4795-ad70-8410c27fd01d"), out Rate!) &&
-                OpUi.TryGetInput(instance, new Guid("4cf5d20b-7335-4584-b246-c260ac5cdf4f"), out Shape!) &&
-                OpUi.TryGetInput(instance, new Guid("79917ef7-64ca-4825-9c6a-c9b2a7f6ff86"), out Amplitude!) &&
-                OpUi.TryGetInput(instance, new Guid("ddd93b06-118e-43e0-85f6-c150faf91d04"), out Offset!) &&
-                OpUi.TryGetInput(instance, new Guid("f12fee9a-dd91-40c2-9aa5-ea34804a858d"), out Bias!) &&
-                OpUi.TryGetInput(instance, new Guid("8327e7ec-4370-4a3e-bd69-db3f4aa4b1d7"), out Ratio!) &&
-                OpUi.TryGetField(instance, "_normalizedTime", out _normalizedTimeField))
-            {
-                IsValid = true;
-            }
-            else
-            {
-                Shape = null!;
-                Rate = Amplitude = Offset = Bias = Ratio = null!; // will never be used if !IsValid
-            }
-
+            IsValid = AutoBind(instance);
+            // if (OpUi.TryGetInput(instance, new Guid("48005727-0158-4795-ad70-8410c27fd01d"), out Rate!) &&
+            //     OpUi.TryGetInput(instance, new Guid("4cf5d20b-7335-4584-b246-c260ac5cdf4f"), out Shape!) &&
+            //     OpUi.TryGetInput(instance, new Guid("79917ef7-64ca-4825-9c6a-c9b2a7f6ff86"), out Amplitude!) &&
+            //     OpUi.TryGetInput(instance, new Guid("ddd93b06-118e-43e0-85f6-c150faf91d04"), out Offset!) &&
+            //     OpUi.TryGetInput(instance, new Guid("f12fee9a-dd91-40c2-9aa5-ea34804a858d"), out Bias!) &&
+            //     OpUi.TryGetInput(instance, new Guid("8327e7ec-4370-4a3e-bd69-db3f4aa4b1d7"), out Ratio!) &&
+            //     OpUi.TryGetField(instance, "_normalizedTime", out _normalizedTimeField))
+            // {
+            //     
+            // }
+            // else
+            // {
+            //     Shape = null!;
+            //     Rate = Amplitude = Offset = Bias = Ratio = null!; // will never be used if !IsValid
+            // }
             _instance = instance;
         }
 
-        private readonly FieldInfo? _normalizedTimeField;
         private readonly Instance _instance;
+
+        [BindField("_normalizedTime")]
+        private readonly FieldInfo? _normalizedTimeField = null!;
+
         internal double NormalizedTime => (double)(_normalizedTimeField?.GetValue(_instance) ?? 0);
 
-        internal readonly InputSlot<float> Rate;
-        internal readonly InputSlot<int> Shape;
-        internal readonly InputSlot<float> Amplitude;
-        internal readonly InputSlot<float> Offset;
-        internal readonly InputSlot<float> Bias;
-        internal readonly InputSlot<float> Ratio;
+        [BindInput("48005727-0158-4795-ad70-8410c27fd01d")]
+        internal readonly InputSlot<float> Rate = null!;
+
+        [BindInput("4cf5d20b-7335-4584-b246-c260ac5cdf4f")]
+        internal readonly InputSlot<int> Shape = null!;
+
+        [BindInput("79917ef7-64ca-4825-9c6a-c9b2a7f6ff86")]
+        internal readonly InputSlot<float> Amplitude = null!;
+
+        [BindInput("ddd93b06-118e-43e0-85f6-c150faf91d04")]
+        internal readonly InputSlot<float> Offset = null!;
+
+        [BindInput("f12fee9a-dd91-40c2-9aa5-ea34804a858d")]
+        internal readonly InputSlot<float> Bias = null!;
+
+        [BindInput("8327e7ec-4370-4a3e-bd69-db3f4aa4b1d7")]
+        internal readonly InputSlot<float> Ratio = null!;
     }
-    
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, 
-                                                  ImDrawListPtr drawList, 
-                                                  ImRect screenRect, 
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
                                                   Vector2 canvasScale,
-                                                  ref CustomUiParamSet? data1)
+                                                  ref OpUiBinding? data1)
     {
-        data1 ??= new ParamSet(instance);
-        var data = (ParamSet)data1;
-        
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
         if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
