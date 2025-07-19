@@ -1,29 +1,65 @@
+#nullable enable
+using System.Reflection;
 using ImGuiNET;
+using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Core.Utils;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class SequenceAnimUi
+internal static class SequenceAnimUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+            _instance = instance;
+        }
+
+        private readonly Instance _instance;
+
+        [BindField("CurrentSequence")]
+        private readonly FieldInfo? _currentSequenceField = null!;
+
+        internal List<float>? CurrentSequence => (List<float>?)_currentSequenceField?.GetValue(_instance);
+
+        [BindProperty("NormalizedBarTime")]
+        private readonly PropertyInfo? _normalizedBarTimeProp = null!;
+
+        internal float NormalizedBarTime => (float)(_normalizedBarTimeProp?.GetValue(_instance) ?? 0);
+
+        [BindProperty("IsRecording")]
+        private readonly PropertyInfo? _isRecordingProp = null!;
+
+        internal bool IsRecording => (bool)(_isRecordingProp?.GetValue(_instance) ?? false);
+
+        [BindInput("F0AE47AE-5849-4D81-BAE0-9B6EC44949EF")]
+        internal readonly InputSlot<float> Rate = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (!(instance is SequenceAnim sequenceAnim)
-            || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
 
-        // if (RateEditLabel.Draw(ref sequenceAnim.Rate.TypedInputValue.Value,
+        // if (RateEditLabel.Draw(ref data.Rate.TypedInputValue.Value,
         //                        screenRect, drawList, nameof(sequenceAnim) + " "))
         // {
-        //     sequenceAnim.Rate.Input.IsDefault = false;
-        //     sequenceAnim.Rate.DirtyFlag.Invalidate();
+        //     data.Rate.Input.IsDefault = false;
+        //     data.Rate.DirtyFlag.Invalidate();
         // }
 
         var isEditActive = false;
@@ -36,15 +72,12 @@ public static class SequenceAnimUi
         //speedRect.Max.X = speedRect.Min.X +  speedRect.GetWidth() * 0.2f;
         //ImGui.SetCursorScreenPos(speedRect.Min);
 
-
         var h = screenRect.GetHeight();
         var w = screenRect.GetWidth();
-        if (h < 10 || sequenceAnim.CurrentSequence == null || sequenceAnim.CurrentSequence.Count == 0)
+        if (h < 10 || data.CurrentSequence == null || data.CurrentSequence.Count == 0)
         {
             return OpUi.CustomUiResult.None;
         }
-
-
 
         if (editUnlocked)
         {
@@ -58,9 +91,6 @@ public static class SequenceAnimUi
             isEditActive = ImGui.IsItemActive();
         }
 
-
-
-
         drawList.PushClipRect(screenRect.Min, screenRect.Max, true);
 
         // Draw bins and window
@@ -68,26 +98,27 @@ public static class SequenceAnimUi
         var x = screenRect.Min.X;
         var bottom = screenRect.Max.Y;
 
-        var barCount = sequenceAnim.CurrentSequence.Count;
+        var barCount = data.CurrentSequence.Count;
         var barWidth = w / barCount;
         var xPeaks = screenRect.Min.X;
 
-        var currentIndex = (int)(sequenceAnim.NormalizedBarTime * barCount);
-
+        var currentIndex = (int)(data.NormalizedBarTime * barCount);
 
         ImGui.PushFont(Fonts.FontSmall);
         for (int barIndex = 0; barIndex < barCount; barIndex++)
         {
-            var pMin = new Vector2(x , screenRect.Min.Y);
+            var pMin = new Vector2(x, screenRect.Min.Y);
             var pMax = new Vector2(x + barWidth, bottom - 1);
 
             if (isEditActive && mousePos.X > pMin.X && mousePos.X < pMax.X)
             {
-                sequenceAnim.SetStepValue(barIndex, 1-((mousePos.Y +3 - screenRect.Min.Y) / (h-6)).Clamp(0, 1));
+                
+                // FIXME: needs to be implemented
+                //data.SetStepValue(barIndex, 1 - ((mousePos.Y + 3 - screenRect.Min.Y) / (h - 6)).Clamp(0, 1));
             }
 
             var highlightFactor = barIndex == currentIndex
-                                      ? 1-(sequenceAnim.NormalizedBarTime * barCount - barIndex).Clamp(0,1)
+                                      ? 1 - (data.NormalizedBarTime * barCount - barIndex).Clamp(0, 1)
                                       : 0;
 
             var barIntensity = barIndex % 4 == 0 ? 0.4f : 0.1f;
@@ -97,21 +128,22 @@ public static class SequenceAnimUi
                                    UiColors.WidgetBackgroundStrong.Fade(barIntensity)
                                   );
 
-            var peak= sequenceAnim.CurrentSequence[barIndex];
+            var peak = data.CurrentSequence[barIndex];
             drawList.AddRectFilled(new Vector2(x + 1, bottom - peak * h - 2),
-                                   new Vector2(x + barWidth, bottom-1),
-                                   Color.Mix(_inactiveColor, _highlightColor,highlightFactor));
+                                   new Vector2(x + barWidth, bottom - 1),
+                                   Color.Mix(_inactiveColor, _highlightColor, highlightFactor));
 
-            drawList.AddText(pMin + new Vector2(2,0), UiColors.WidgetBackgroundStrong.Fade(barIntensity), "" + (barIndex + 1));
+            drawList.AddText(pMin + new Vector2(2, 0), UiColors.WidgetBackgroundStrong.Fade(barIntensity), "" + (barIndex + 1));
             x += barWidth;
             xPeaks += barWidth;
         }
+
         ImGui.PopFont();
 
-        var min = screenRect.Min + new Vector2(sequenceAnim.NormalizedBarTime * w, 0);
+        var min = screenRect.Min + new Vector2(data.NormalizedBarTime * w, 0);
         drawList.AddRectFilled(min,
                                min + new Vector2(1, h),
-                               sequenceAnim.IsRecording ? UiColors.StatusAttention: UiColors.WidgetActiveLine);
+                               data.IsRecording ? UiColors.StatusAttention : UiColors.WidgetActiveLine);
 
         drawList.PopClipRect();
         ImGui.PopID();
@@ -130,5 +162,4 @@ public static class SequenceAnimUi
 
     //private static readonly Vector2[] GraphLinePoints = new Vector2[GraphListSteps];
     private const int GraphListSteps = 80;
-    */
 }
