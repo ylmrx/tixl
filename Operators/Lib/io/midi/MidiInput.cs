@@ -386,7 +386,7 @@ public sealed class MidiInput : Instance<MidiInput>, MidiConnectionManager.IMidi
         public MidiEventTypes EventType;
     }
 
-    public double LastMessageTime;
+    public double LastMessageTime; // used for OpUi
 
     private bool _printLogMessages;
     private bool _isDefaultValue = true;

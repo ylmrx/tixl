@@ -1,19 +1,57 @@
+using System.Reflection;
 using ImGuiNET;
+using T3.Core.DataTypes;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.InputUi.CombinedInputs;
+using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
+using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class SampleCurveUi
+internal static class SampleCurveUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+            _instance = instance;
+        }
+
+        private readonly Instance _instance;
+
+        [BindField("_normalizedTime")]
+        private readonly FieldInfo? _normalizedTimeField = null!;
+
+        internal double NormalizedTime => (double)(_normalizedTimeField?.GetValue(_instance) ?? 0);
+
+        [BindInput("108CB829-5F9E-4A45-BC6B-7CF40A0A0F89")]
+        internal readonly InputSlot<Curve> Curve = null!;
+
+        [BindInput("2c24d4fe-6c96-4502-bf76-dac756a16215")]
+        internal readonly InputSlot<float> U = null!;
+
+        [BindOutput("1A20C791-A1FE-4A14-A9CF-615691948F2D")]
+        internal readonly InputSlot<Curve> OutCurve = null!;
+
+        [BindOutput("fc51bee8-091c-4c66-a7df-12f6f69e3783")]
+        internal readonly InputSlot<float> Result = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect selectableScreenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (!(instance is SampleCurve sampleCurve))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(selectableScreenRect, drawList, canvasScale);
@@ -27,11 +65,11 @@ public static class SampleCurveUi
                    | OpUi.CustomUiResult.PreventInputLabels
                    | OpUi.CustomUiResult.PreventOpenParameterPopUp;
 
-        var curve = (sampleCurve.Curve.HasInputConnections)
-                        ? sampleCurve.Curve.Value
-                        :sampleCurve.Curve.TypedInputValue.Value;
+        var curve = (data.Curve.HasInputConnections)
+                        ? data.Curve.Value
+                        : data.Curve.TypedInputValue.Value;
 
-        //var curve = sampleCurve.Curve.Value;
+        //var curve = data.Curve.Value;
         if (curve == null)
         {
             //Log.Warning("Can't draw undefined gradient");
@@ -42,10 +80,10 @@ public static class SampleCurveUi
         }
 
         ImGui.PushClipRect(innerRect.Min, innerRect.Max, true);
-        ImGui.SetCursorScreenPos(innerRect.Min) ;
+        ImGui.SetCursorScreenPos(innerRect.Min);
         ImGui.BeginChild("curve" + instance.SymbolChildId.GetHashCode(), innerRect.GetSize(), false, ImGuiWindowFlags.NoScrollbar);
         {
-            var cloneIfModified = sampleCurve.Curve.Input.IsDefault;
+            var cloneIfModified = data.Curve.Input.IsDefault;
 
             var preventEditingUnlessCtrlPressed = ImGui.GetIO().KeyCtrl
                                                       ? T3Ui.EditingFlags.None
@@ -53,14 +91,15 @@ public static class SampleCurveUi
 
             var keepPositionForIcon = ImGui.GetCursorPos() + Vector2.One;
             var modified2 = CurveInputEditing.DrawCanvasForCurve(ref curve,
-                                                                 sampleCurve.Curve.Input,
+                                                                 data.Curve.Input,
                                                                  cloneIfModified,
                                                                  instance.Parent, T3Ui.EditingFlags.ExpandVertically
                                                                                   | preventEditingUnlessCtrlPressed
                                                                                   | T3Ui.EditingFlags.PreventZoomWithMouseWheel);
 
-            var showPopupIcon = innerRect.GetHeight()> ImGui.GetFrameHeight()* T3Ui.UiScaleFactor * 2;
-            if (showPopupIcon && CurveEditPopup.DrawPopupIndicator(instance.Parent, sampleCurve.Curve.Input, ref curve, keepPositionForIcon, cloneIfModified, out var popupResult))
+            var showPopupIcon = innerRect.GetHeight() > ImGui.GetFrameHeight() * T3Ui.UiScaleFactor * 2;
+            if (showPopupIcon &&
+                CurveEditPopup.DrawPopupIndicator(instance.Parent, data.Curve.Input, ref curve, keepPositionForIcon, cloneIfModified, out var popupResult))
             {
                 modified2 = popupResult;
             }
@@ -69,10 +108,11 @@ public static class SampleCurveUi
             {
                 if (cloneIfModified)
                 {
-                    sampleCurve.Curve.SetTypedInputValue(curve);
+                    data.Curve.SetTypedInputValue(curve);
                 }
-                sampleCurve.Result.DirtyFlag.Invalidate();
-                sampleCurve.CurveOutput.DirtyFlag.ForceInvalidate();
+
+                data.Result.DirtyFlag.Invalidate();
+                data.OutCurve.DirtyFlag.ForceInvalidate();
             }
 
             DrawSamplePointIndicator();
@@ -88,11 +128,11 @@ public static class SampleCurveUi
 
         void DrawSamplePointIndicator()
         {
-            ICanvas canvas = null;//CurveInputEditing.GetCanvasForCurve(curve);
+            ICanvas canvas = null; //CurveInputEditing.GetCanvasForCurve(curve);
             if (canvas == null)
                 return;
 
-            var x = canvas.TransformPosition(new Vector2(sampleCurve.U.Value, 0)).X;
+            var x = canvas.TransformPosition(new Vector2(data.U.Value, 0)).X;
             if (!(x >= innerRect.Min.X) || !(x < innerRect.Max.X))
                 return;
 
@@ -100,5 +140,5 @@ public static class SampleCurveUi
             var pMax = new Vector2(x + 1, innerRect.Max.Y);
             drawList.AddRectFilled(pMin, pMax, UiColors.StatusAnimated);
         }
-    }*/
+    }
 }

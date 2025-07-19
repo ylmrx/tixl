@@ -62,17 +62,17 @@ public static class OpUi
                   { Guid.Parse("23794a1f-372d-484b-ac31-9470d0e77819"), Jitter2dUi.DrawChildUi },
                   { Guid.Parse("ea7b8491-2f8e-4add-b0b1-fd068ccfed0d"), AnimValueUi.DrawChildUi },
 
-                  // { Guid.Parse("b724ea74-d5d7-4928-9cd1-7a7850e4e179"), SampleCurveUi.DrawChildUi },
+                  { Guid.Parse("b724ea74-d5d7-4928-9cd1-7a7850e4e179"), SampleCurveUi.DrawChildUi },
                   // { Guid.Parse("3b0eb327-6ad8-424f-bca7-ccbfa2c9a986"), _JitterUi.DrawChildUi },
-                  // { Guid.Parse("5880cbc3-a541-4484-a06a-0e6f77cdbe8e"), StringUi.DrawChildUi },
-                  // { Guid.Parse("5d7d61ae-0a41-4ffa-a51d-93bab665e7fe"), ValueUi.DrawChildUi },
+                  { Guid.Parse("5880cbc3-a541-4484-a06a-0e6f77cdbe8e"), StringUi.DrawChildUi },
+                  { Guid.Parse("5d7d61ae-0a41-4ffa-a51d-93bab665e7fe"), ValueUi.DrawChildUi },
                   // { Guid.Parse("cc07b314-4582-4c2c-84b8-bb32f59fc09b"), IntValueUi.DrawChildUi },
-                  // { Guid.Parse("f0acd1a4-7a98-43ab-a807-6d1bd3e92169"), RemapUi.DrawChildUi },
+                  { Guid.Parse("f0acd1a4-7a98-43ab-a807-6d1bd3e92169"), RemapUi.DrawChildUi },
                   // { Guid.Parse("af79ee8c-d08d-4dca-b478-b4542ed69ad8"), AnimVec2Ui.DrawChildUi },
                   // { Guid.Parse("7814fd81-b8d0-4edf-b828-5165f5657344"), AnimVec3Ui.DrawChildUi },
                   // { Guid.Parse("94a392e6-3e03-4ccf-a114-e6fafa263b4f"), SequenceAnimUi.DrawChildUi },
                   // { Guid.Parse("95d586a2-ee14-4ff5-a5bb-40c497efde95"), TriggerAnimUi.DrawChildUi },
-                  // { Guid.Parse("59a0458e-2f3a-4856-96cd-32936f783cc5"), MidiInputUi.DrawChildUi },
+                  { Guid.Parse("59a0458e-2f3a-4856-96cd-32936f783cc5"), MidiInputUi.DrawChildUi },
                   // { Guid.Parse("ed0f5188-8888-453e-8db4-20d87d18e9f4"), BooleanUi.DrawChildUi },
                   // { Guid.Parse("0bec016a-5e1b-467a-8273-368d4d6b9935"), TriggerUi.DrawChildUi },
                   //
@@ -80,7 +80,7 @@ public static class OpUi
                   // { Guid.Parse("e6072ecf-30d2-4c52-afa1-3b195d61617b"), GetFloatVarUi.DrawChildUi },
                   // { Guid.Parse("2a0c932a-eb81-4a7d-aeac-836a23b0b789"), SetFloatVarUi.DrawChildUi },
                   //
-                  // { Guid.Parse("03477b9a-860e-4887-81c3-5fe51621122c"), AudioReactionUi.DrawChildUi },
+                  { Guid.Parse("03477b9a-860e-4887-81c3-5fe51621122c"), AudioReactionUi.DrawChildUi },
                   // { Guid.Parse("000e08d0-669f-48df-9083-7aa0a43bbc05"), GpuMeasureUi.DrawChildUi },
                   // { Guid.Parse("bfe540ef-f8ad-45a2-b557-cd419d9c8e44"), DataListUi.DrawChildUi },
                   //

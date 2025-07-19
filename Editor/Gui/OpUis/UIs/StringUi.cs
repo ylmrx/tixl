@@ -1,16 +1,28 @@
+
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
+using T3.Editor.UiModel.InputsAndTypes;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
+// ReSharper disable once UnusedType.Global
 internal static class StringUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
+
+        [BindInput("ceeae47b-d792-471d-a825-49e22749b7b9")]
+        internal readonly InputSlot<string> InputString = null!;
     }
-/*
+
     /// <summary>
     /// Draws a custom ui that allows direct editing of strings within the graph
     /// </summary>
@@ -21,12 +33,16 @@ internal static class StringUi
     ///
     /// Using an invisibleButton interfered with the drag interaction of the node.
     /// </remarks>
-    internal static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding data1)
     {
-        if (!(instance is String stringInstance))
-            return OpUi.CustomUiResult.None;
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
 
-        if (stringInstance.InputString.HasInputConnections)
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
@@ -48,11 +64,11 @@ internal static class StringUi
             usableArea.Expand(-3);
             ImGui.SetKeyboardFocusHere();
             ImGui.SetCursorScreenPos(usableArea.Min);
-            if (ImGui.InputTextMultiline("##str", ref stringInstance.InputString.TypedInputValue.Value, 16368, usableArea.GetSize(),
+            if (ImGui.InputTextMultiline("##str", ref data.InputString.TypedInputValue.Value, 16368, usableArea.GetSize(),
                                          ImGuiInputTextFlags.None))
             {
-                stringInstance.InputString.Input.IsDefault = false;
-                stringInstance.InputString.DirtyFlag.Invalidate();
+                data.InputString.Input.IsDefault = false;
+                data.InputString.DirtyFlag.Invalidate();
             }
 
             var clickedOutside = ImGui.IsMouseReleased(ImGuiMouseButton.Left) && !usableArea.Contains(ImGui.GetMousePos());
@@ -74,7 +90,7 @@ internal static class StringUi
                 _focusedInstanceId = instance.SymbolChildId;
             }
 
-            var v = stringInstance.InputString.TypedInputValue.Value;
+            var v = data.InputString.TypedInputValue.Value;
             if (!string.IsNullOrEmpty(v))
             {
                 ImGui.PushClipRect(usableArea.Min, usableArea.Max, true);
@@ -86,9 +102,9 @@ internal static class StringUi
 
         ImGui.PopFont();
         ImGui.PopID();
-        return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventOpenSubGraph | OpUi.CustomUiResult.PreventTooltip | OpUi.CustomUiResult.PreventOpenParameterPopUp;
+        return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventOpenSubGraph | OpUi.CustomUiResult.PreventTooltip |
+               OpUi.CustomUiResult.PreventOpenParameterPopUp;
     }
 
     private static Guid _focusedInstanceId;
-    */
 }

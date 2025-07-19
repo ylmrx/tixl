@@ -64,21 +64,42 @@ internal abstract class OpUiBinding
             {
                 valueToBind = instance.Inputs.FirstOrDefault(i =>
                                                                  i.Id == inputAttr.Id && memberType.IsInstanceOfType(i));
+
+                if (valueToBind == null)
+                {
+                    Log.Warning($" Failed to bind input {inputAttr.Id} for {instance}", instance);
+                }
             }
             else if (member.GetCustomAttribute<BindOutputAttribute>() is { } outputAttr)
             {
                 valueToBind = instance.Outputs.FirstOrDefault(o =>
                                                                   o.Id == outputAttr.Id && memberType.IsInstanceOfType(o));
+                
+                if (valueToBind == null)
+                {
+                    Log.Warning($" Failed to bind output {outputAttr.Id} for {instance}", instance);
+                }
+                
             }
             else if (member.GetCustomAttribute<BindPropertyAttribute>() is { } propAttr)
             {
                 valueToBind = instance.GetType().GetProperty(propAttr.PropertyName,
                                                              BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                
+                if (valueToBind == null)
+                {
+                    Log.Warning($" Failed to bind property {propAttr.PropertyName} for {instance}", instance);
+                }
             }
             else if (member.GetCustomAttribute<BindFieldAttribute>() is { } fieldAttr)
             {
                 valueToBind = instance.GetType().GetField(fieldAttr.FieldName,
                                                           BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+                
+                if (valueToBind == null)
+                {
+                    Log.Warning($" Failed to bind field {fieldAttr.FieldName} for {instance}", instance);
+                }
             }
 
             if (valueToBind != null)
@@ -98,6 +119,7 @@ internal abstract class OpUiBinding
                      member.IsDefined(typeof(BindPropertyAttribute)) ||
                      member.IsDefined(typeof(BindFieldAttribute)))
             {
+                
                 allFound = false;
             }
         }

@@ -1,20 +1,40 @@
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Core.Utils;
+using T3.Editor.Gui.Interaction;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using Vector2 = System.Numerics.Vector2;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class ValueUi
+// ReSharper disable once UnusedType.Global
+
+internal static class ValueUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
+
+        [BindInput("7773837e-104a-4b3d-a41f-cadbd9249af2")]
+        internal readonly InputSlot<float> Float = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect area,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (!(instance is Value valueInstance))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(area, drawList, canvasScale);
@@ -25,11 +45,11 @@ public static class ValueUi
         var symbolChild = instance.SymbolChild;
         drawList.PushClipRect(area.Min, area.Max, true);
 
-        var isAnimated = instance.Parent?.Symbol.Animator.IsInputSlotAnimated(valueInstance.Float)??false;
+        var isAnimated = instance.Parent?.Symbol.Animator.IsInputSlotAnimated(data.Float) ?? false;
 
-        var value = (isAnimated || valueInstance.Float.HasInputConnections)
-                        ? (double)valueInstance.Float.Value
-                        :(double)valueInstance.Float.TypedInputValue.Value;
+        var value = (isAnimated || data.Float.HasInputConnections)
+                        ? (double)data.Float.Value
+                        : (double)data.Float.TypedInputValue.Value;
 
         var isActive = false;
         // Draw slider
@@ -49,12 +69,11 @@ public static class ValueUi
                                    UiColors.WidgetActiveLine);
         }
 
-
         // Interaction
         {
             ImGui.PushID(instance.GetHashCode());
             var editingUnlocked = ImGui.GetIO().KeyCtrl || _activeJogDialInputSlot != null;
-            var inputSlot = valueInstance.Float;
+            var inputSlot = data.Float;
             if (editingUnlocked)
             {
                 isActive = true;
@@ -73,7 +92,8 @@ public static class ValueUi
                     var restarted = ImGui.IsItemActivated();
                     if (ImGui.IsItemActive())
                     {
-                        SingleValueEdit.DrawValueEditMethod(ref value,  restarted, _jogDialCenter,double.NegativeInfinity, double.PositiveInfinity, false, 0.025f);
+                        SingleValueEdit.DrawValueEditMethod(ref value, restarted, _jogDialCenter, double.NegativeInfinity, double.PositiveInfinity, false,
+                                                            0.025f);
                         inputSlot.SetTypedInputValue((float)value);
                         inputSlot.DirtyFlag.ForceInvalidate();
                     }
@@ -83,6 +103,7 @@ public static class ValueUi
                     }
                 }
             }
+
             ImGui.PopID();
         }
 
@@ -102,10 +123,9 @@ public static class ValueUi
                | OpUi.CustomUiResult.PreventOpenSubGraph
                | OpUi.CustomUiResult.PreventInputLabels
                | OpUi.CustomUiResult.PreventTooltip
-               | (isActive  ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
+               | (isActive ? OpUi.CustomUiResult.IsActive : OpUi.CustomUiResult.None);
     }
 
     private static Vector2 _jogDialCenter;
     private static InputSlot<float> _activeJogDialInputSlot;
-    */
 }

@@ -1,23 +1,58 @@
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Core.Utils;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using Vector2 = System.Numerics.Vector2;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class RemapUi
+// ReSharper disable once UnusedType.Global
+internal static class RemapUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
+
+        [BindInput("40606d4e-acaf-4f23-a845-16f0eb9b73cf")]
+        internal readonly InputSlot<float> Value = null!;
+
+        [BindInput("edb98f34-d019-47f6-b275-e5a80061e1f7")]
+        internal readonly InputSlot<float> RangeInMin = null!;
+
+        [BindInput("CD369755-5062-4934-8F37-E3A5CC9963DF")]
+        internal readonly InputSlot<float> RangeInMax = null!;
+
+        [BindInput("F2BAF278-ADDE-42DE-AFCE-336B6C8D0387")]
+        internal readonly InputSlot<float> RangeOutMin = null!;
+
+        [BindInput("252276FB-8DE1-42CC-BA41-07D6862015BD")]
+        internal readonly InputSlot<float> RangeOutMax = null!;
+
+        [BindInput("23548048-E373-4FD6-9C83-1CF7398F952D")]
+        internal readonly InputSlot<Vector2> BiasAndGain = null!;
+
+        [BindOutput("de6e6f65-cb51-49f1-bb90-34ed1ec963c1")]
+        internal readonly Slot<float> Result = null!;
     }
-/*
+
     private const float GraphRangePadding = 0.06f;
 
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (instance is not Remap remap
-            || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         screenRect.Expand(-2);
@@ -28,14 +63,14 @@ public static class RemapUi
         // Draw interaction
         ImGui.SetCursorScreenPos(biasGraphRect.Min);
 
-        var value = remap.Value.GetCurrentValue();
-        var inMin = remap.RangeInMin.GetCurrentValue();
-        var inMax = remap.RangeInMax.GetCurrentValue();
-        var outMin = remap.RangeOutMin.GetCurrentValue();
-        var outMax = remap.RangeOutMax.GetCurrentValue();
+        var value = data.Value.GetCurrentValue();
+        var inMin = data.RangeInMin.GetCurrentValue();
+        var inMax = data.RangeInMax.GetCurrentValue();
+        var outMin = data.RangeOutMin.GetCurrentValue();
+        var outMax = data.RangeOutMax.GetCurrentValue();
 
         var inFragment = Math.Abs(inMin - inMax) < 0.001f ? 0 : (value - inMin) / (inMax - inMin);
-        var outFragment = Math.Abs(outMin - outMax) < 0.001f ? 0 : (remap.Result.Value - outMin) / (outMax - outMin);
+        var outFragment = Math.Abs(outMin - outMax) < 0.001f ? 0 : (data.Result.Value - outMin) / (outMax - outMin);
 
         drawList.PushClipRect(biasGraphRect.Min, biasGraphRect.Max, true);
 
@@ -65,14 +100,14 @@ public static class RemapUi
 
             if (ImGui.IsItemActivated())
             {
-                _biasAndGainStart = remap.BiasAndGain.TypedInputValue.Value;
+                _biasAndGainStart = data.BiasAndGain.TypedInputValue.Value;
             }
 
             if (dragDelta.Length() > 0.001)
             {
-                remap.BiasAndGain.SetTypedInputValue(
-                                                     new Vector2((_biasAndGainStart.X + dragDelta.X / 400f).Clamp(0.001f, 0.99f),
-                                                                 (_biasAndGainStart.Y - dragDelta.Y / 400f).Clamp(0.001f, 0.99f)));
+                data.BiasAndGain.SetTypedInputValue(
+                                                    new Vector2((_biasAndGainStart.X + dragDelta.X / 400f).Clamp(0.001f, 0.99f),
+                                                                (_biasAndGainStart.Y - dragDelta.Y / 400f).Clamp(0.001f, 0.99f)));
             }
         }
 
@@ -80,7 +115,7 @@ public static class RemapUi
         {
             const int steps = 35;
             var points = new Vector2[steps];
-            var biasAndGain = remap.BiasAndGain.GetCurrentValue();
+            var biasAndGain = data.BiasAndGain.GetCurrentValue();
             var p = new Vector2(MathUtils.Lerp(biasGraphRect.Min.X, biasGraphRect.Max.X, inFragment),
                                 MathUtils.Lerp(biasGraphRect.Max.Y, biasGraphRect.Min.Y, outFragment));
             drawList.AddCircleFilled(p,
@@ -127,11 +162,11 @@ public static class RemapUi
                                       );
         }
 
-        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(GraphRangePadding / 2, 0), remap.RangeInMax);
-        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(GraphRangePadding / 2, 1), remap.RangeInMin);
+        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(GraphRangePadding / 2, 0), data.RangeInMax);
+        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(GraphRangePadding / 2, 1), data.RangeInMin);
 
-        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 0), remap.RangeOutMax);
-        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 1), remap.RangeOutMin);
+        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 0), data.RangeOutMax);
+        isActive |= ValueLabel.Draw(drawList, screenRect, new Vector2(1 - GraphRangePadding / 2, 1), data.RangeOutMin);
 
         return OpUi.CustomUiResult.Rendered
                | OpUi.CustomUiResult.PreventInputLabels
@@ -141,5 +176,4 @@ public static class RemapUi
     }
 
     private static Vector2 _biasAndGainStart = Vector2.One;
-    */
 }

@@ -18,21 +18,6 @@ internal static class AnimValueUi
         internal Binding(Instance instance)
         {
             IsValid = AutoBind(instance);
-            // if (OpUi.TryGetInput(instance, new Guid("48005727-0158-4795-ad70-8410c27fd01d"), out Rate!) &&
-            //     OpUi.TryGetInput(instance, new Guid("4cf5d20b-7335-4584-b246-c260ac5cdf4f"), out Shape!) &&
-            //     OpUi.TryGetInput(instance, new Guid("79917ef7-64ca-4825-9c6a-c9b2a7f6ff86"), out Amplitude!) &&
-            //     OpUi.TryGetInput(instance, new Guid("ddd93b06-118e-43e0-85f6-c150faf91d04"), out Offset!) &&
-            //     OpUi.TryGetInput(instance, new Guid("f12fee9a-dd91-40c2-9aa5-ea34804a858d"), out Bias!) &&
-            //     OpUi.TryGetInput(instance, new Guid("8327e7ec-4370-4a3e-bd69-db3f4aa4b1d7"), out Ratio!) &&
-            //     OpUi.TryGetField(instance, "_normalizedTime", out _normalizedTimeField))
-            // {
-            //     
-            // }
-            // else
-            // {
-            //     Shape = null!;
-            //     Rate = Amplitude = Offset = Bias = Ratio = null!; // will never be used if !IsValid
-            // }
             _instance = instance;
         }
 
