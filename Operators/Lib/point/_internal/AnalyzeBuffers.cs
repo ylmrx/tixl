@@ -51,7 +51,7 @@ internal sealed class AnalyzeBuffers : Instance<AnalyzeBuffers>
             var input = connections[connectionIndex];
                 
             var bufferWithViews = input.GetValue(context);
-            if (bufferWithViews !=null && bufferWithViews.Srv != null)
+            if (bufferWithViews !=null && bufferWithViews.Srv != null && !bufferWithViews.Srv.IsDisposed)
             {
                 var length = bufferWithViews.Srv.Description.Buffer.ElementCount;
 
