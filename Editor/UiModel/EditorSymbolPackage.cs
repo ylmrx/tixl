@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using T3.Core.Compilation;
+using T3.Core.IO;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Resource;
@@ -33,7 +34,9 @@ internal class EditorSymbolPackage : SymbolPackage
     /// <param name="initializeResources"></param>
     public EditorSymbolPackage(AssemblyInformation assembly, string? directory, bool initializeResources = true) : base(assembly, directory, initializeResources)
     {
-        Log.Debug($"Added package {assembly.Name}");
+        if(ProjectSettings.Config.LogCompilationDetails)
+            Log.Debug($"Added package {assembly.Name}");
+        
         SymbolAdded += OnSymbolAdded;
         assembly.Unloaded += OnAssemblyUnloaded;
         assembly.UnloadComplete += OnAssemblyUnloadComplete;
@@ -87,7 +90,8 @@ internal class EditorSymbolPackage : SymbolPackage
         var newSymbols = newlyReadSymbols.ToDictionary(result => result.Id, symbol => symbol);
         var newSymbolsWithoutUis = new ConcurrentDictionary<Guid, Symbol>(newSymbols);
         preExistingSymbolUis = SymbolUiDict.Values.ToArray();
-        Log.Debug($"{AssemblyInformation.Name}: Loading Symbol UIs from \"{Folder}\"");
+        if(ProjectSettings.Config.LogCompilationDetails)
+            Log.Debug($"{AssemblyInformation.Name}: Loading Symbol UIs from \"{Folder}\"");
 
         var enumerator = parallel ? SymbolUiSearchFiles.AsParallel() : SymbolUiSearchFiles;
         var newlyReadSymbolUiList = enumerator
@@ -142,8 +146,9 @@ internal class EditorSymbolPackage : SymbolPackage
 
     public void RegisterUiSymbols(SymbolUi[] newSymbolUis, SymbolUi[] preExistingSymbolUis)
     {
-        Log.Debug($@"{DisplayName}: Registering UI entries...");
-
+        if(ProjectSettings.Config.LogCompilationDetails)
+            Log.Debug($@"{DisplayName}: Registering UI entries...");
+        
         foreach (var symbolUi in preExistingSymbolUis)
         {
             RegisterSymbolUi(symbolUi);

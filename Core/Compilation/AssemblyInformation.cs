@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading;
+using T3.Core.IO;
 using T3.Core.Logging;
 using T3.Serialization;
 
@@ -20,9 +21,8 @@ namespace T3.Core.Compilation;
 /// </summary>
 public sealed partial class AssemblyInformation
 {
-
     public string Name { get; private set; }
-    public string Directory => _directory;
+    public string Directory => _directory!;
 
     public bool IsLoaded => _loadContext != null;
 
@@ -74,6 +74,7 @@ public sealed partial class AssemblyInformation
     {
         ArgumentNullException.ThrowIfNull(directory);
         Initialize(directory, true);
+        Name=string.Empty;
     }
 
     public void Initialize(string directory, bool isReadOnly)
@@ -84,7 +85,9 @@ public sealed partial class AssemblyInformation
         _isReadOnly = isReadOnly;
         _directory = directory;
         _initialized = true;
-        Log.Debug($"{Name}: Assembly information initialized");
+        
+        if(ProjectSettings.Config.LogCompilationDetails)
+            Log.Debug($"{Name}: Assembly information initialized");
     }
 
 

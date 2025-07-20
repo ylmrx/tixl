@@ -469,13 +469,22 @@ internal sealed class SettingsWindow : Window
                                                           """,
                                                           ProjectSettings.Defaults.LogAssemblyVersionMismatches);                        
                         
+                        changed |= FormInputs.AddCheckBox("Log Loading Details",
+                                                          ref ProjectSettings.Config.LogAssemblyLoadingDetails,
+                                                          """
+                                                          Logs additional details about resolving and identifying assemblies and other resources.
+                                                          This can be useful to debug issues related to loading projects.
+                                                          """,
+                                                          ProjectSettings.Defaults.LogAssemblyLoadingDetails);
                         
                         changed |= FormInputs.AddCheckBox("Log C# Compilation Details",
-                                                          ref UserSettings.Config.LogCsCompilationDetails,
+                                                          ref ProjectSettings.Config.LogCompilationDetails,
                                                           "Logs additional compilation details with the given severity",
-                                                          UserSettings.Defaults.LogCsCompilationDetails);
+                                                          ProjectSettings.Defaults.LogCompilationDetails);
+                        
+             
 
-                        if (UserSettings.Config.LogCsCompilationDetails)
+                        if (ProjectSettings.Config.LogCompilationDetails)
                         {
                             FormInputs.SetIndentToParameters();
                             changed |= FormInputs.AddEnumDropdown(ref UserSettings.Config.CompileCsVerbosity,

@@ -28,6 +28,8 @@ public class ProjectSettings : Settings<ProjectSettings.ConfigData>
         public int DefaultOscPort = 8000;
 
         
+        public bool LogCompilationDetails = false;
+        public bool LogAssemblyLoadingDetails = false;
         
         // Profiling
         public bool EnableBeatSyncProfiling = false;

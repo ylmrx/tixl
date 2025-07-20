@@ -2,6 +2,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using T3.Core.Compilation;
+using T3.Core.IO;
 using T3.Core.Model;
 using T3.Core.Resource;
 using T3.Core.UserData;
@@ -75,9 +76,12 @@ internal static partial class ProjectSetup
 
         // Initialize custom UIs
 
-        foreach (var package in SymbolPackage.AllPackages)
+        if (ProjectSettings.Config.LogAssemblyLoadingDetails)
         {
-            Log.Debug($"Completed loading {package.DisplayName}");
+            foreach (var package in SymbolPackage.AllPackages)
+            {
+                Log.Debug($"Completed loading {package.DisplayName}");
+            }
         }
 
         #if DEBUG

@@ -135,7 +135,6 @@ public sealed class UserSettings : Settings<UserSettings.ConfigData>
         public bool EnableGCProfiling = false;
         public bool ShowOperatorStats = false;
 
-        public bool LogCsCompilationDetails = false;
         public CompilerOptions.Verbosity CompileCsVerbosity = CompilerOptions.Verbosity.Normal;
             
         [JsonConverter(typeof(StringEnumConverter))]

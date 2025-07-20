@@ -136,8 +136,13 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
     internal TixlAssemblyLoadContext(string assemblyName, string directory, bool isReadOnly) :
         base(assemblyName, true)
     {
-        Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
-        Unloading += (_) => { Log.Debug($"{Name!}: Unloading assembly context"); };
+        if(ProjectSettings.Config.LogCompilationDetails)
+            Log.Debug($"{Name}: Creating new assembly load context for {assemblyName}");
+
+        if (ProjectSettings.Config.LogAssemblyLoadingDetails)
+        {
+            Unloading += (_) => { Log.Debug($"{Name!}: Unloading assembly context"); };
+        }
 
         lock (_loadContextLock)
         {
@@ -155,7 +160,10 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         {
             var asm = LoadAssembly(path, this);
             Root = new AssemblyTreeNode(asm, this, true, true, _dllImportResolver);
-            Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
+            
+            if(ProjectSettings.Config.LogAssemblyLoadingDetails)
+                Log.Debug($"{Name} : Loaded root assembly {asm.FullName} from '{path}'");
+            
             _dependencyContext = Microsoft.Extensions.DependencyModel.DependencyContext.Load(Root!.Assembly);
         }
         catch (Exception e)
@@ -178,7 +186,9 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         // try a shadow copy first
         if (ctx is not TixlAssemblyLoadContext { _shouldCopyBinaries: true } tixlCtx)
         {
-            Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
+            if(ProjectSettings.Config.LogAssemblyLoadingDetails)
+                Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
+            
             return ctx.LoadFromAssemblyPath(path);
         }
         
@@ -186,7 +196,10 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         if (tixlCtx._shouldCopyBinaries && !Directory.Exists(shadowCopyDirectory))
         {
             Directory.CreateDirectory(shadowCopyDirectory);
-            Log.Debug($"{tixlCtx.Name!}: Created shadow copy directory at {shadowCopyDirectory}");
+            
+            if(ProjectSettings.Config.LogAssemblyLoadingDetails)
+                Log.Debug($"{tixlCtx.Name!}: Created shadow copy directory at {shadowCopyDirectory}");
+            
             // copy all dlls recursively in the main directory to the shadow copy directory
             // being sure to ignore symbol and resource folders
             CopyFilesInDirectory(tixlCtx.MainDirectory, tixlCtx.MainDirectory, shadowCopyDirectory, false);
@@ -214,7 +227,9 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         var relativePath = Path.GetRelativePath(tixlCtx.MainDirectory, path);
         path = Path.Combine(shadowCopyDirectory, relativePath);
 
-        Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
+        if(ProjectSettings.Config.LogAssemblyLoadingDetails)
+            Log.Debug($"{ctx.Name}: Loading assembly from '{path}'...");
+        
         return ctx.LoadFromAssemblyPath(path);
         
         static void CopyFilesInDirectory(string rootDirectory, string directory, string shadowCopyDirectory, bool recursive)
