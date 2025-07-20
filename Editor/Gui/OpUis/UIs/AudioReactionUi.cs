@@ -124,7 +124,7 @@ internal static class AudioReactionUi
             || inputMode == InputModes.FrequencyBands)
         {
             var xPeaks = screenRect.Min.X;
-            float[] peakBands = default;
+            float[]? peakBands;
             switch (inputMode)
             {
                 case InputModes.FrequencyBands:

@@ -35,7 +35,7 @@ internal sealed class FloatListOutputUi : OutputUi<List<float>>
 
         public float MinFit = -1;
         public float MaxFit = 1;
-        public float LastMin;
+
         public float LastMax;
     }
 

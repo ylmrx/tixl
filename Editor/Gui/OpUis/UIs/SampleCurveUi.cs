@@ -1,3 +1,4 @@
+#nullable enable
 using System.Reflection;
 using ImGuiNET;
 using T3.Core.DataTypes;
