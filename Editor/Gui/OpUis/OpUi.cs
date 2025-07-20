@@ -20,6 +20,12 @@ public static class OpUi
 {
     internal static OpUi.CustomUiResult DrawCustomUi(this Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
     {
+        OpUiBinding? binding = null;
+        return DrawCustomUi(instance, drawList, selectableScreenRect, canvasScale, ref binding);
+    }
+
+    internal static OpUi.CustomUiResult DrawCustomUi(this Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale, ref OpUiBinding? binding)
+    {
         if (!_drawFunctionsForSymbolIds.TryGetValue(instance.Symbol.Id, out var drawFunction))
             return OpUi.CustomUiResult.None;
 
@@ -31,8 +37,7 @@ public static class OpUi
         if (instance.IsDisposed || instance.Parent == null || !instance.Parent.Children.TryGetChildInstance(instance.SymbolChildId, out _))
             return OpUi.CustomUiResult.None;
 
-        OpUiBinding? data = null;
-        return drawFunction(instance, drawList, selectableScreenRect, canvasScale, ref data);
+        return drawFunction(instance, drawList, selectableScreenRect, canvasScale, ref binding);
     }
     
     /// <summary>

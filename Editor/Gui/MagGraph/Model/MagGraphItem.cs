@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
 using T3.Editor.Gui.Interaction.Snapping;
+using T3.Editor.Gui.OpUis;
 using T3.Editor.Gui.OutputUi;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel;
@@ -34,6 +35,8 @@ internal sealed class MagGraphItem : ISelectableCanvasObject, IValueSnapAttracto
     public Vector2 DampedPosOnCanvas;
     public Vector2 Size { get; set; }
 
+    public OpUiBinding? OpUiBinding;
+    
     public ImRect Area => ImRect.RectWithSize(PosOnCanvas, Size);
     public ImRect VerticalStackArea;
 
