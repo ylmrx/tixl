@@ -1,3 +1,4 @@
+#nullable enable
 using ImGuiNET;
 using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
@@ -112,37 +113,6 @@ internal static class BooleanUi
                | OpUi.CustomUiResult.PreventInputLabels;
     }
 
-    /// <summary>
-    /// toggle button for boolean math op 
-    /// </summary>
-    private static bool ToggleButtonB(string label, ref bool isSelected, Vector2 size, Vector4 color, Vector2 canvasScale, bool trigger = false)
-    {
-        var clicked = false;
-        var colorInactive = color - new Vector4(.0f, .0f, .0f, .3f);
-
-        var xScale = canvasScale.X;
-        ImGui.PushFont(xScale < 2
-                           ? Fonts.FontSmall
-                           : xScale < 4
-                               ? Fonts.FontNormal
-                               : Fonts.FontLarge);
-
-        ImGui.PushStyleColor(ImGuiCol.Button, isSelected ? color : colorInactive);
-        ImGui.PushStyleColor(ImGuiCol.ButtonHovered, color); // Adjust this as needed 
-        ImGui.PushStyleColor(ImGuiCol.ButtonActive, colorInactive); // Adjust this as needed 
-        ImGui.PushStyleColor(ImGuiCol.Text, UiColors.Selection.Rgba);
-
-        if (ImGui.Button(label, size) || trigger)
-        {
-            isSelected = !isSelected;
-            clicked = true;
-        }
-
-        ImGui.PopStyleColor(4);
-        ImGui.PopFont();
-
-        return clicked;
-    }
 
     private static Guid _activeInputId;
 }

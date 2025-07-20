@@ -41,7 +41,7 @@ internal sealed class OpenedProject
                                       if (!symbol.TryGetParentlessInstance(out var instance))
                                       {
                                           Log.Error("Root instance could not be created?");
-                                          return null;
+                                          return null!;
                                       }
 
                                       return instance.SymbolChild!;

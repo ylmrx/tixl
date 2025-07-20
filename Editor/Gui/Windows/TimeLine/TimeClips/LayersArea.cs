@@ -292,7 +292,7 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
             
             // Copy connection of original clip
             {
-                Symbol.Child.Output timeClipOutput = null;
+                Symbol.Child.Output? timeClipOutput = null;
                 foreach (var o in symbolChildUi.SymbolChild.Outputs.Values)
                 {
                     if (o.OutputData is TimeClip tc && tc == clip)

@@ -128,5 +128,5 @@ internal static class ValueUi
     }
 
     private static Vector2 _jogDialCenter;
-    private static InputSlot<float> _activeJogDialInputSlot;
+    private static InputSlot<float>? _activeJogDialInputSlot;
 }

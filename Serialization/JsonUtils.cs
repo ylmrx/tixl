@@ -164,7 +164,7 @@ public sealed class SafeEnumConverter<T> : JsonConverter<T> where T : struct, En
             {
                 case JsonToken.String:
                 {
-                    var str = reader.Value.ToString();
+                    var str = reader.Value?.ToString();
                     if (Enum.TryParse(str, ignoreCase: true, out T result) && Enum.IsDefined(typeof(T), result))
                         return result;
                     break;

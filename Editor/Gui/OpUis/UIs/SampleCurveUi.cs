@@ -44,7 +44,7 @@ internal static class SampleCurveUi
         data1 ??= new Binding(instance);
         var data = (Binding)data1;
 
-        if (!data.IsValid)
+        if (!data.IsValid || instance.Parent == null)
             return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(selectableScreenRect, drawList, canvasScale);
@@ -121,7 +121,7 @@ internal static class SampleCurveUi
 
         void DrawSamplePointIndicator()
         {
-            ICanvas canvas = null; //CurveInputEditing.GetCanvasForCurve(curve);
+            ICanvas? canvas = null; //CurveInputEditing.GetCanvasForCurve(curve);
             if (canvas == null)
                 return;
 

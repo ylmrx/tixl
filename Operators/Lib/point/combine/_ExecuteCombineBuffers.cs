@@ -9,7 +9,7 @@ namespace Lib.point.combine;
 public sealed class _ExecuteCombineBuffers : Instance<_ExecuteCombineBuffers>
 {
     [Output(Guid = "d6770718-842e-441d-a5f6-db9b2a20839b")]
-    public readonly Slot<BufferWithViews> Output = new();
+    public readonly Slot<BufferWithViews?> Output = new();
 
     public _ExecuteCombineBuffers()
     {
