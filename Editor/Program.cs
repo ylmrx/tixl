@@ -208,14 +208,6 @@ internal static class Program
             BlockingWindow.Instance.ShowMessageBox("Exception during package shutdown: \n" + e);
         }
 
-        try
-        {
-            Compiler.StopProcess();
-        }
-        catch (Exception e)
-        {
-            BlockingWindow.Instance.ShowMessageBox("Exception during compiler shutdown: \n" + e);
-        }
 
         // Release all resources
         try

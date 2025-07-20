@@ -3,7 +3,6 @@ using System.Collections.Frozen;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
-using Main;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Compilation;
@@ -13,17 +12,6 @@ namespace T3.Editor.Compilation;
 /// </summary>
 internal static class Compiler
 {
-    internal static void StopProcess()
-    {
-        _processLock.Enter();
-        if (_processCommander == null)
-            return;
-            
-        _processCommander.Close();
-        _processCommander = null;
-        _processLock.Exit();
-    }
-    
     private static readonly string _workingDirectory = Path.Combine(T3.Core.UserData.FileLocations.TempFolder, "CompilationWorkingDirectory");
 
     static Compiler()
@@ -39,9 +27,9 @@ internal static class Compiler
         var projectFile = compilationOptions.ProjectFile;
 
         var buildModeName = compilationOptions.BuildMode == BuildMode.Debug ? "Debug" : "Release";
-        
+
         var restoreArg = compilationOptions.RestoreNuGet ? "" : "--no-restore";
-        
+
         // construct command
         const string fmt = "$env:DOTNET_CLI_UI_LANGUAGE=\"en\"; dotnet build '{0}' --nologo --configuration {1} --verbosity {2} {3} " +
                            "--no-dependencies -property:PreferredUILang=en-US";
@@ -58,7 +46,7 @@ internal static class Compiler
     private static bool Evaluate(ref string output, in CompilationOptions options)
     {
         if (output.Contains("Build succeeded")) return true;
-        
+
         // print only errors
         const string searchTerm = "error";
         var searchTermSpan = searchTerm.AsSpan();
@@ -83,76 +71,82 @@ internal static class Compiler
         _failureLogSb.Clear();
         return false;
     }
-    
+
     /// <summary>
     /// The struct that holds the information necessary to create the dotnet build command
     /// </summary>
     private readonly record struct CompilationOptions(CsProjectFile ProjectFile, BuildMode BuildMode, CompilerOptions.Verbosity Verbosity, bool RestoreNuGet);
-    
-    private static ProcessCommander<CompilationOptions>? _processCommander;
+
     private static readonly System.Threading.Lock _processLock = new();
-    private static readonly Stopwatch _stopwatch = new();
+
+    private static (string Output, int ExitCode) RunCommand(string commandLine, string workingDirectory)
+    {
+        var psi = new ProcessStartInfo
+                      {
+                          FileName = "cmd.exe",
+                          Arguments = $"/C {commandLine}",
+                          RedirectStandardOutput = true,
+                          RedirectStandardError = true,
+                          UseShellExecute = false,
+                          CreateNoWindow = true,
+                          WorkingDirectory = workingDirectory
+                      };
+
+        var process = new Process { StartInfo = psi };
+        var outputBuilder = new StringBuilder();
+
+        process.OutputDataReceived += (_, e) =>
+                                      {
+                                          if (e.Data != null) outputBuilder.AppendLine(e.Data);
+                                      };
+        process.ErrorDataReceived += (_, e) =>
+                                     {
+                                         if (e.Data != null) outputBuilder.AppendLine(e.Data);
+                                     };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+        process.WaitForExit();
+
+        return (outputBuilder.ToString(), process.ExitCode);
+    }
 
     internal static bool TryCompile(CsProjectFile projectFile, BuildMode buildMode, bool nugetRestore)
     {
-        var verbosity = CompilerOptions.Verbosity.Normal;
-        if (UserSettings.Config != null)
-        {
-            verbosity = UserSettings.Config.CompileCsVerbosity; 
-        }
-        
-        bool success;
-        string logMessage;
-        _processLock.Enter();
-        _stopwatch.Restart();
-        if (_processCommander == null)
-        {
-            _processCommander = new ProcessCommander<CompilationOptions>(_workingDirectory, "Compilation: ");
-            //Log.Debug("Compilation process started");
-        }
-            
-        if (!_processCommander.TryBeginProcess(out var isRunning) && !isRunning)
-        {
-            Log.Error("Failed to start compilation process");
-            return false;
-        }
-            
-        Log.Debug($"Compiling {projectFile.Name} in {buildMode} mode");
+        var verbosity = UserSettings.Config?.CompileCsVerbosity ?? CompilerOptions.Verbosity.Normal;
 
-        var compilationOptions = new CompilationOptions(projectFile, buildMode, verbosity, nugetRestore);
-        var command = new Command<CompilationOptions>(GetCommandFor, Evaluate);
+        var arguments = new StringBuilder();
+        if (nugetRestore)
+            arguments.Append("restore \"").Append(projectFile.FullPath).Append("\" && ");
 
-        var noOutput = UserSettings.Config == null || UserSettings.Config.LogCsCompilationDetails==false;
-        if (!_processCommander.TryCommand(command, compilationOptions, out var response, projectFile.Directory, suppressOutput: noOutput))
+        arguments.Append("dotnet build \"")
+                 .Append(projectFile.FullPath)
+                 .Append("\" --configuration ")
+                 .Append(buildMode)
+                 .Append(" --verbosity ")
+                 .Append(verbosity.ToString().ToLower())
+                 .Append(" --nologo");
+
+        var stopwatch = Stopwatch.StartNew();
+        var (logOutput, exitCode) = RunCommand(arguments.ToString(), projectFile.Directory);
+
+        var success = exitCode == 0;
+        var logMessage = success
+                             ? $"{projectFile.Name}: Build succeeded in {stopwatch.ElapsedMilliseconds}ms"
+                             : $"{projectFile.Name}: Build failed in {stopwatch.ElapsedMilliseconds}ms";
+
+        foreach (var line in logOutput.Split('\n'))
         {
-            success = false;
-            logMessage = $"{projectFile.Name}: Build failed in {_stopwatch.ElapsedMilliseconds}ms:\n{response}";
-            foreach (var line in response.Split('\n'))
-            {
-                var warningIndex = line.IndexOf("error CS", StringComparison.Ordinal);
-                if (warningIndex != -1)
-                {
-                    Log.Warning(line.Substring(warningIndex,line.Length -warningIndex));
-                }
-            }
+            if (line.Contains("error CS", StringComparison.OrdinalIgnoreCase))
+                Log.Warning(line.Trim());
         }
-        else
-        {
-            success = true;
-            logMessage = $"{projectFile.Name}: Build succeeded in {_stopwatch.ElapsedMilliseconds}ms";
-        }
-        
-        _processLock.Exit();
 
         if (!success)
-        {
             Log.Error(logMessage);
-        }
         else
-        {
             Log.Info(logMessage);
-        }
-        
+
         return success;
     }
 
@@ -161,21 +155,28 @@ internal static class Compiler
         Debug,
         Release
     }
-    
+
     private static readonly FrozenDictionary<CompilerOptions.Verbosity, string> _verbosityArgs = new Dictionary<CompilerOptions.Verbosity, string>()
-                                                                                    {
-                                                                                        { CompilerOptions.Verbosity.Quiet, "q" },
-                                                                                        { CompilerOptions.Verbosity.Minimal, "m" },
-                                                                                        { CompilerOptions.Verbosity.Normal, "n" },
-                                                                                        { CompilerOptions.Verbosity.Detailed, "d" },
-                                                                                        { CompilerOptions.Verbosity.Diagnostic, "diag" }
-                                                                                    }.ToFrozenDictionary();
-    
+                                                                                                     {
+                                                                                                         { CompilerOptions.Verbosity.Quiet, "q" },
+                                                                                                         { CompilerOptions.Verbosity.Minimal, "m" },
+                                                                                                         { CompilerOptions.Verbosity.Normal, "n" },
+                                                                                                         { CompilerOptions.Verbosity.Detailed, "d" },
+                                                                                                         { CompilerOptions.Verbosity.Diagnostic, "diag" }
+                                                                                                     }.ToFrozenDictionary();
+
     private static readonly StringBuilder _failureLogSb = new();
 }
 
 /** Public interface so options can be used in user settings */
 public static class CompilerOptions
 {
-    public enum Verbosity { Quiet, Minimal, Normal, Detailed, Diagnostic }
+    public enum Verbosity
+    {
+        Quiet,
+        Minimal,
+        Normal,
+        Detailed,
+        Diagnostic
+    }
 }

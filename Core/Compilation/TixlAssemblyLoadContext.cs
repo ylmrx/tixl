@@ -527,7 +527,8 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
                 }
 
                 _dependencyContexts.Add(ctx);
-                Log.Debug($"{Name!}: Added dependency {node.Name} from {ctx.Name}");
+                if(ProjectSettings.Config.LogAssemblyLoadingDetails)
+                    Log.Debug($"{Name!}: Added dependency {node.Name} from {ctx.Name}");
             }
         }
     }
