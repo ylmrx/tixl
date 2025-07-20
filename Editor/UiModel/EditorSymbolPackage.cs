@@ -21,7 +21,7 @@ namespace T3.Editor.UiModel;
 /// EditorSymbolPackage is a readonly <see cref="SymbolPackage"/>  with  <see cref="SymbolUi"/>s.
 /// </summary>
 /// <remarks>
-/// Is used to created an <see cref="EditableSymbolProject"/>.
+/// Is used to create an <see cref="EditableSymbolProject"/>.
 /// </remarks>
 internal class EditorSymbolPackage : SymbolPackage
 {
