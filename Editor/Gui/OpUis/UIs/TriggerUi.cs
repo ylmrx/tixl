@@ -1,26 +1,47 @@
 using ImGuiNET;
+using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class TriggerUi
+// ReSharper disable once UnusedType.Global
+internal static class TriggerUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
-    }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
-    {
-        if (instance is not Trigger trigger
-            || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
+        internal Binding(Instance instance)
         {
-            return OpUi.CustomUiResult.None;
+            IsValid = AutoBind(instance);
         }
 
+        [BindInput("E7C1F0AF-DA6D-4E33-AC86-7DC96BFE7EB3")]
+        internal readonly InputSlot<bool> BoolValue = null!;
+
+        [BindInput("FA14AC1D-3247-4D36-BC96-14FF7356720A")]
+        internal readonly InputSlot<Vector4> ColorInGraph = null!;
+        
+        [BindOutput("2451ea62-9915-4ec1-a65e-4d44a3758fa8")]
+        internal readonly Slot<bool> Result = null!;
+
+    }
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
+    {
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
+            return OpUi.CustomUiResult.None;
+
         var dragWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
-        var colorAsVec4 = trigger.ColorInGraph.TypedInputValue.Value;
+        var colorAsVec4 = data.ColorInGraph.TypedInputValue.Value;
         var color = new Color(colorAsVec4);
 
         var activeRect = screenRect;
@@ -32,7 +53,7 @@ public static class TriggerUi
         var symbolChild = instance.SymbolChild;
         ImGui.PushClipRect(screenRect.Min, screenRect.Max, true);
 
-        var refValue = trigger.BoolValue.Value;
+        var refValue = data.BoolValue.Value;
         var label = string.IsNullOrWhiteSpace(symbolChild.Name)
                         ? "Trigger"
                         : symbolChild.ReadableName;
@@ -46,36 +67,35 @@ public static class TriggerUi
         ImGui.PushFont(font);
         var labelSize = ImGui.CalcTextSize(label);
 
-        var labelPos = activeRect.GetCenter() - labelSize/2 - new Vector2(3 * canvasScaleY,0);
+        var labelPos = activeRect.GetCenter() - labelSize / 2 - new Vector2(3 * canvasScaleY, 0);
         drawList.AddText(font, font.FontSize, labelPos, labelColor, label);
         ImGui.PopFont();
 
-        if (!trigger.BoolValue.HasInputConnections)
+        if (!data.BoolValue.HasInputConnections)
         {
-            var isHoveredOrActive = trigger.SymbolChildId == activeInputId ||
+            var isHoveredOrActive = instance.SymbolChildId == _activeInputId ||
                                     ImGui.IsWindowHovered() && activeRect.Contains(ImGui.GetMousePos());
             if (isHoveredOrActive)
             {
                 var wasChanged = false;
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    trigger.BoolValue.SetTypedInputValue(true);
-                    activeInputId = trigger.SymbolChildId;
-                    trigger.Result.DirtyFlag.Invalidate();
+                    data.BoolValue.SetTypedInputValue(true);
+                    _activeInputId = instance.SymbolChildId;
+                    data.Result.DirtyFlag.Invalidate();
                     wasChanged = true;
-
                 }
                 else if (ImGui.IsMouseReleased(ImGuiMouseButton.Left))
                 {
-                    activeInputId = Guid.Empty;
+                    _activeInputId = Guid.Empty;
 
-                    trigger.BoolValue.SetTypedInputValue(false);
+                    data.BoolValue.SetTypedInputValue(false);
                     wasChanged = true;
                 }
 
                 if (wasChanged)
                 {
-                    trigger.Result.DirtyFlag.ForceInvalidate();
+                    data.Result.DirtyFlag.ForceInvalidate();
                 }
             }
         }
@@ -89,6 +109,6 @@ public static class TriggerUi
                | OpUi.CustomUiResult.PreventInputLabels;
     }
 
-    private static Guid activeInputId;
-    */
+    private static Guid _activeInputId;
+        
 }

@@ -203,7 +203,7 @@ public sealed class TriggerAnim : Instance<TriggerAnim>
     private double _lastUpdateTime = -1;
 
     private double _startProgress;
-    public double LastFraction;
+    public double LastFraction; // For Op Ui
         
     public enum Shapes
     {

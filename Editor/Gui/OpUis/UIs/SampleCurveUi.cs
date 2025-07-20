@@ -20,16 +20,8 @@ internal static class SampleCurveUi
         internal Binding(Instance instance)
         {
             IsValid = AutoBind(instance);
-            _instance = instance;
         }
-
-        private readonly Instance _instance;
-
-        [BindField("_normalizedTime")]
-        private readonly FieldInfo? _normalizedTimeField = null!;
-
-        internal double NormalizedTime => (double)(_normalizedTimeField?.GetValue(_instance) ?? 0);
-
+        
         [BindInput("108CB829-5F9E-4A45-BC6B-7CF40A0A0F89")]
         internal readonly InputSlot<Curve> Curve = null!;
 
@@ -37,10 +29,10 @@ internal static class SampleCurveUi
         internal readonly InputSlot<float> U = null!;
 
         [BindOutput("1A20C791-A1FE-4A14-A9CF-615691948F2D")]
-        internal readonly InputSlot<Curve> OutCurve = null!;
+        internal readonly Slot<Curve> OutCurve = null!;
 
         [BindOutput("fc51bee8-091c-4c66-a7df-12f6f69e3783")]
-        internal readonly InputSlot<float> Result = null!;
+        internal readonly Slot<float> Result = null!;
     }
 
     public static OpUi.CustomUiResult DrawChildUi(Instance instance,

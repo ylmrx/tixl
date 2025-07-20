@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using T3.Core.Resource;
+using T3.Core.Utils;
 
 namespace T3.Core.Operator;
 
@@ -20,6 +21,6 @@ public abstract partial class Instance
     public sealed override string ToString()
     {
         const string fmt = "{0} ({1})";
-        return _asString ??= string.Format(fmt, GetType().Name, SymbolChildId.ToString());
+        return _asString ??= string.Format(fmt, GetType().Name, SymbolChildId.ShortenGuid());
     }
 }

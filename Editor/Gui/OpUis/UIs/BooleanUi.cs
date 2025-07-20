@@ -1,27 +1,44 @@
 using ImGuiNET;
+using T3.Core.DataTypes.Vector;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
+// ReSharper disable once UnusedType.Global
 internal static class BooleanUi
 {
-        public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
-        {
-            return OpUi.CustomUiResult.None;
-        }
-/*        
-    internal static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        
-        if (instance is not Boolean boolean)
-            return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
 
-        if (!ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
+        [BindInput("E7C1F0AF-DA6D-4E33-AC86-7DC96BFE7EB3")]
+        internal readonly InputSlot<bool> BoolValue = null!;
+
+        [BindInput("49b3fa80-4027-4297-82cd-10a36882ed9d")]
+        internal readonly InputSlot<Vector4> ColorInGraph = null!;
+    }
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
+    {
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var dragWidth = WidgetElements.DrawOperatorDragHandle(screenRect, drawList, canvasScale);
-        var colorAsVec4 = boolean.ColorInGraph.TypedInputValue.Value;
+        var colorAsVec4 = data.ColorInGraph.TypedInputValue.Value;
         var color = new Color(colorAsVec4);
 
         var activeRect = screenRect;
@@ -33,7 +50,7 @@ internal static class BooleanUi
         var symbolChild = instance.SymbolChild;
         ImGui.PushClipRect(screenRect.Min, screenRect.Max, true);
 
-        var refValue = boolean.BoolValue.Value;
+        var refValue = data.BoolValue.Value;
         var label = string.IsNullOrEmpty(symbolChild.Name)
                         ? (refValue ? "True" : "False")
                         : symbolChild.ReadableName;
@@ -67,21 +84,21 @@ internal static class BooleanUi
                              ImDrawFlags.None,
                              MathF.Max(1.4f, 0.5f * canvasScaleY));
 
-        if (!boolean.BoolValue.HasInputConnections)
+        if (!data.BoolValue.HasInputConnections)
         {
-            var isHoveredOrActive = boolean.SymbolChildId == activeInputId ||
+            var isHoveredOrActive = instance.SymbolChildId == _activeInputId ||
                                     ImGui.IsWindowHovered() && activeRect.Contains(ImGui.GetMousePos());
             if (isHoveredOrActive)
             {
                 if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
                 {
-                    activeInputId = boolean.SymbolChildId;
+                    _activeInputId = instance.SymbolChildId;
                 }
                 else if (ImGui.IsMouseReleased(ImGuiMouseButton.Left) && ImGui.GetMouseDragDelta().LengthSquared() < UserSettings.Config.ClickThreshold)
                 {
-                    activeInputId = Guid.Empty;
-                    var newValue = !boolean.BoolValue.TypedInputValue.Value;
-                    boolean.BoolValue.SetTypedInputValue(newValue);
+                    _activeInputId = Guid.Empty;
+                    var newValue = !data.BoolValue.TypedInputValue.Value;
+                    data.BoolValue.SetTypedInputValue(newValue);
                 }
             }
         }
@@ -127,6 +144,5 @@ internal static class BooleanUi
         return clicked;
     }
 
-    private static Guid activeInputId;
-    */
+    private static Guid _activeInputId;
 }

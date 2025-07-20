@@ -1,20 +1,69 @@
-﻿using ImGuiNET;
+﻿#nullable enable
+using System.Reflection;
+using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Core.Utils;
+using T3.Editor.Gui.OpUis.WidgetUi;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class TriggerAnimUi
+// ReSharper disable once UnusedType.Global
+internal static class TriggerAnimUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+            _instance = instance;
+
+            var methodInfo = instance.GetType().GetMethod("CalcNormalizedValueForFraction",
+                                                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            CalcValueFunc = (Func<double, int, float>)Delegate.CreateDelegate(typeof(Func<double, int, float>), instance, methodInfo!);
+        }
+
+        private readonly Instance _instance;
+
+        internal readonly Func<double, int, float> CalcValueFunc;
+
+        [BindField("LastFraction")]
+        private readonly FieldInfo? _lastFractionField = null!;
+
+        internal double LastFraction => (double)(_lastFractionField?.GetValue(_instance) ?? 0);
+
+        [BindInput("c0fa79d5-2c49-4d40-998f-4eb0101ae050")]
+        internal readonly InputSlot<int> Shape = null!;
+
+        [BindInput("0d56fc27-fa15-4f1e-aa09-f97af93d42c7")]
+        internal readonly InputSlot<float> Duration = null!;
+
+        [BindInput("3AD8E756-7720-4F43-85DA-EFE1AF364CFE")]
+        internal readonly InputSlot<float> Base = null!;
+
+        [BindInput("287fa06c-3e18-43f2-a4e1-0780c946dd84")]
+        internal readonly InputSlot<float> Amplitude = null!;
+
+        [BindInput("214e244a-9e95-4292-81f5-cd0199f05c66")]
+        internal readonly InputSlot<float> Delay = null!;
+
+        [BindInput("9bfd5ae3-9ca6-4f7b-b24b-f554ad4d0255")]
+        internal readonly InputSlot<float> Bias = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect screenRect,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (!(instance is TriggerAnim anim)
-            || !ImGui.IsRectVisible(screenRect.Min, screenRect.Max))
+        data1 ??= new Binding(instance);
+        var binding = (Binding)data1;
+
+        if (!binding.IsValid)
             return OpUi.CustomUiResult.None;
 
         ImGui.PushID(instance.SymbolChildId.GetHashCode());
@@ -35,7 +84,6 @@ public static class TriggerAnimUi
             return OpUi.CustomUiResult.None;
         }
 
-
         graphRect.Expand(-3);
 
         //graphRect.Min.X = graphRect.Max.X - graphRect.GetWidth();
@@ -46,8 +94,8 @@ public static class TriggerAnimUi
 
         if (h > 14)
         {
-            isEditActive|=ValueLabel.Draw(drawList, graphRect, new Vector2(1, 0), anim.Amplitude);
-            isEditActive|=ValueLabel.Draw(drawList, graphRect, new Vector2(1, 1), anim.Base);
+            isEditActive |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 0), binding.Amplitude);
+            isEditActive |= ValueLabel.Draw(drawList, graphRect, new Vector2(1, 1), binding.Base);
         }
 
         // Graph dragging to edit Bias and Ratio
@@ -60,7 +108,7 @@ public static class TriggerAnimUi
             isGraphActive = ImGui.IsItemActive();
         }
 
-        var duration = anim.Duration.GetCurrentValue();
+        var duration = binding.Duration.GetCurrentValue();
 
         if (isGraphActive)
         {
@@ -70,22 +118,22 @@ public static class TriggerAnimUi
             if (ImGui.IsItemActivated())
             {
                 //_dragStartPosition = ImGui.GetMousePos();
-                _dragStartBias = anim.Bias.GetCurrentValue();// anim.Bias.TypedInputValue.Value;
-                _dragStartDuration = anim.Duration.GetCurrentValue();
+                _dragStartBias = binding.Bias.GetCurrentValue(); // data.Bias.TypedInputValue.Value;
+                _dragStartDuration = binding.Duration.GetCurrentValue();
             }
 
             if (MathF.Abs(dragDelta.X) > 0.5f)
             {
-                anim.Duration.SetTypedInputValue((_dragStartDuration + dragDelta.X / 100f).Clamp(0.001f, 4f));
+                binding.Duration.SetTypedInputValue((_dragStartDuration + dragDelta.X / 100f).Clamp(0.001f, 4f));
             }
 
             if (Math.Abs(dragDelta.Y) > 0.5f)
             {
-                anim.Bias.SetTypedInputValue((_dragStartBias - dragDelta.Y / 100f).Clamp(0.01f, 0.99f));
+                binding.Bias.SetTypedInputValue((_dragStartBias - dragDelta.Y / 100f).Clamp(0.01f, 0.99f));
             }
         }
 
-        var delay = anim.Delay.GetCurrentValue();//.Value;
+        var delay = binding.Delay.GetCurrentValue(); //.Value;
 
         // Draw Graph
         {
@@ -104,7 +152,7 @@ public static class TriggerAnimUi
 
             // Fragment line
             var cycleWidth = graphWidth * (1 - relativeX);
-            var dx = new Vector2(((float)anim.LastFraction * duration + delay) * cycleWidth - 1, 0);
+            var dx = new Vector2(((float)binding.LastFraction * duration + delay) * cycleWidth - 1, 0);
             drawList.AddRectFilled(lv1 + dx, lv2 + dx, UiColors.WidgetActiveLine);
 
             // Draw graph
@@ -115,18 +163,17 @@ public static class TriggerAnimUi
             //        |
             //        |
 
-
-            // var shapeValue = anim.Shape.HasInputConnections
-            //                      ? anim.Shape.Value
-            //                      :anim.Shape.TypedInputValue.Value;
-            var shapeIndex = anim.Shape.GetCurrentValue().Clamp(0, Enum.GetNames<TriggerAnim.Shapes>().Length -1 );
+            var shapeIndex = binding.Shape.GetCurrentValue().Clamp(0, 5);
 
             for (var i = 0; i < GraphListSteps; i++)
             {
                 var f = (float)i / GraphListSteps;
                 var fragment = f * (1 + previousCycleFragment) - previousCycleFragment;
-                GraphLinePoints[i] = new Vector2((f * duration +  delay) * graphWidth,
-                                                 (0.5f - anim.CalcNormalizedValueForFraction(fragment, shapeIndex) / 2) * h
+                GraphLinePoints[i] = new Vector2((f * duration + delay) * graphWidth,
+                                                 (0.5f -
+                                                  //binding.CalcNormalizedValueForFraction(fragment, shapeIndex)
+                                                  binding.CalcValueFunc(fragment, shapeIndex)
+                                                  / 2) * h
                                                 ) + graphRect.Min;
             }
 
@@ -146,6 +193,6 @@ public static class TriggerAnimUi
     private static float _dragStartDuration;
 
     private static readonly Vector2[] GraphLinePoints = new Vector2[GraphListSteps];
+
     private const int GraphListSteps = 80;
-    */
 }

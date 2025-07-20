@@ -1,34 +1,52 @@
+#nullable enable
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class GetIntVarUi
+internal static class GetIntVarUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
-    }
-/*
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
 
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance1, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
+        [BindInput("d7662b65-f249-4887-a319-dc2cf7d192f2")]
+        internal readonly InputSlot<string> VariableName = null!;
+
+        [BindOutput("B306B216-630C-4611-90FD-52FF322EBD00")]
+        internal readonly Slot<int> Result = null!;
+    }
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect area,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (instance1 is not GetIntVar instance)
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.PreventOpenSubGraph;
 
         drawList.PushClipRect(area.Min, area.Max, true);
 
-        var value = instance.Result.Value;
+        var value = data.Result.Value;
 
-        var name = instance1.SymbolChild.Name;
+        var name = instance.SymbolChild.Name;
         if (!string.IsNullOrWhiteSpace(name))
         {
             WidgetElements.DrawPrimaryTitle(drawList, area, name, canvasScale);
         }
         else
         {
-            WidgetElements.DrawPrimaryTitle(drawList, area, "Get " + instance.VariableName.TypedInputValue.Value, canvasScale);
+            WidgetElements.DrawPrimaryTitle(drawList, area, "Get " + data.VariableName.TypedInputValue.Value, canvasScale);
         }
 
         WidgetElements.DrawSmallValue(drawList, area, $"{value:0}", canvasScale);
@@ -36,5 +54,4 @@ public static class GetIntVarUi
         drawList.PopClipRect();
         return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventInputLabels | OpUi.CustomUiResult.PreventOpenSubGraph;
     }
-    */
 }

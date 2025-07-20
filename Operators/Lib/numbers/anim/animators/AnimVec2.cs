@@ -70,7 +70,9 @@ public sealed class AnimVec2 : Instance<AnimVec2>
     [Input(Guid = "7a1f6dc7-2ae8-4cbb-9750-c17e460327d4", MappedType = typeof(AnimMath.SpeedFactors))]
     public readonly InputSlot<int> AllowSpeedFactor = new();
 
-    public double _normalizedTimeX;
-    public double _normalizedTimeY;
-    public AnimMath.Shapes _shape;
+    #region operator Ui
+    public double _normalizedTimeX;  
+    public double _normalizedTimeY;  
+    public AnimMath.Shapes _shape;   
+    #endregion
 }

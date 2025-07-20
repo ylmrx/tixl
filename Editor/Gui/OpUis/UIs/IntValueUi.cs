@@ -1,20 +1,36 @@
+using System.Reflection;
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.Styling;
 using T3.Editor.Gui.UiHelpers;
 using Vector2 = System.Numerics.Vector2;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class IntValueUi
+internal static class IntValueUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
+
+        [BindInput("4515C98E-05BC-4186-8773-4D2B31A8C323")]
+        internal readonly InputSlot<int> Int = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale)
+
+    internal static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                    ImDrawListPtr drawList,
+                                                    ImRect selectableScreenRect,
+                                                    Vector2 canvasScale,
+                                                    ref OpUiBinding? data1)
     {
-        if (!(instance is IntValue intValueInstance))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.None;
 
         var symbolChild = instance.SymbolChild;
@@ -28,18 +44,18 @@ public static class IntValueUi
                               : Fonts.FontSmall);
 
         ImGui.PushFont(font);
-        ImGui.SetCursorScreenPos(selectableScreenRect.Min + new Vector2(10,0));
+        ImGui.SetCursorScreenPos(selectableScreenRect.Min + new Vector2(10, 0));
         ImGui.BeginGroup();
         if (!string.IsNullOrWhiteSpace(symbolChild.Name))
         {
             ImGui.TextUnformatted(symbolChild.Name);
         }
 
-        var isAnimated = instance.Parent?.Symbol.Animator.IsInputSlotAnimated(intValueInstance.Int)??false;
+        var isAnimated = instance.Parent?.Symbol.Animator.IsInputSlotAnimated(data.Int) ?? false;
 
-        var value = (isAnimated || intValueInstance.Int.HasInputConnections)
-                        ? intValueInstance.Int.Value
-                        : intValueInstance.Int.TypedInputValue.Value;
+        var value = (isAnimated || data.Int.HasInputConnections)
+                        ? data.Int.Value
+                        : data.Int.TypedInputValue.Value;
 
         ImGui.TextUnformatted($"{value:0}");
         ImGui.EndGroup();
@@ -50,5 +66,5 @@ public static class IntValueUi
                | OpUi.CustomUiResult.PreventOpenSubGraph
                | OpUi.CustomUiResult.PreventInputLabels
                | OpUi.CustomUiResult.PreventTooltip;
-    }*/
+    }
 }

@@ -2,6 +2,7 @@
 using System.Reflection;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 
 namespace T3.Editor.Gui.OpUis;
 
@@ -67,7 +68,7 @@ internal abstract class OpUiBinding
 
                 if (valueToBind == null)
                 {
-                    Log.Warning($" Failed to bind input {inputAttr.Id} for {instance}", instance);
+                    Log.Warning($" Failed to bind {instance} input {inputAttr.Id.ShortenGuid()}", instance);
                 }
             }
             else if (member.GetCustomAttribute<BindOutputAttribute>() is { } outputAttr)
@@ -77,7 +78,7 @@ internal abstract class OpUiBinding
                 
                 if (valueToBind == null)
                 {
-                    Log.Warning($" Failed to bind output {outputAttr.Id} for {instance}", instance);
+                    Log.Warning($" Failed to bind {instance} output {outputAttr.Id.ShortenGuid()}", instance);
                 }
                 
             }
@@ -88,7 +89,7 @@ internal abstract class OpUiBinding
                 
                 if (valueToBind == null)
                 {
-                    Log.Warning($" Failed to bind property {propAttr.PropertyName} for {instance}", instance);
+                    Log.Warning($" Failed to bind {instance} property {propAttr.PropertyName}", instance);
                 }
             }
             else if (member.GetCustomAttribute<BindFieldAttribute>() is { } fieldAttr)
@@ -98,7 +99,7 @@ internal abstract class OpUiBinding
                 
                 if (valueToBind == null)
                 {
-                    Log.Warning($" Failed to bind field {fieldAttr.FieldName} for {instance}", instance);
+                    Log.Warning($" Failed to bind {instance} field {fieldAttr.FieldName}", instance);
                 }
             }
 

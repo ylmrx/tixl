@@ -18,9 +18,16 @@ internal static class SequenceAnimUi
         {
             IsValid = AutoBind(instance);
             _instance = instance;
+
+            var methodInfo = instance.GetType().GetMethod("SetStepValue",
+                                                          BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+
+            SetStep = (Action<int, float>)Delegate.CreateDelegate(typeof(Action<int, float>), instance, methodInfo!);
         }
 
         private readonly Instance _instance;
+
+        internal readonly Action<int, float> SetStep;
 
         [BindField("CurrentSequence")]
         private readonly FieldInfo? _currentSequenceField = null!;
@@ -112,9 +119,8 @@ internal static class SequenceAnimUi
 
             if (isEditActive && mousePos.X > pMin.X && mousePos.X < pMax.X)
             {
-                
-                // FIXME: needs to be implemented
-                //data.SetStepValue(barIndex, 1 - ((mousePos.Y + 3 - screenRect.Min.Y) / (h - 6)).Clamp(0, 1));
+                var value = 1 - ((mousePos.Y + 3 - screenRect.Min.Y) / (h - 6)).Clamp(0, 1);
+                data.SetStep(barIndex, value);
             }
 
             var highlightFactor = barIndex == currentIndex

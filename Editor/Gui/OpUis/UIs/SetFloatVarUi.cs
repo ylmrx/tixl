@@ -1,25 +1,45 @@
+#nullable enable
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
+using T3.Editor.Gui.OpUis.WidgetUi;
 using T3.Editor.Gui.UiHelpers;
 
 namespace T3.Editor.Gui.OpUis.UIs;
 
-public static class SetFloatVarUi
+internal static class SetFloatVarUi
 {
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance, ImDrawListPtr drawList, ImRect screenRect, Vector2 canvasScale)
+    private sealed class Binding : OpUiBinding
     {
-        return OpUi.CustomUiResult.None;
+        internal Binding(Instance instance)
+        {
+            IsValid = AutoBind(instance);
+        }
+
+        [BindInput("6EE64D39-855A-4B20-A8F5-39B4F98E8036")]
+        internal readonly InputSlot<string> VariableName = null!;
+
+        [BindInput("68E31EAA-1481-48F4-B742-5177A241FE6D")]
+        internal readonly InputSlot<float> Value = null!;
     }
-/*
-    public static OpUi.CustomUiResult DrawChildUi(Instance instance1, ImDrawListPtr drawList, ImRect area, Vector2 canvasScale)
+
+    public static OpUi.CustomUiResult DrawChildUi(Instance instance,
+                                                  ImDrawListPtr drawList,
+                                                  ImRect area,
+                                                  Vector2 canvasScale,
+                                                  ref OpUiBinding? data1)
     {
-        if (!(instance1 is SetFloatVar instance))
+        data1 ??= new Binding(instance);
+        var data = (Binding)data1;
+
+        if (!data.IsValid)
             return OpUi.CustomUiResult.PreventOpenSubGraph;
 
-        var symbolChild = instance1.SymbolChild;
+
+        var symbolChild = instance.SymbolChild;
         drawList.PushClipRect(area.Min, area.Max, true);
 
-        var value = instance.Value.TypedInputValue.Value;
+        var value = data.Value.TypedInputValue.Value;
 
         if (!string.IsNullOrWhiteSpace(symbolChild.Name))
         {
@@ -27,7 +47,7 @@ public static class SetFloatVarUi
         }
         else
         {
-            WidgetElements.DrawPrimaryTitle(drawList, area, "Set " + instance.VariableName.TypedInputValue.Value, canvasScale);
+            WidgetElements.DrawPrimaryTitle(drawList, area, "Set " + data.VariableName.TypedInputValue.Value, canvasScale);
         }
 
         WidgetElements.DrawSmallValue(drawList, area, $"{value:0.000}", canvasScale);
@@ -35,5 +55,4 @@ public static class SetFloatVarUi
         drawList.PopClipRect();
         return OpUi.CustomUiResult.Rendered | OpUi.CustomUiResult.PreventInputLabels | OpUi.CustomUiResult.PreventOpenSubGraph;
     }
-*/
 }
