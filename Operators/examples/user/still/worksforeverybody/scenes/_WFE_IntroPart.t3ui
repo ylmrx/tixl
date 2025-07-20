@@ -18,7 +18,7 @@
       }
     },
     {
-      "ChildId": "0322fff4-4509-4dd2-ba98-5eff50681344"/*SetCommandTime*/,
+      "ChildId": "0322fff4-4509-4dd2-ba98-5eff50681344"/*SetTime*/,
       "Position": {
         "X": 399.86536,
         "Y": 1595.7319

@@ -203,7 +203,7 @@
   ],
   "SymbolChildUis": [
     {
-      "ChildId": "110e06ce-b484-463e-8cb1-9f659cf16f71"/*Time*/,
+      "ChildId": "110e06ce-b484-463e-8cb1-9f659cf16f71"/*_Time_old*/,
       "Position": {
         "X": 703.37634,
         "Y": 1180.2992

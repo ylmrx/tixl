@@ -485,7 +485,7 @@
       }
     },
     {
-      "ChildId": "348021bf-5a35-4dba-8cc8-eee22c211068"/*Time*/,
+      "ChildId": "348021bf-5a35-4dba-8cc8-eee22c211068"/*_Time_old*/,
       "Position": {
         "X": 3841.3936,
         "Y": 4705.7383
@@ -506,7 +506,7 @@
       }
     },
     {
-      "ChildId": "36ec1f3f-2eed-4b01-a338-e3b5022d7deb"/*Time*/,
+      "ChildId": "36ec1f3f-2eed-4b01-a338-e3b5022d7deb"/*_Time_old*/,
       "Position": {
         "X": 776.65735,
         "Y": -72.97121
@@ -569,7 +569,7 @@
       }
     },
     {
-      "ChildId": "3cca6985-7079-4ec9-b6eb-d8093a3c9400"/*SetCommandTime*/,
+      "ChildId": "3cca6985-7079-4ec9-b6eb-d8093a3c9400"/*SetTime*/,
       "Position": {
         "X": 4213.402,
         "Y": 4496.872
@@ -597,7 +597,7 @@
       }
     },
     {
-      "ChildId": "40c2c2fa-dc5b-49a0-96a4-3f2355bdc179"/*Time*/,
+      "ChildId": "40c2c2fa-dc5b-49a0-96a4-3f2355bdc179"/*_Time_old*/,
       "Position": {
         "X": 6751.7793,
         "Y": 3551.7024
@@ -967,7 +967,7 @@
       }
     },
     {
-      "ChildId": "6adc7333-c962-41cf-b763-ae7ae18675df"/*Time*/,
+      "ChildId": "6adc7333-c962-41cf-b763-ae7ae18675df"/*_Time_old*/,
       "Position": {
         "X": 4696.34,
         "Y": 5491.478
@@ -1154,7 +1154,7 @@
       }
     },
     {
-      "ChildId": "80a2d6dd-ebd9-4b3c-acdc-23dc0f9a144c"/*Time*/,
+      "ChildId": "80a2d6dd-ebd9-4b3c-acdc-23dc0f9a144c"/*_Time_old*/,
       "Position": {
         "X": 318.92932,
         "Y": 86.13301
@@ -1497,7 +1497,7 @@
       }
     },
     {
-      "ChildId": "ac1d7081-b951-4c3a-a892-c14849ecc45d"/*Time*/,
+      "ChildId": "ac1d7081-b951-4c3a-a892-c14849ecc45d"/*_Time_old*/,
       "Position": {
         "X": 4433.675,
         "Y": 5420.76
@@ -1630,7 +1630,7 @@
       }
     },
     {
-      "ChildId": "bf13c178-8f28-4ce1-a99c-ea03b617084f"/*Time*/,
+      "ChildId": "bf13c178-8f28-4ce1-a99c-ea03b617084f"/*_Time_old*/,
       "Position": {
         "X": 3127.9756,
         "Y": 7739.7686
@@ -1721,7 +1721,7 @@
       }
     },
     {
-      "ChildId": "cc345c64-f9a5-4324-82d8-0aa765634764"/*SetCommandTime*/,
+      "ChildId": "cc345c64-f9a5-4324-82d8-0aa765634764"/*SetTime*/,
       "Comment": "A hack to trigger multiple sliding history updates.",
       "Position": {
         "X": 3517.3071,
@@ -1771,7 +1771,7 @@
       }
     },
     {
-      "ChildId": "d12bf953-1ce0-471e-9675-88ef67851de7"/*Time*/,
+      "ChildId": "d12bf953-1ce0-471e-9675-88ef67851de7"/*_Time_old*/,
       "Position": {
         "X": 5648.3027,
         "Y": 9860.776
@@ -2065,7 +2065,7 @@
       }
     },
     {
-      "ChildId": "f2cc6a67-7fde-44d3-bffe-06524581063c"/*Time*/,
+      "ChildId": "f2cc6a67-7fde-44d3-bffe-06524581063c"/*_Time_old*/,
       "Position": {
         "X": 2266.7896,
         "Y": 170.85735

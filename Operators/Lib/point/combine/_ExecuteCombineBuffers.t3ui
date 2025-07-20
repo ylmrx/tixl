@@ -3,46 +3,10 @@
   "Description": "The internal implementation",
   "InputUis": [
     {
-      "InputId": "000667bc-83a0-4cfa-8854-1884c52d7fdd"/*ConstantBuffers*/,
+      "InputId": "c8a5769e-2536-4caa-8380-22fbeed1ef12"/*InputBuffers*/,
       "Position": {
-        "X": 106.01553,
-        "Y": 152.0835
-      }
-    },
-    {
-      "InputId": "02986466-9fc6-43c5-9a56-0cf5f23d7e07"/*Dispatch*/,
-      "Relevancy": "Required",
-      "Position": {
-        "X": 106.01553,
-        "Y": 52.083496
-      }
-    },
-    {
-      "InputId": "12e2aab0-9497-495a-bd5d-c6bd53361d6d"/*SamplerStates*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 252.0835
-      }
-    },
-    {
-      "InputId": "17761557-53e6-4fef-a6ad-5a1400ee9791"/*VariousResources*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 277.0835
-      }
-    },
-    {
-      "InputId": "89e04f53-1776-4a17-a4f5-3b96d69668d0"/*Uavs*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 302.0835
-      }
-    },
-    {
-      "InputId": "8b9b1d61-b02c-4595-a573-18577978a65d"/*DispatchCallCount*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 397.0835
+        "X": -200.0,
+        "Y": 0.0
       }
     },
     {
@@ -51,20 +15,6 @@
       "Position": {
         "X": 111.54843,
         "Y": 14.742786
-      }
-    },
-    {
-      "InputId": "e48c2690-1b6a-4f0f-894b-c8d094027fa8"/*UavBufferCounter*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 352.0835
-      }
-    },
-    {
-      "InputId": "e5cc24ef-50ec-423e-8916-52322d64c522"/*ShaderResources*/,
-      "Position": {
-        "X": 106.01553,
-        "Y": 202.0835
       }
     }
   ],

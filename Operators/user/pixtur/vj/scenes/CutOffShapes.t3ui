@@ -4,7 +4,7 @@
   "InputUis": [],
   "SymbolChildUis": [
     {
-      "ChildId": "044b247e-1216-4f1b-a8a9-3db9e95897dc"/*Time*/,
+      "ChildId": "044b247e-1216-4f1b-a8a9-3db9e95897dc"/*_Time_old*/,
       "Position": {
         "X": 1798.7395,
         "Y": 588.6554
@@ -421,7 +421,7 @@
       }
     },
     {
-      "ChildId": "9166d3c8-d555-4e16-89ad-6de2d67e6082"/*Time*/,
+      "ChildId": "9166d3c8-d555-4e16-89ad-6de2d67e6082"/*_Time_old*/,
       "Position": {
         "X": 2680.0562,
         "Y": 1009.416
@@ -533,7 +533,7 @@
       }
     },
     {
-      "ChildId": "b81fbef8-59a2-4cb7-9aac-af34e7e4afc0"/*Time*/,
+      "ChildId": "b81fbef8-59a2-4cb7-9aac-af34e7e4afc0"/*_Time_old*/,
       "Position": {
         "X": 731.4574,
         "Y": 1746.4287

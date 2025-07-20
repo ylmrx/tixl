@@ -6,12 +6,12 @@
       "DefaultValue": 1
     },
     {
-      "Id": "5b3e69cf-cb55-4428-b78c-76f4f22cf2ac" /*Rounding*/,
-      "DefaultValue": 0.05
-    },
-    {
       "Id": "471d9c3b-ba5e-4b73-93cf-fb8ba76bf70e"/*UniformScale*/,
       "DefaultValue": 1.0
+    },
+    {
+      "Id": "5b3e69cf-cb55-4428-b78c-76f4f22cf2ac"/*Rounding*/,
+      "DefaultValue": 0.05
     },
     {
       "Id": "8d5c22bb-2910-4415-9bf8-ab304e35a5b2"/*Scale*/,

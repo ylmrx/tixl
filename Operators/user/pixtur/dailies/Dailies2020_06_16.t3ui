@@ -4,7 +4,7 @@
   "InputUis": [],
   "SymbolChildUis": [
     {
-      "ChildId": "0314c5de-3ba4-4dc0-91c3-2bdd211f53e3"/*Time*/,
+      "ChildId": "0314c5de-3ba4-4dc0-91c3-2bdd211f53e3"/*_Time_old*/,
       "Position": {
         "X": 69.18672,
         "Y": -391.3796
@@ -137,7 +137,7 @@
       }
     },
     {
-      "ChildId": "53c419a8-6c66-4953-b766-d164beead167"/*Time*/,
+      "ChildId": "53c419a8-6c66-4953-b766-d164beead167"/*_Time_old*/,
       "Position": {
         "X": 126.535034,
         "Y": -28.174734
@@ -256,7 +256,7 @@
       }
     },
     {
-      "ChildId": "a224dc5b-1af5-4cbf-8b86-95ccab6416c3"/*Time*/,
+      "ChildId": "a224dc5b-1af5-4cbf-8b86-95ccab6416c3"/*_Time_old*/,
       "Position": {
         "X": 2119.584,
         "Y": 722.8971
@@ -354,7 +354,7 @@
       }
     },
     {
-      "ChildId": "dad152d3-fe71-489d-a3c0-b2a4f3791d63"/*Time*/,
+      "ChildId": "dad152d3-fe71-489d-a3c0-b2a4f3791d63"/*_Time_old*/,
       "Position": {
         "X": 1085.1562,
         "Y": 55.64532

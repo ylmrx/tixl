@@ -8,20 +8,6 @@
         "X": -200.0,
         "Y": 0.0
       }
-    },
-    {
-      "InputId": "b63ffbe1-05f4-42ad-843b-14cbaa81805a"/*Offset*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 150.0
-      }
-    },
-    {
-      "InputId": "f48f4a84-7ca3-4604-8fe4-3bf0f9caa5b0"/*PlaneNormal*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 75.0
-      }
     }
   ],
   "SymbolChildUis": [],

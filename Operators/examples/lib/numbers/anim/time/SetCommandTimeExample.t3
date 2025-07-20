@@ -196,7 +196,7 @@
       "Outputs": []
     },
     {
-      "Id": "66a9addd-3e17-495c-9daa-6d6e1ddd9508"/*SetCommandTime*/,
+      "Id": "66a9addd-3e17-495c-9daa-6d6e1ddd9508"/*SetTime*/,
       "SymbolId": "32325c5b-53f7-4414-b4dd-a436e45528b0",
       "InputValues": [
         {
@@ -323,7 +323,7 @@
       "Outputs": []
     },
     {
-      "Id": "db9f87eb-6cff-42f8-9c0a-c48efc36b873"/*Time*/,
+      "Id": "db9f87eb-6cff-42f8-9c0a-c48efc36b873"/*_Time_old*/,
       "SymbolId": "9cb4d49e-135b-400b-a035-2b02c5ea6a72",
       "InputValues": [],
       "Outputs": []

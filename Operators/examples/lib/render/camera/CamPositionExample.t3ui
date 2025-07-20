@@ -78,7 +78,7 @@
       }
     },
     {
-      "ChildId": "25e8b622-b41d-4573-9d0c-b093850c7c45"/*Time*/,
+      "ChildId": "25e8b622-b41d-4573-9d0c-b093850c7c45"/*_Time_old*/,
       "Comment": "We use the time to spin the emit points into a twirl.",
       "Position": {
         "X": 678.4601,

@@ -57,7 +57,7 @@
       "GroupTitle": "Settings"
     },
     {
-      "InputId": "5ff607e0-a3db-4ece-93dc-3713669def9e"/*UseWForSize*/,
+      "InputId": "5ff607e0-a3db-4ece-93dc-3713669def9e"/*UseF1ForSize*/,
       "Position": {
         "X": 3177.2983,
         "Y": 4433.08

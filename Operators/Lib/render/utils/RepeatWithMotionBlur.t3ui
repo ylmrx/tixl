@@ -35,7 +35,7 @@
   ],
   "SymbolChildUis": [
     {
-      "ChildId": "049b32d5-bc85-4608-b9f7-ba9367ef318f"/*Time*/,
+      "ChildId": "049b32d5-bc85-4608-b9f7-ba9367ef318f"/*_Time_old*/,
       "Position": {
         "X": -131.27838,
         "Y": 98.67926
@@ -70,7 +70,7 @@
       }
     },
     {
-      "ChildId": "5eb0f4eb-9484-4543-886a-95f3f40706b9"/*SetCommandTime*/,
+      "ChildId": "5eb0f4eb-9484-4543-886a-95f3f40706b9"/*SetTime*/,
       "Position": {
         "X": 159.03241,
         "Y": 2.9956665

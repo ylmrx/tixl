@@ -20,7 +20,7 @@
   ],
   "Children": [
     {
-      "Id": "049b32d5-bc85-4608-b9f7-ba9367ef318f"/*Time*/,
+      "Id": "049b32d5-bc85-4608-b9f7-ba9367ef318f"/*_Time_old*/,
       "SymbolId": "9cb4d49e-135b-400b-a035-2b02c5ea6a72",
       "InputValues": [],
       "Outputs": []
@@ -67,7 +67,7 @@
       "Outputs": []
     },
     {
-      "Id": "5eb0f4eb-9484-4543-886a-95f3f40706b9"/*SetCommandTime*/,
+      "Id": "5eb0f4eb-9484-4543-886a-95f3f40706b9"/*SetTime*/,
       "SymbolId": "32325c5b-53f7-4414-b4dd-a436e45528b0",
       "InputValues": [],
       "Outputs": []

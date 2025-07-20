@@ -336,5 +336,5 @@ public class SpoutInput : Instance<SpoutInput>
     public readonly InputSlot<Command> Command = new();
 
     [Input(Guid = "C5C487D2-3EC0-49E3-9EA5-0B1238E82233")]
-    public InputSlot<string> ReceiverName = new();
+    public readonly InputSlot<string> ReceiverName = new();
 }

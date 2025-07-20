@@ -281,5 +281,5 @@ public class SpoutOutput : Instance<SpoutOutput>
     public readonly InputSlot<Texture2D> Texture = new();
 
     [Input(Guid = "7C27EBD7-3746-4B70-A252-DD0AC0445B74")]
-    public InputSlot<string> SenderName = new();
+    public readonly InputSlot<string> SenderName = new();
 }

@@ -2,43 +2,11 @@
   "Id": "56f7cf15-678d-4527-a328-8666a80882d0"/*_ExecuteCombineBuffers*/,
   "Inputs": [
     {
-      "Id": "000667bc-83a0-4cfa-8854-1884c52d7fdd"/*ConstantBuffers*/,
+      "Id": "c8a5769e-2536-4caa-8380-22fbeed1ef12"/*InputBuffers*/,
       "DefaultValue": null
-    },
-    {
-      "Id": "02986466-9fc6-43c5-9a56-0cf5f23d7e07"/*Dispatch*/,
-      "DefaultValue": {
-        "X": 16,
-        "Y": 16,
-        "Z": 1
-      }
-    },
-    {
-      "Id": "12e2aab0-9497-495a-bd5d-c6bd53361d6d"/*SamplerStates*/,
-      "DefaultValue": null
-    },
-    {
-      "Id": "17761557-53e6-4fef-a6ad-5a1400ee9791"/*VariousResources*/,
-      "DefaultValue": null
-    },
-    {
-      "Id": "89e04f53-1776-4a17-a4f5-3b96d69668d0"/*Uavs*/,
-      "DefaultValue": null
-    },
-    {
-      "Id": "8b9b1d61-b02c-4595-a573-18577978a65d"/*DispatchCallCount*/,
-      "DefaultValue": 1
     },
     {
       "Id": "d91e52f2-52c6-4533-ac14-f5b2ce8b4c0f"/*ComputeShader*/,
-      "DefaultValue": null
-    },
-    {
-      "Id": "e48c2690-1b6a-4f0f-894b-c8d094027fa8"/*UavBufferCounter*/,
-      "DefaultValue": -1
-    },
-    {
-      "Id": "e5cc24ef-50ec-423e-8916-52322d64c522"/*ShaderResources*/,
       "DefaultValue": null
     }
   ],

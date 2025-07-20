@@ -26,7 +26,7 @@
       "Outputs": []
     },
     {
-      "Id": "0322fff4-4509-4dd2-ba98-5eff50681344"/*SetCommandTime*/,
+      "Id": "0322fff4-4509-4dd2-ba98-5eff50681344"/*SetTime*/,
       "SymbolId": "32325c5b-53f7-4414-b4dd-a436e45528b0",
       "InputValues": [
         {
