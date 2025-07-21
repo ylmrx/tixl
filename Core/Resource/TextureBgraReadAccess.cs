@@ -24,7 +24,10 @@ public sealed class TextureBgraReadAccess : IDisposable
     {
         _useImmediateReadback = useImmediateReadback;
         _targetFormat = targetFormat;
-    }    
+    }
+
+
+    
     
     /// <summary>
     /// A helper method that uses a compute shader to convert the source texture first to 8bit. 
@@ -90,7 +93,7 @@ public sealed class TextureBgraReadAccess : IDisposable
         _readRequests.RemoveAt(0);
     }
 
-    public delegate void OnReadComplete(ReadRequestItem cpuAccessTexture);
+    public delegate void OnReadComplete(ReadRequestItem requestItem);
 
     
     /// <summary>

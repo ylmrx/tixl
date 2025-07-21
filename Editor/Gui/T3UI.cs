@@ -9,6 +9,7 @@ using T3.Core.DataTypes.DataSet;
 using T3.Core.Operator;
 using T3.Core.Operator.Interfaces;
 using T3.Core.Resource;
+using T3.Core.Video;
 using T3.Editor.App;
 using T3.Editor.Compilation;
 using T3.Editor.Gui.Dialog;
@@ -23,6 +24,7 @@ using T3.Editor.Gui.Templates;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.Gui.Windows.Layouts;
 using T3.Editor.Gui.Windows.Output;
+using T3.Editor.Gui.Windows.RenderExport;
 using T3.Editor.UiModel;
 using T3.Editor.UiModel.Commands;
 using T3.Editor.UiModel.Helpers;
@@ -78,7 +80,7 @@ public static class T3Ui
             PlaybackUtils.UpdatePlaybackAndSyncing();
             AudioEngine.CompleteFrame(Playback.Current, Playback.LastFrameDuration);  
         }
-        TextureBgraReadAccess.Update();
+        ScreenshotWriter.Update();
         
         ResourceManager.RaiseFileWatchingEvents();
 
@@ -374,15 +376,12 @@ public static class T3Ui
     internal static readonly MidiDataRecording MidiDataRecording = new(DataRecording.ActiveRecordingSet);
     internal static readonly OscDataRecording OscDataRecording = new(DataRecording.ActiveRecordingSet);
 
-    //private static readonly AutoBackup.AutoBackup _autoBackup = new();
-
     internal static readonly CreateFromTemplateDialog CreateFromTemplateDialog = new();
     private static readonly UserNameDialog _userNameDialog = new();
     internal static readonly AboutDialog AboutDialog = new();
     private static readonly SearchDialog _searchDialog = new();
     internal static readonly NewProjectDialog NewProjectDialog = new();
     internal static readonly ExitDialog ExitDialog = new();
-    internal static readonly TextureBgraReadAccess TextureBgraReadAccess = new();
     private static readonly List<EditableSymbolProject> _modifiedProjects = new();
 
     [Flags]

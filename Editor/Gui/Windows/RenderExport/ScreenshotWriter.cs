@@ -1,30 +1,34 @@
 #nullable enable
 
-using System;
 using SharpDX;
 using SharpDX.IO;
 using SharpDX.WIC;
 using T3.Core.Animation;
 using T3.Core.DataTypes;
-using T3.Core.Logging;
 using T3.Core.Resource;
 
-namespace T3.Core.Video;
+namespace T3.Editor.Gui.Windows.RenderExport;
 
-public static class ScreenshotWriter
+internal static class ScreenshotWriter
 {
-    public enum FileFormats
+    internal enum FileFormats
     {
         Png,
         Jpg,
     }
 
-    public static string? LastFilename { get; private set; }
-    
     private static TextureBgraReadAccess? _textureBgraReadAccess;
+    internal static string? LastFilename { get; private set; }
+
+    //private static TextureBgraReadAccess? _textureBgraReadAccess;
     private static int _lastUpdateFrame = 0;
 
-    public static void Update()
+    internal static void ClearQueue()
+    {
+        _textureBgraReadAccess?.ClearQueue();
+    }
+
+    internal static void Update()
     {
         if (Playback.FrameCount == _lastUpdateFrame) 
             return;
@@ -33,7 +37,16 @@ public static class ScreenshotWriter
         _lastUpdateFrame = Playback.FrameCount;
     }
 
-    public static bool StartSavingToFile(Texture2D gpuTexture, string filepath, FileFormats format)
+    internal static bool InitiateConvertAndReadBack2(Texture2D gpuTexture, TextureBgraReadAccess.OnReadComplete saveSampleAfterReadback)
+    {
+        if (_textureBgraReadAccess == null)
+            _textureBgraReadAccess = new TextureBgraReadAccess();
+        
+        _useFormats = FileFormats.Png;
+        return _textureBgraReadAccess.InitiateConvertAndReadBack(gpuTexture, saveSampleAfterReadback);        
+    }
+
+    internal static bool StartSavingToFile(Texture2D gpuTexture, string filepath, FileFormats format)
     {
         if (_textureBgraReadAccess == null)
             _textureBgraReadAccess = new TextureBgraReadAccess();
@@ -144,5 +157,6 @@ public static class ScreenshotWriter
     /// <see cref="_textureBgraReadAccess"/> in core.
     /// </summary>
     private static FileFormats _useFormats = FileFormats.Png;
+
 
 }

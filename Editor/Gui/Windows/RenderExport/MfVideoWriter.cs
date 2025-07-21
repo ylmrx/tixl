@@ -13,6 +13,7 @@ using SharpDX.WIC;
 using T3.Core.DataTypes;
 using T3.Core.DataTypes.Vector;
 using T3.Core.Resource;
+using T3.Core.Video;
 using MF = SharpDX.MediaFoundation;
 
 namespace T3.Editor.Gui.Windows.RenderExport;
@@ -162,7 +163,7 @@ internal abstract class MfVideoWriter : IDisposable
         }
 
         // Initiate reading next frame
-        if (!T3Ui.TextureBgraReadAccess.InitiateConvertAndReadBack(gpuTexture, SaveSampleAfterReadback))
+        if (!ScreenshotWriter.InitiateConvertAndReadBack2(gpuTexture, SaveSampleAfterReadback))
         {
             Log.Warning("Can't initiate texture readback");
         }
@@ -352,8 +353,6 @@ internal abstract class MfVideoWriter : IDisposable
                 SinkWriter = null;
             }
         }
-
-        T3Ui.TextureBgraReadAccess.Dispose();
     }
     #endregion
 
@@ -403,4 +402,5 @@ internal sealed class Mp4VideoWriter : MfVideoWriter
     /// Internal use: FlipY during rendering?
     /// </summary>
     protected override bool FlipY => true;
+    public static TextureBgraReadAccess? _textureBgraReadAccess;
 }

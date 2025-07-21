@@ -232,7 +232,7 @@ namespace T3.Editor.Gui.Windows.RenderExport
                 _targetFolder = targetPath;
             }
 
-            T3Ui.TextureBgraReadAccess.ClearQueue();
+            ScreenshotWriter.ClearQueue();
         }
 
         private static bool ProcessCurrentFrame(ref Texture2D mainTexture, Int2 size)
