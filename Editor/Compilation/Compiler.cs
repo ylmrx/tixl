@@ -116,9 +116,17 @@ internal static class Compiler
     {
         var verbosity = UserSettings.Config?.CompileCsVerbosity ?? CompilerOptions.Verbosity.Normal;
 
-        var arguments = new StringBuilder();
         if (nugetRestore)
-            arguments.Append("restore \"").Append(projectFile.FullPath).Append("\" && ");
+        {
+            var (restoreOutput, restoreExitCode) = RunCommand($"dotnet restore \"{projectFile.FullPath}\" --nologo", projectFile.Directory);
+            if (restoreExitCode != 0)
+            {
+                Log.Error($"Restore failed:\n{restoreOutput}");
+                return false;
+            }
+        }
+        
+        var arguments = new StringBuilder();
 
         arguments.Append("dotnet build \"")
                  .Append(projectFile.FullPath)
