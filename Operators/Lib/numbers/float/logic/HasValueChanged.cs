@@ -30,7 +30,7 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
         var minTimeBetweenHits = MinTimeBetweenHits.GetValue(context);
         var preventContinuedChanges = PreventContinuedChanges.GetValue(context);
 
-        if (Math.Abs(context.LocalFxTime - _lastEvalTime) < 0.010f)
+        if (Math.Abs(context.LocalFxTime - _lastEvalTime) < 0.0002f)
             return;
 
         _lastEvalTime = context.LocalFxTime;
