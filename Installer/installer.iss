@@ -13,15 +13,13 @@
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
 AppId=t3.tixl
 AppName={#MyAppName}
-;AppVersion={#MyAppVersion}
 AppVersion={#MyAppVersion}
-;AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
-DefaultDirName=c:\TiXL\TiXL-v{#MyAppVersion}
-UsePreviousAppDir=no
+DefaultDirName={autopf}\TiXL\TiXL {#MyAppVersion}
+UsePreviousAppDir=no 
 
 ; "ArchitecturesAllowed=x64compatible" specifies that Setup cannot run
 ; on anything but x64 and Windows 11 on Arm.
