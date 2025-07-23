@@ -22,7 +22,7 @@ public static class FileLocations
     /// We extract this because this will later not be available for published versions.
     /// Providing this at this location will help refactoring later. 
     /// </summary>
-    private static string StartFolder => RuntimeAssemblies.CoreDirectory!;
+    public static string StartFolder => AppContext.BaseDirectory;
     
     /// <summary>
     /// A subfolder next in the editor start folder.

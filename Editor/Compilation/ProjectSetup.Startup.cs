@@ -187,6 +187,6 @@ internal static partial class ProjectSetup
     }
 
 
-    private static readonly string CoreOperatorDirectory = Path.Combine(RuntimeAssemblies.CoreDirectory, "Operators");
-    private static readonly string T3ParentDirectory = Path.Combine(RuntimeAssemblies.CoreDirectory, "..", "..", "..", "..");
+    private static readonly string CoreOperatorDirectory = Path.Combine(FileLocations.StartFolder, "Operators");
+    private static readonly string T3ParentDirectory = Path.Combine(FileLocations.StartFolder, "..", "..", "..", "..");
 }

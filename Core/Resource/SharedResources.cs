@@ -18,7 +18,7 @@ namespace T3.Core.Resource;
 /// </summary>
 public static class SharedResources
 {
-    public static readonly string Directory = Path.Combine(RuntimeAssemblies.CoreDirectory, FileLocations.ResourcesSubfolder);
+    public static readonly string Directory = Path.Combine(FileLocations.StartFolder, FileLocations.ResourcesSubfolder);
     public static readonly IResourcePackage ResourcePackage = new SharedResourceObject();
         
     static SharedResources()

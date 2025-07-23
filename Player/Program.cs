@@ -27,6 +27,7 @@ using Device = SharpDX.Direct3D11.Device;
 using Resource = SharpDX.Direct3D11.Resource;
 using SharpDX.Windows;
 using SilkWindows;
+using T3.Core.UserData;
 using T3.Core.Utils;
 using T3.Serialization;
 using DeviceContext = SharpDX.Direct3D11.DeviceContext;
@@ -68,7 +69,7 @@ internal static partial class Program
         CoreUi.Instance = new MsForms.MsForms();
         BlockingWindow.Instance = new SilkWindowProvider();
             
-        var settingsPath = Path.Combine(RuntimeAssemblies.CoreDirectory, "exportSettings.json");
+        var settingsPath = Path.Combine(FileLocations.StartFolder, "exportSettings.json");
         if (!JsonUtils.TryLoadingJson(settingsPath, out ExportSettings exportSettings))
         {
             var message = $"Failed to load export settings from \"{settingsPath}\". Exiting!";

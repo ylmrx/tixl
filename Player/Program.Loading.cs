@@ -11,6 +11,7 @@ using T3.Core.Logging;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.UserData;
 using Texture2D = T3.Core.DataTypes.Texture2D;
 
 namespace T3.Player;
@@ -19,7 +20,7 @@ internal static partial class Program
 {
     private static void LoadOperators()
     {
-        var searchDirectory = Path.Combine(RuntimeAssemblies.CoreDirectory, "Operators");
+        var searchDirectory = Path.Combine(FileLocations.StartFolder, "Operators");
         Log.Info($"Loading operators from \"{searchDirectory}\"...");
 
         var assemblies = Directory.GetDirectories(searchDirectory, "*", SearchOption.TopDirectoryOnly)
