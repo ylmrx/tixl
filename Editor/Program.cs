@@ -65,11 +65,11 @@ internal static class Program
         Console.WriteLine("Creating DX11ShaderCompiler");
         ShaderCompiler.Instance = new DX11ShaderCompiler();
 
-        Console.WriteLine("Validating startup location");
-        StartupValidation.ValidateNotRunningFromSystemFolder();
+        // Console.WriteLine("Validating startup location");
+        // StartupValidation.ValidateNotRunningFromSystemFolder();
         
-        Console.WriteLine("Validating execution policy");
-        StartupValidation.ValidateExecutionPolicy();
+        // Console.WriteLine("Validating execution policy");
+        // StartupValidation.ValidateExecutionPolicy();
 
         Console.WriteLine("Enabling DPI aware scaling");
         EditorUi.Instance.EnableDpiAwareScaling();
