@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using T3.Core.Logging;
+using T3.Core.Utils;
 
 namespace T3.Core.Operator;
 
@@ -61,7 +62,7 @@ public sealed partial class Symbol
                             return child;
                         }
 
-                        Log.Warning($"Parent mismatch for {childId} in {Name}");
+                        Log.Debug($"{Name} instance child for  {parent.Name} {childId.ShortenGuid()} already exist in other parent {child.Parent?.Id.ShortenGuid()}");
                         child = CreateWithNewId(child, parent);
                         _childrenCreatedFromMe.TryAdd(child.Id, child);
                         replacedId = true;

@@ -95,14 +95,16 @@ internal static class KeyMapSwitching
         
         KeyMaps.Add(_factoryKeymap);
         Directory.CreateDirectory(KeyMapFolder);
-        Directory.CreateDirectory(DefaultKeyMapFolder);
 
-        // copy default KeyBindings if not present
-        foreach (var keyMap in Directory.EnumerateFiles(DefaultKeyMapFolder))
+        if (Directory.Exists(DefaultKeyMapFolder))
         {
-            var targetPath = Path.Combine(KeyMapFolder, Path.GetFileName(keyMap));
-            if (!File.Exists(targetPath))
-                File.Copy(keyMap, targetPath);
+            // copy default KeyBindings if not present
+            foreach (var keyMap in Directory.EnumerateFiles(DefaultKeyMapFolder))
+            {
+                var targetPath = Path.Combine(KeyMapFolder, Path.GetFileName(keyMap));
+                if (!File.Exists(targetPath))
+                    File.Copy(keyMap, targetPath);
+            }
         }
 
         foreach (var filepath in Directory.EnumerateFiles(KeyMapFolder))

@@ -23,10 +23,9 @@ internal static class ShaderLinter
         var jsonObject = new HlslToolsJson(filePath);
         var resourceFolderList = jsonObject.IncludeDirectories;
         var virtualIncludeDirectories = jsonObject.VirtualDirectoryMappings;
-        
 
         resourceFolderList.Add(package.ResourcesFolder);
-        if(package.Alias != null)
+        if (package.Alias != null)
         {
             virtualIncludeDirectories.Add('/' + package.Alias, package.ResourcesFolder);
         }
@@ -43,10 +42,13 @@ internal static class ShaderLinter
             }
         }
 
-        if (!JsonUtils.TrySaveJson(jsonObject, filePath))
+        if (!package.IsReadOnly)
         {
-            Log.Error($"{nameof(ShaderLinter)}: failed to save {FileName} to \"{filePath}\"");
-            return;
+            if (!JsonUtils.TrySaveJson(jsonObject, filePath))
+            {
+                Log.Error($"{nameof(ShaderLinter)}: failed to save {FileName} to \"{filePath}\"");
+                return;
+            }
         }
 
         if (!replaceExisting)
@@ -80,7 +82,7 @@ internal static class ShaderLinter
     {
         [JsonProperty("root")]
         public readonly bool Root = true;
-        
+
         [JsonProperty("hlsl.preprocessorDefinitions")]
         public readonly string[] PreProcessorDefinitions = Array.Empty<string>();
 
@@ -101,19 +103,19 @@ internal static class ShaderLinter
             Log.Error($"{nameof(ShaderLinter)}: failed to remove {resourcePackage.ResourcesFolder}");
             return;
         }
-        
+
         var filePath = json.FilePath;
-        
+
         TryDelete(filePath);
         HlslToolsJsons.Remove(resourcePackage);
 
         if (Program.IsShuttingDown)
             return;
-        
+
         var resourceFolder = resourcePackage.ResourcesFolder;
-        foreach(var dependent in HlslToolsJsons.Values)
+        foreach (var dependent in HlslToolsJsons.Values)
         {
-            if(dependent.IncludeDirectories.Remove(resourceFolder))
+            if (dependent.IncludeDirectories.Remove(resourceFolder))
                 JsonUtils.TrySaveJson(json, dependent.FilePath);
         }
     }
