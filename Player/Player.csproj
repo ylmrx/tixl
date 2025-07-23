@@ -14,7 +14,7 @@
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <DebugSymbols>true</DebugSymbols>
+        <DebugSymbols>false</DebugSymbols>
     </PropertyGroup>
 
     <ItemGroup>
@@ -50,6 +50,6 @@
 
     <Target Name="ClearBuildOutput" BeforeTargets="BeforeBuild">
         <!-- Clear previous files in the export folder -->
-        <RemoveDir Directories="bin/$(Configuration)"/>
+        <RemoveDir Directories="bin/$(Configuration)" />
     </Target>
 </Project>

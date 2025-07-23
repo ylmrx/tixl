@@ -128,7 +128,8 @@
     <!-- This copies the Player build into the output directory -->
     <!-- Notice the similarities (and differences) between this and the CopyLibs target below -->
     <ItemGroup>
-        <Player Include="../Player/$(RelativeBuildFolder)/**/*" Visible="false" />
+        <!-- <RelativeBuildFolder>..\PublishedPlayer</RelativeBuildFolder> -->
+        <Player Include="../Player/bin/ReleasePublished/**/*" Visible="false" />
     </ItemGroup>
     <Target Name="CopyPlayer" AfterTargets="AfterBuild">
         <Copy SourceFiles="@(Player)" SkipUnchangedFiles="true" UseHardlinksIfPossible="true"
