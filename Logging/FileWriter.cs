@@ -7,13 +7,21 @@ public sealed class FileWriter : ILogWriter
 {
     public ILogEntry.EntryLevel Filter { get; set; }
 
-    public FileWriter(string directory, string filename)
+    private FileWriter(string directory, string filename)
     {
         LogDirectory = Path.Combine(directory, LogSubDirectory);
         _logPath = Path.Combine(LogDirectory, filename);
 
         Directory.CreateDirectory(LogDirectory);
-        _streamWriter = new StreamWriter(_logPath);
+        try
+        {
+            _streamWriter = new StreamWriter(_logPath);
+        }
+        catch (Exception e)
+        {
+            Log.Error("Failed to create log file: " + e.Message);
+            return;
+        }
         //#if DEBUG
         _streamWriter.AutoFlush = true;
         //#endif
@@ -21,6 +29,9 @@ public sealed class FileWriter : ILogWriter
 
     public void Dispose()
     {
+        if (_streamWriter == null)
+            return;
+        
         _streamWriter.Flush();
         _streamWriter.Close();
         _streamWriter.Dispose();
@@ -28,7 +39,7 @@ public sealed class FileWriter : ILogWriter
 
     public static void Flush()
     {
-        if (Instance == null)
+        if (Instance?._streamWriter == null)
             return;
 
         lock (Instance._streamWriter)
@@ -39,6 +50,9 @@ public sealed class FileWriter : ILogWriter
 
     public void ProcessEntry(ILogEntry entry)
     {
+        if (_streamWriter == null)
+            return;
+        
         lock (_streamWriter)
         {
             try
@@ -55,7 +69,7 @@ public sealed class FileWriter : ILogWriter
     public static ILogWriter CreateDefault(string settingsFolder, out string path)
     {
         if (Instance != null)
-        {
+        {   
             path = Instance._logPath;
             return Instance;
         }
@@ -70,7 +84,7 @@ public sealed class FileWriter : ILogWriter
         return Instance;
     }
 
-    private readonly StreamWriter _streamWriter;
+    private readonly StreamWriter? _streamWriter;
     private readonly string _logPath;
     public readonly string LogDirectory;
     public static FileWriter? Instance { get; private set; }
