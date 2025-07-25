@@ -19,7 +19,7 @@ internal sealed class BmFontDescription
         try
         {
             var serializer = new XmlSerializer(typeof(Font));
-            var stream = new FileStream(filepath, FileMode.Open);
+            var stream = new FileStream(filepath, FileMode.Open, FileAccess.Read);
             
             bmFont = (Font?)serializer.Deserialize(stream);
             if (bmFont == null)

@@ -402,5 +402,4 @@ internal sealed class Mp4VideoWriter : MfVideoWriter
     /// Internal use: FlipY during rendering?
     /// </summary>
     protected override bool FlipY => true;
-    public static TextureBgraReadAccess? _textureBgraReadAccess;
 }
