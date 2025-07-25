@@ -92,6 +92,11 @@ public abstract partial class SymbolPackage : IResourcePackage
 
     protected virtual void InitializeResources()
     {
+        #if RELEASE
+        if (IsReadOnly)
+            return;
+        #endif
+        
         ResourcesFolder = Path.Combine(Folder, FileLocations.ResourcesSubfolder);
         Directory.CreateDirectory(ResourcesFolder);
         ResourceManager.AddSharedResourceFolder(this, AssemblyInformation.ShouldShareResources);

@@ -94,6 +94,11 @@ internal static partial class ProjectSetup
 
     private static void InitializePackageResources(EditorSymbolPackage package)
     {
+        #if RELEASE
+        if (package.IsReadOnly)
+            return;
+        #endif
+        
         package.InitializeShaderLinting(ResourceManager.SharedShaderPackages);
     }
 
