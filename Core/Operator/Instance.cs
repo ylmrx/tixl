@@ -46,6 +46,9 @@ public abstract partial class Instance :  IGuidPathContainer, IResourceConsumer
     {
         Outputs = _outputs;
         Inputs = _inputs;
+        Children = null!;
+        SymbolChild = null!;
+        InstancePath = [];
     }
 
     internal void SetSymbolInfo(Symbol.Child child, Symbol.Child? parent, IReadOnlyList<Guid> instancePath, int pathHash)

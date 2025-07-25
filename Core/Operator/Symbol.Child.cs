@@ -847,41 +847,42 @@ public partial class Symbol
                 return gotParent;
             }
 
-            void EnsureInstanceSlotsAreConnected(IReadOnlyList<Guid> instancePath, Instance existingInstance)
-            {
-                if (existingInstance is { NeedsInternalReconnections: true })
-                {
-                    existingInstance.ReconnectChildren();
-                }
-
-                if (Parent is null)
-                {
-                    // if we have no parent we have no connections to reconnect
-                    return;
-                }
-                
-                if(TryGetParentInstance(instancePath, out var wasCreated, out var parent))
-                {
-                    if (wasCreated)
-                    {
-                        // if the parent was just created via this invocation, then this instance should have been marked as not needing reconnections
-                        // so we can skip this
-                        Log.Debug("Recreated parent instance from child reference", parent);
-                        Debug.Assert(!existingInstance.NeedsInternalReconnections);
-                        return;
-                    }
-                    
-                    if (parent.NeedsInternalReconnections)
-                    {
-                        parent.ReconnectChildren();
-                        Log.Debug("Regenerated connections for parent", parent);
-                    }
-                }
-                else 
-                {
-                    Log.Error("Instance needs reconnections but parent is null - this probably shouldn't happen", existingInstance);
-                }
-            }
+            // TODO: No longer needed?
+            // void EnsureInstanceSlotsAreConnected(IReadOnlyList<Guid> instancePath, Instance existingInstance)
+            // {
+            //     if (existingInstance is { NeedsInternalReconnections: true })
+            //     {
+            //         existingInstance.ReconnectChildren();
+            //     }
+            //
+            //     if (Parent is null)
+            //     {
+            //         // if we have no parent we have no connections to reconnect
+            //         return;
+            //     }
+            //     
+            //     if(TryGetParentInstance(instancePath, out var wasCreated, out var parent))
+            //     {
+            //         if (wasCreated)
+            //         {
+            //             // if the parent was just created via this invocation, then this instance should have been marked as not needing reconnections
+            //             // so we can skip this
+            //             Log.Debug("Recreated parent instance from child reference", parent);
+            //             Debug.Assert(!existingInstance.NeedsInternalReconnections);
+            //             return;
+            //         }
+            //         
+            //         if (parent.NeedsInternalReconnections)
+            //         {
+            //             parent.ReconnectChildren();
+            //             Log.Debug("Regenerated connections for parent", parent);
+            //         }
+            //     }
+            //     else 
+            //     {
+            //         Log.Error("Instance needs reconnections but parent is null - this probably shouldn't happen", existingInstance);
+            //     }
+            // }
         }
         
 
