@@ -109,6 +109,7 @@ public sealed class NdiOutput : Instance<NdiOutput>, IStatusProvider
             stagingDesc.CpuAccessFlags = CpuAccessFlags.Read;
             stagingDesc.Usage = ResourceUsage.Staging;
             stagingDesc.MipLevels = 1; // later use copysubresource to use only mip 1 if necessary
+            stagingDesc.OptionFlags = ResourceOptionFlags.None;
 
             _stagingTexture = Texture2D.CreateTexture2D(stagingDesc);
 
