@@ -187,7 +187,7 @@ internal sealed class SymbolFilter
 
         if (symbolName.StartsWith(query, StringComparison.InvariantCultureIgnoreCase))
         {
-            relevancy *= 4.5f;
+            relevancy *= 8.5f;
         }
         else
         {
@@ -212,7 +212,7 @@ internal sealed class SymbolFilter
                         : 0;
 
         //symbolUi.Symbol.InstancesOfSymbol.Select(instance =>instance.SymbolChildId).Distinct().Count();
-        relevancy *= 1 + count / 100f;
+        relevancy *= 1 + (int)(100.0 * count / SymbolAnalysis.TotalUsageCount);
 
         // Bump if characters match upper characters
         // e.g. "ds" matches "DrawState"
@@ -234,7 +234,7 @@ internal sealed class SymbolFilter
             }
 
             if (pascalCaseMatch)
-                relevancy *= 5f;
+                relevancy *= 2f;
         }
 
         if (!string.IsNullOrEmpty(symbol.Namespace))
@@ -263,7 +263,7 @@ internal sealed class SymbolFilter
             // mega-boost symbols from the same package as the current project
             if (currentProject == symbolPackage)
             {
-                relevancy *= 5f;
+                relevancy *= 2f;
             }
 
             // or boost symbols from related namespaces

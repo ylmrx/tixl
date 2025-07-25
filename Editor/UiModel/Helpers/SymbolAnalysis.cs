@@ -45,6 +45,7 @@ internal static class SymbolAnalysis
     /// </summary>
     internal static void UpdateDetails()
     {
+        
         var usages = CollectSymbolUsageCounts();
             
         InformationForSymbolIds.Clear();
@@ -52,6 +53,8 @@ internal static class SymbolAnalysis
         foreach (var symbolUi in EditorSymbolPackage.AllSymbolUis)
         {
             usages.TryGetValue(symbolUi.Symbol.Id, out var usageCount);
+            TotalUsageCount += usageCount;
+            
             var requiredSymbols = CollectRequiredSymbols(symbolUi.Symbol);
             var invalidRequirements = CollectInvalidRequirements(symbolUi.Symbol, requiredSymbols).ToList();
             
@@ -78,6 +81,7 @@ internal static class SymbolAnalysis
     }
 
     internal static readonly Dictionary<Guid, SymbolInformation> InformationForSymbolIds = new(1000);
+    internal static int TotalUsageCount;
         
     /// <summary>
     /// We are storing all connections between input slots as hashes from _sourceSlotId x _targetSlotId.
@@ -154,6 +158,8 @@ internal static class SymbolAnalysis
     private static Dictionary<Guid, int> CollectSymbolUsageCounts()
     {
         var results = new Dictionary<Guid, int>();
+        TotalUsageCount = 0;
+        
 
         foreach (var s in EditorSymbolPackage.AllSymbols)
         {
@@ -161,6 +167,7 @@ internal static class SymbolAnalysis
             {
                 results.TryGetValue(child.Symbol.Id, out var currentCount);
                 results[child.Symbol.Id] = currentCount + 1;
+                TotalUsageCount++;
             }
         }
 
