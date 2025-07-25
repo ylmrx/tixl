@@ -37,8 +37,16 @@ public sealed class ChangeInstanceBypassedCommand : ICommand
             return;
         }
 
-        child.IsBypassed = shouldBeBypassed;
-        symbolUi.FlagAsModified();
+        try
+        {
+            child.IsBypassed = shouldBeBypassed;
+            symbolUi.FlagAsModified();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"Failed to set bypass state: {e.Message}");
+        }
+        
     }
 
     private readonly bool _newState;
