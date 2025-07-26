@@ -139,7 +139,8 @@ public sealed class InstanceChildren : IReadOnlyDictionary<Guid, Instance>
         var symbol = _asChild.Symbol;
         if (!symbol.Children.TryGetValue(childId, out var sourceChild))
         {
-            Log.Error($"{_asChild} failed to find child : {childId}");
+            // This happens frequently after deleting a child and some views like console or output are trying to access it.
+            //Log.Error($"{_asChild} failed to find child : {childId}");
             instance = null;
             return false;
         }

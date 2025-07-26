@@ -4,6 +4,7 @@ using SharpDX.Direct3D11;
 using SharpDX.IO;
 using SharpDX.WIC;
 using T3.Core.Animation;
+using T3.Core.UserData;
 using T3.Core.Utils;
 using T3.Core.Video;
 using Utilities = T3.Core.Utils.Utilities;
@@ -223,7 +224,7 @@ internal sealed class VisualTest : Instance<VisualTest>
         Playback.Current.IsRenderingToFile = false;
     }
 
-    private void SaveTexture(Texture2D texture, string filePath)
+    private static void SaveTexture(Texture2D texture, string filePath)
     {
         _textureBgraReadAccess.InitiateConvertAndReadBack(texture, WriteTextureToFile, filePath);
     }
@@ -267,7 +268,7 @@ internal sealed class VisualTest : Instance<VisualTest>
         var baseName = string.Join('_', parts);
         baseName += ".png";
 
-        return Path.Join(TestReferenceFolder, GetCompositionName(), baseName);
+        return Path.Join( FileLocations.TestReferencesFolder, GetCompositionName(), baseName);
     }
 
     private string GetCompositionName()
@@ -522,7 +523,15 @@ internal sealed class VisualTest : Instance<VisualTest>
     private Vector2 _timeRange;
     private bool _complainedOnce;
 
-    private const string TestReferenceFolder = ".tixl/tests";
+    // private const string ReferencesSubFolder = "tests";
+    // private const string ReferencesSourceFolder = ".tixl";
+    //
+    // #if DEBUG
+    // private const string ReferencesTargetFolder = FileLocations.AppSubFolder;
+    // #else
+    // private const string ReferencesTargetFolder = ".tixl";
+    // #endif
+
     // private const int DefaultHeight = 120;
     // private const int DefaultWidth = (int)(DefaultHeight * (16f / 9));
     private  Int2 _defaultResolution;

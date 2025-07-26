@@ -15,9 +15,17 @@ public static class FileLocations
     public const string RenderSubFolder = "RenderOutput";
     public const string ExportFolderName = "T3Exports";
     public const string KeyBindingSubFolder = "KeyBindings";
+    private const string TestsSubFolder = "Tests";
+    
+
     public static string TempFolder => Path.Combine(SettingsDirectory, "Tmp");
 
-    
+#if RELEASE
+    public static string TestReferencesFolder => Path.Combine(SettingsDirectory, TestsSubFolder);
+#else
+public static string TestReferencesFolder => Path.Combine(".tixl", TestsSubFolder);
+#endif
+
     /// <summary>
     /// We extract this because this will later not be available for published versions.
     /// Providing this at this location will help refactoring later. 
