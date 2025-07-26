@@ -3,6 +3,7 @@ using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.IO;
 using SharpDX.WIC;
+using T3.Core.Animation;
 using T3.Core.Utils;
 using T3.Core.Video;
 using Utilities = T3.Core.Utils.Utilities;
@@ -22,14 +23,6 @@ internal sealed class VisualTest : Instance<VisualTest>
 
     private void Update(EvaluationContext context)
     {
-        _stepCount = StepCount.GetValue(context).Clamp(1, 100);
-        _threshold = Threshold.GetValue(context);
-        _timeRange = TimeRange.GetValue(context);
-        _warmUpSteps = WarmUpStepCount.GetValue(context).Clamp(0, 1000);
-        var res=Resolution.GetValue(context);
-        _defaultResolution = new Int2(res.X.Clamp(1, 16383), 
-                                      res.Y.Clamp(1, 16383));
-
         var isExecution = context.IntVariables.TryGetValue(TestFrameKey, out var testFrame);
         if (!isExecution)
         {
@@ -38,6 +31,7 @@ internal sealed class VisualTest : Instance<VisualTest>
                 Log.Warning("Needs to be run with [ExecuteTests]", this);
                 _complainedOnce = true;
             }
+
             return;
         }
 
@@ -55,23 +49,59 @@ internal sealed class VisualTest : Instance<VisualTest>
             return;
         }
 
-        switch (testAction)
+        var contextAction = testAction switch
+                                {
+                                    TestCommandId             => States.Testing,
+                                    UpdateReferencesCommandId => States.UpdatingReferences,
+                                    _                         => States.Unknown,
+                                };
+
+        if (contextAction == States.Unknown)
         {
-            case "Test":
+            Log.Warning($"Unknown action {testAction}", this);
+            return;
+        }
+
+        if (contextAction != _state)
+        {
+            Log.Debug($"Switching to {contextAction}", this);
+            UpdateTestParams(context);
+            _state = contextAction;
+        }
+        
+        switch (_state)
+        {
+            case States.Testing:
                 ConductTests(context, testResultList);
                 break;
 
-            case "UpdateReferences":
+            case States.UpdatingReferences:
                 UpdateAndSaveReferences(context, testResultList);
-                break;
-
-            default:
-                Log.Warning($"Unknown action {testAction}", this);
                 break;
         }
     }
+    
 
-    private Texture2D UpdateImage(EvaluationContext context, int index, out float usedTime)
+    private const string TestCommandId= "Test";
+    private const string UpdateReferencesCommandId= "UpdateReferences";
+    
+    /// <summary>
+    /// We only update test params on state change so we can reuse the same settings during multiple tests.
+    /// This can be useful to iterate tests over multiple frames (e.g. while waiting at seeking within a video).
+    /// </summary>
+    private void UpdateTestParams(EvaluationContext context)
+    {
+        _testIndex = 0;
+        _stepCount = StepCount.GetValue(context).Clamp(1, 100);
+        _threshold = Threshold.GetValue(context);
+        _timeRange = TimeRange.GetValue(context);
+        _warmUpSteps = WarmUpStepCount.GetValue(context).Clamp(0, 1000);
+        var res=Resolution.GetValue(context);
+        _defaultResolution = new Int2(res.X.Clamp(1, 16383), 
+                                      res.Y.Clamp(1, 16383));
+    }
+
+    private bool  TryUpdateImage(EvaluationContext context, int index, out float usedTime, out Texture2D image)
     {
         usedTime = 0;
         var previousKeyframeTime = context.LocalTime;
@@ -81,9 +111,9 @@ internal sealed class VisualTest : Instance<VisualTest>
         context.ShowGizmos = GizmoVisibility.Off;
 
         var f = _stepCount <= 1 ? 0.5f : (float)index / _stepCount;
-        
+        Playback.Current.IsRenderingToFile = true;
         var stepStep = MathUtils.Lerp(_timeRange.X, _timeRange.Y, f);
-        Texture2D image = null;
+        image = null;
         for (int midStepIndex = 0; midStepIndex <= _warmUpSteps; midStepIndex++)
         {
             var subTime = _warmUpSteps <= 1 ? 0 : (float)midStepIndex / _warmUpSteps;
@@ -99,36 +129,54 @@ internal sealed class VisualTest : Instance<VisualTest>
             Image.DirtyFlag.ForceInvalidate();
 
             image = Image.GetValue(context);
-            
         }
-
+        
         context.ShowGizmos = previousGizmo;
         context.LocalTime = previousKeyframeTime;
         context.LocalFxTime = previousEffectTime;
         context.RequestedResolution = previousResolution;
-        return image;
+        return !Playback.OpNotReady;
     }
 
+    private enum States
+    {
+        Waiting,
+        UpdatingReferences,
+        Testing,
+        Completed,
+        Unknown,
+    }
+
+    
     private void UpdateAndSaveReferences(EvaluationContext context, List<string> testResultBuilder)
     {
-        for (int index = 0; index < _stepCount; index++)
+        for (; _testIndex < _stepCount; _testIndex++)
         {
-            var image = UpdateImage(context, index, out var time);
-            var filepath = GetReferenceFilepath(index);
+            var ready= TryUpdateImage(context, _testIndex, out _, out var image);
+            if (!ready)
+            {
+                Log.Debug(" waiting for op to be ready...", this);    
+                return;
+            }
+            var filepath = GetReferenceFilepath(_testIndex);
             Log.Debug("Saving image " + filepath, this);
 
             SaveTexture(image, filepath);
             testResultBuilder.Add("saved " + filepath);
         }
+
+        _state = States.Completed;
+        Playback.Current.IsRenderingToFile = false;
     }
+    
 
     private void ConductTests(EvaluationContext context, List<string> testResult)
     {
         SharpDX.Direct3D11.Texture2D diffColorImage = null;
-        for (int index = 0; index < _stepCount; index++)
+        for (; _testIndex < _stepCount; _testIndex++)
         {
-            var referenceFilepath = GetReferenceFilepath(index);
-            var testName = GetTestName(index);
+            var referenceFilepath = GetReferenceFilepath(_testIndex);
+            var testName = GetTestName(_testIndex);
             
             if (!TryLoadTextureFromFile(ResourceManager.Device, referenceFilepath, out var referenceImage))
             {
@@ -136,10 +184,22 @@ internal sealed class VisualTest : Instance<VisualTest>
                 continue;
             }
 
-            var image = UpdateImage(context, index, out var time);
+            var ready = TryUpdateImage(context, _testIndex, out var time, out var image);
+            if (!ready)
+            {
+                Log.Debug(" waiting for op to be ready...", this);    
+                return;
+            }
+
+            if (image == null)
+            {
+                Log.Debug(" failed to get image...", this);    
+                return;
+            }
+            
             var currentWithCpuAccess = _textureBgraReadAccess.ConvertToCpuReadableBgra(image);
             var deviation = CompareImage(currentWithCpuAccess, referenceImage);
-            var failPath = GetReferenceFilepath(index, "FAIL");
+            var failPath = GetReferenceFilepath(_testIndex, "FAIL");
             
             var timeLabel = time == 0 ? string.Empty : $"@{time:0.00}";
             if (deviation < _threshold)
@@ -153,12 +213,14 @@ internal sealed class VisualTest : Instance<VisualTest>
             }
             else
             {
-                SaveTexture(image, GetReferenceFilepath(index, "FAIL"));
+                SaveTexture(image, GetReferenceFilepath(_testIndex, "FAIL"));
                 testResult.Add($"{testName} {timeLabel}: FAILED ({deviation:0.00} > {_threshold})");
             }
             
             Utilities.Dispose(ref diffColorImage);
         }
+        _state = States.Completed;
+        Playback.Current.IsRenderingToFile = false;
     }
 
     private void SaveTexture(Texture2D texture, string filePath)
@@ -451,6 +513,9 @@ internal sealed class VisualTest : Instance<VisualTest>
         }
     }
     
+    private States _state = States.Waiting;
+    private int _testIndex;
+
     private int _warmUpSteps;
     private int _stepCount;
     private float _threshold;

@@ -4,6 +4,13 @@
   "InputUis": [],
   "SymbolChildUis": [
     {
+      "ChildId": "0e675013-1925-4741-a9e0-c0d055641e03"/*IoTests*/,
+      "Position": {
+        "X": 156.762,
+        "Y": 646.0258
+      }
+    },
+    {
       "ChildId": "10faad6c-183d-4705-bbf2-fda99f5c99e9"/*Test all*/,
       "Position": {
         "X": 436.762,
@@ -57,6 +64,13 @@
       "Position": {
         "X": 296.762,
         "Y": 576.0258
+      }
+    },
+    {
+      "ChildId": "ea931cc3-c474-403e-8e64-ea0c584f16ac"/*ExecuteTests*/,
+      "Position": {
+        "X": 296.762,
+        "Y": 646.0258
       }
     },
     {

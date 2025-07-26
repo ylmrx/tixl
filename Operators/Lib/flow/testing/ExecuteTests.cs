@@ -18,6 +18,10 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
         Result.UpdateAction = Update;
     }
 
+    private bool _isRunning;
+    private int _testInputIndex;
+    private int _testframeId;
+
     private void Update(EvaluationContext context)
     {
         var testframeId = "_TestFrame";
@@ -26,99 +30,135 @@ internal sealed class ExecuteTests : Instance<ExecuteTests>
 
         var onlyShowFails = OnlyShowFails.GetValue(context);
 
-        var testIndex = Playback.FrameCount;
         var isTestRoot = !context.IntVariables.TryGetValue(testframeId, out var frame);
 
         if (isTestRoot)
         {
-            context.IntVariables[testframeId] = testIndex;
-            _testResults.Clear();
+            context.IntVariables[testframeId] = Playback.FrameCount;
         }
         else
         {
-            Log.Debug("Forwarding test...", this);
+            //Log.Debug("Forwarding test...", this);
         }
 
         var needsUpdate = MathUtils.WasChanged(TriggerTest.GetValue(context), ref _testTriggered);
         needsUpdate |= MathUtils.WasChanged(UpdateReferences.GetValue(context), ref _updateReferences);
 
-        if (isTestRoot && !needsUpdate)
+        var subTextRestarted = false;
+        if (!isTestRoot)
+        {
+            if (context.ObjectVariables[testActionId] != null
+                && context.IntVariables[testframeId] != _testframeId)
+            {
+                subTextRestarted = true;
+                _testframeId = context.IntVariables[testframeId];
+            }
+        }
+        
+        if (isTestRoot && !needsUpdate && !_isRunning)
+        {
             return;
+        }
 
-        TriggerTest.SetTypedInputValue(false);
-        UpdateReferences.SetTypedInputValue(false);
-
+        if (subTextRestarted || needsUpdate && (_testTriggered || _updateReferences))
+        {
+            _stopwatch.Restart();
+            Playback.OpNotReady = false;
+            _isRunning = true;
+            Result.DirtyFlag.Trigger = DirtyFlagTrigger.Animated;
+            _testInputIndex = 0;
+            
+            
+            _rootTestResults.Clear();
+        }
+        
         if (isTestRoot)
         {
             if (_updateReferences)
             {
-                _stopwatch.Restart();
                 context.ObjectVariables[testActionId] = "UpdateReferences";
-                Log.Debug("Update references ..." + testIndex, this);
+                //Log.Debug("Updating references ..." + testIndex, this);
             }
             else if (_testTriggered)
             {
-                _stopwatch.Restart();
                 context.ObjectVariables[testActionId] = "Test";
-                Log.Debug("Started test ..." + testIndex, this);
+                //Log.Debug("Testing ..." + testIndex, this);
             }
             else
             {
                 return;
             }
 
-            context.ObjectVariables[testResultId] = _testResults;
+            context.ObjectVariables[testResultId] = _rootTestResults;
         }
+
 
         var testSlots = Tests.CollectedInputs;
 
-        // execute commands
-        for (int i = 0; i < testSlots.Count; i++)
+        // Execute test commands
+        while (_testInputIndex < testSlots.Count)
         {
-            testSlots[i].DirtyFlag.ForceInvalidate();
-            testSlots[i].GetValue(context);
+            //Log.Debug($" {_testInputIndex} / {testSlots.Count}",this);
+            testSlots[_testInputIndex].DirtyFlag.ForceInvalidate();
+            testSlots[_testInputIndex].GetValue(context);
+            
+            if (Playback.OpNotReady)
+                break;
+
+            _testInputIndex++;
         }
 
-        if (isTestRoot)
-        {
-            if (!context.IntVariables.Remove(testframeId))
-                Log.Warning($"Expected {testframeId} variable for roottest");
-
-            _stopwatch.Stop();
-
-            _stringBuilder.Clear();
-            var countFails = 0;
-            var countSuccess = 0;
-            foreach (var line in _testResults)
-            {
-                if (line.Contains("FAILED"))
-                {
-                    _stringBuilder.AppendLine(line);
-                    countFails++;
-                }
-                else if (line.Contains("PASSED"))
-                {
-                    countSuccess++;
-                    if (!onlyShowFails)
-                        _stringBuilder.AppendLine(line);
-                }
-            }
-
-            var countTotal = countFails + countSuccess;
-            var passedLabel = countFails == 0 ? "SUCCESS" : "FAILED";
-
-            _stringBuilder.Insert(0, $"{passedLabel}:   {countSuccess} / {countTotal}  {_stopwatch.ElapsedMilliseconds * 0.001:0.0s}\n\n");
-
-            Result.Value = _stringBuilder.ToString();
-        }
-        else
+        if (!isTestRoot)
         {
             Result.Value = "intermediate test";
+            return;
+        }
+        
+        if (!context.IntVariables.Remove(testframeId))
+            Log.Warning($"Expected {testframeId} variable for root test");
+
+        if (Playback.OpNotReady)
+            return;
+
+        _stopwatch.Stop();
+
+        _stringBuilder.Clear();
+        var countFails = 0;
+        var countSuccess = 0;
+        foreach (var line in _rootTestResults)
+        {
+            if (line.Contains("FAILED"))
+            {
+                _stringBuilder.AppendLine(line);
+                countFails++;
+            }
+            else if (line.Contains("PASSED"))
+            {
+                countSuccess++;
+                if (!onlyShowFails)
+                    _stringBuilder.AppendLine(line);
+            }
+        }
+
+        var countTotal = countFails + countSuccess;
+        var passedLabel = countFails == 0 ? "SUCCESS" : "FAILED";
+
+        _stringBuilder.Insert(0, $"{passedLabel}:   {countSuccess} / {countTotal}  {_stopwatch.ElapsedMilliseconds * 0.001:0.0s}\n\n");
+
+        Result.Value = _stringBuilder.ToString();
+
+        if (!Playback.OpNotReady)
+        {
+            Log.Debug("Completed", this);
+            TriggerTest.SetTypedInputValue(false);
+            UpdateReferences.SetTypedInputValue(false);
+            Result.DirtyFlag.Trigger = DirtyFlagTrigger.None;
+            _isRunning = false;
         }
     }
 
     private readonly StringBuilder _stringBuilder = new();
-    private readonly List<string> _testResults = [];
+    private readonly List<string> _rootTestResults = [];
     private bool _testTriggered;
     private bool _updateReferences;
 
