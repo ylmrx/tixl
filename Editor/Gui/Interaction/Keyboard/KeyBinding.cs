@@ -33,6 +33,11 @@ internal sealed class KeyBinding
             && !ImGui.IsWindowHovered(ImGuiHoveredFlags.ChildWindows))
             return false;
 
+        // Prevent keyboard shortcuts while inputs are active
+        if ((_flags & KeyActionHandling.Flags.RemainActiveWhenItemActive) == 0
+            && !ImGui.IsAnyItemActive())
+            return false;
+        
         return true;
     }
 

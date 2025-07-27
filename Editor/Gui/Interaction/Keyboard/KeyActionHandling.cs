@@ -24,18 +24,26 @@ internal static class KeyActionHandling
             _initialized = true;
         }
 
-        _anyKeysPressed = ImGui.GetIO().KeysDown.Count > 0;
+        var keysDown = ImGui.GetIO().KeysDown;
+        _anyKeysPressed = false;
+        for(var index =0 ; index< keysDown.Count;index++)
+        {
+            if (!keysDown[index]) 
+                continue;
+            
+            _anyKeysPressed = true;
+            break;
+
+        }
+        //_anyKeysPressed = ImGui.GetIO().KeysDown.Count > 0;
+        //Log.Debug($" Any Active {_anyKeysPressed}  count: {ImGui.GetIO().k.Count}");
     }
 
     internal static bool Triggered(this UserActions action)
     {
         if (!_anyKeysPressed || !UserSettings.Config.EnableKeyboardShortCuts)
             return false;
-
-        // Prevent keyboard shortcuts while inputs are active
-        if (ImGui.IsAnyItemActive())
-            return false;
-
+        
         var io = ImGui.GetIO();
 
         // Todo: Refactor this with lookup list
@@ -86,8 +94,9 @@ internal static class KeyActionHandling
         None = 0,
         NeedsWindowFocus = 1 << 1,
         NeedsWindowHover = 1 << 2,
-        KeyPressOnly = 1 << 3,
-        KeyHoldOnly = 1 << 4,
+        RemainActiveWhenItemActive = 1<<3,  // Most shortcuts should be disabled when some input item is active, which few exceptions like WASD camera short cuts 
+        KeyPressOnly = 1 << 4,
+        KeyHoldOnly = 1 << 5,
     }
 
     /// <summary>
@@ -140,12 +149,12 @@ internal static class KeyActionHandling
         RegisterActionsFlags(UserActions.SelectToLeft, Flags.NeedsWindowFocus);
 
         // Camera controls
-        RegisterActionsFlags(UserActions.CameraLeft, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
-        RegisterActionsFlags(UserActions.CameraRight, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
-        RegisterActionsFlags(UserActions.CameraForward, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
-        RegisterActionsFlags(UserActions.CameraBackward, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
-        RegisterActionsFlags(UserActions.CameraUp, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
-        RegisterActionsFlags(UserActions.CameraDown, Flags.NeedsWindowHover | Flags.KeyHoldOnly);
+        RegisterActionsFlags(UserActions.CameraLeft, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
+        RegisterActionsFlags(UserActions.CameraRight, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
+        RegisterActionsFlags(UserActions.CameraForward, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
+        RegisterActionsFlags(UserActions.CameraBackward, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
+        RegisterActionsFlags(UserActions.CameraUp, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
+        RegisterActionsFlags(UserActions.CameraDown, Flags.NeedsWindowHover | Flags.KeyHoldOnly | Flags.RemainActiveWhenItemActive);
         // Camera reset and focus
         RegisterActionsFlags(UserActions.CameraReset, Flags.NeedsWindowHover);
         RegisterActionsFlags(UserActions.CameraFocusSelection, Flags.NeedsWindowHover);

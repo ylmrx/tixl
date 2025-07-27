@@ -314,54 +314,55 @@ internal sealed class CameraInteraction
 
         if (!ImGui.IsWindowFocused(ImGuiFocusedFlags.ChildWindows))
             return false;
+        
 
         var acc = CameraInteractionParameters.CameraAcceleration * UserSettings.Config.CameraSpeed * _deltaTime * 60;
         var wasModified = false;
 
-        if (KeyActionHandling.Triggered(UserActions.CameraLeft))
+        if (UserActions.CameraLeft.Triggered())
         {   
             _moveVelocity += _viewAxis.Left * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraRight))
+        if (UserActions.CameraRight.Triggered())
         {
             _moveVelocity -= _viewAxis.Left * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraForward))
+        if (UserActions.CameraForward.Triggered())
         {
             _moveVelocity += Vector3.Normalize(_viewAxis.ViewDistance) * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraBackward))
+        if (UserActions.CameraBackward.Triggered())
         {
             _moveVelocity -= Vector3.Normalize(_viewAxis.ViewDistance) * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraUp))
+        if (UserActions.CameraUp.Triggered())
         {
             _moveVelocity += _viewAxis.Up * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraDown))
+        if (UserActions.CameraDown.Triggered())
         {
             _moveVelocity -= _viewAxis.Up * acc;
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraReset))
+        if (UserActions.CameraReset.Triggered())
         {
             _moveVelocity = Vector3.Zero;
             _intendedSetup.Reset();
             wasModified = true;
         }
 
-        if (KeyActionHandling.Triggered(UserActions.CameraFocusSelection))
+        if (UserActions.CameraFocusSelection.Triggered())
         {
             _moveVelocity = Vector3.Zero;
             _intendedSetup.Target = TransformGizmoHandling.GetLatestSelectionCenter();
