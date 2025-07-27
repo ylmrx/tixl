@@ -98,7 +98,7 @@ internal sealed class CurveState
         foreach (var keyEntry in array)
         {
             var time = keyEntry.Value<double>("Time");
-            time = Math.Round(time, Curve.TIME_PRECISION);
+            time = Math.Round(time, Curve.TimePrecision);
             var key = new VDefinition();
             key.Read(keyEntry);
             key.U = time;

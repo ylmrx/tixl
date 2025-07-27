@@ -30,7 +30,7 @@ public sealed class VDefinition
     public double U
     {
         get => _u; 
-        set => _u = Math.Round(value, Curve.TIME_PRECISION);
+        set => _u = Math.Round(value, Curve.TimePrecision);
     }
             
     public double Value { get; set; } = 0.0;

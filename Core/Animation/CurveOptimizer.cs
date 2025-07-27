@@ -21,9 +21,9 @@ public class CurveOptimizer
         // Gather all positions from the curves in a dictionary...
         var uniquePositions = new HashSet<double>();
 
-        foreach (var k in _curves.SelectMany(curve => curve.GetPointTable()))
+        foreach (var k in _curves.SelectMany(curve => curve.GetVDefinitions()))
         {
-            uniquePositions.Add(k.Key);
+            uniquePositions.Add(k.U);
         }
 
         _positionsWithImpact = new List<PositionWithImpact>(); ;

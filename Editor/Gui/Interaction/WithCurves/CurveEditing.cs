@@ -337,13 +337,13 @@ public abstract class CurveEditing
     }
 
     /// <summary>
-    /// A horrible hack to keep curve table-structure aligned with position stored in key definitions.
+    /// Align curve table-structure aligned with position stored in key definitions.
     /// </summary>
     protected void RebuildCurveTables()
     {
         foreach (var curve in GetAllCurves())
         {
-            foreach (var (u, vDef) in curve.GetPointTable())
+            foreach( var (u,vDef) in curve.Table.ToList()) // Copy before modifications
             {
                 if (Math.Abs(u - vDef.U) > 0.001f)
                 {

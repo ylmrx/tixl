@@ -263,11 +263,11 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
         foreach (var curve in parameter.Curves)
         {
-            var list = curve.GetPointTable();
+            var list = curve.GetVDefinitions();
             for (var index = 0; index < list.Count; index++)
             {
-                var vDef = list[index].Value;
-                var nextVDef = (index < list.Count - 1) ? list[index + 1].Value : null;
+                var vDef = list[index];
+                var nextVDef = index < list.Count - 1 ? list[index + 1] : null;
                 DrawKeyframe(compositionSymbolChildId, vDef, layerArea, parameter, nextVDef, drawList);
             }
         }
@@ -368,7 +368,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         var screenMaxX = TimeLineCanvas.Current.WindowPos.X + TimeLineCanvas.Current.WindowSize.X * 1.25f;
         foreach (var curve in parameter.Curves)
         {
-            var points = curve.GetPointTable();
+            var points = curve.GetVDefinitions();
             if (points.Count == 0)
                 continue;
 
@@ -385,7 +385,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
             for (var pointIndex = 0; pointIndex < pointCount; pointIndex++)
             {
-                var (u, vDef) = points[pointIndex];
+                var vDef = points[pointIndex];
+                var u = vDef.U;
 
                 // Sample new value range
                 var uOnScreen = TimeLineCanvas.Current.TransformX((float)u) - 1;
@@ -780,19 +781,30 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             {
                 foreach (var c in parameter.Curves)
                 {
-                    var matchingItems = c.GetPointTable()
-                                         .Select(pair => pair.Value)
-                                         .ToList()
-                                         .FindAll(key => key.U <= endTime && key.U >= startTime);
-                    switch (selectMode)
+                    var keysCount = c.Keys.Count;
+                    if (keysCount == 0)
+                        continue;
+                    
+                    var keyIndex = c.FindIndexBefore(startTime)+1;
+                    
+                    while (keyIndex != -1 && keyIndex < keysCount)
                     {
-                        case SelectionFence.SelectModes.Add:
-                        case SelectionFence.SelectModes.Replace:
-                            SelectedKeyframes.UnionWith(matchingItems);
+                        var key = c.Keys[keyIndex];
+                        if (key.U > endTime)
                             break;
-                        case SelectionFence.SelectModes.Remove:
-                            SelectedKeyframes.ExceptWith(matchingItems);
-                            break;
+                        
+                        switch (selectMode)
+                        {
+                            case SelectionFence.SelectModes.Add:
+                            case SelectionFence.SelectModes.Replace:
+                                SelectedKeyframes.Add(key);
+                                break;
+                            case SelectionFence.SelectModes.Remove:
+                                SelectedKeyframes.Remove(key);
+                                break;
+                        }
+                        
+                        keyIndex++;
                     }
                 }
             }

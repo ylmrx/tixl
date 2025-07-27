@@ -1,5 +1,7 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -8,9 +10,17 @@ using T3.Core.Logging;
 
 namespace T3.Core.DataTypes;
 
-public class Curve : IEditableInputType
+public sealed class Curve : IEditableInputType
 {
-    public static readonly int TIME_PRECISION = 4;
+    internal const int TimePrecision = 4;
+
+    public IList<VDefinition> GetVDefinitions()
+    {
+        return _state.Table.Values;
+    }
+
+    public IList<VDefinition> Keys => _state.Table.Values;
+    public SortedList<double, VDefinition> Table => _state.Table;
 
     public object Clone()
     {
@@ -22,74 +32,94 @@ public class Curve : IEditableInputType
         return new Curve { _state = _state.Clone() };
     }
 
-    public Animation.CurveUtils.OutsideCurveBehavior PreCurveMapping
-    {
-        get => _state.PreCurveMapping;
-        set => _state.PreCurveMapping = value;
-    }
+    public Animation.CurveUtils.OutsideCurveBehavior PreCurveMapping { get => _state.PreCurveMapping; set => _state.PreCurveMapping = value; }
 
-    public Animation.CurveUtils.OutsideCurveBehavior PostCurveMapping
-    {
-        get => _state.PostCurveMapping;
-        set => _state.PostCurveMapping = value;
-    }
+    public Animation.CurveUtils.OutsideCurveBehavior PostCurveMapping { get => _state.PostCurveMapping; set => _state.PostCurveMapping = value; }
 
     public bool HasVAt(double u)
     {
-        u = Math.Round(u, TIME_PRECISION);
+        u = Math.Round(u, TimePrecision);
         return _state.Table.ContainsKey(u);
     }
 
-    public int CompareTo(object obj)
-    {
-        if (obj.GetHashCode() < GetHashCode())
-        {
-            return -1;
-        }
-        else if (obj.GetHashCode() > GetHashCode())
-        {
-            return 1;
-        }
-        return 0;
-    }
+
 
     public bool HasKeyBefore(double u)
     {
         if (_state.Table.Count == 0)
             return false;
-            
-        return _state.Table.Keys[0] < Math.Round(u, TIME_PRECISION);
-    }
 
+        var smalledTime = _state.Table.Keys[0];
+        return smalledTime < Math.Round(u, TimePrecision);
+    }
 
     public bool HasKeyAfter(double u)
     {
         if (_state.Table.Count == 0)
             return false;
-            
-        return _state.Table.Keys[ _state.Table.Count-1] > Math.Round(u, TIME_PRECISION);
+
+        var largestTime = _state.Table.Keys[_state.Table.Count - 1];
+        return largestTime > Math.Round(u, TimePrecision);
     }
 
-    public bool TryGetPreviousKey(double u, out VDefinition key)
+    public bool TryGetPreviousKey(double u, [NotNullWhen(true)] out VDefinition? key)
     {
-        u = Math.Round(u, TIME_PRECISION);
-        // todo: Refactor to avoid linq and use binary search
-        (_, key) = _state.Table.LastOrDefault(e => e.Key < u);
-        return key != null;
+        var index = FindIndexBefore(u);
+        if (index >= 0)
+        {
+            key = _state.Table.Values[index];
+            return true;
+        }
+
+        key = null;
+        return false;
     }
-        
-    public bool TryGetNextKey(double u, out VDefinition key)
+
+    public bool TryGetNextKey(double u, [NotNullWhen(true)] out VDefinition? key)
     {
-        u = Math.Round(u, TIME_PRECISION);
-        // todo: Refactor to avoid linq and use binary search
-        (_, key) = _state.Table.FirstOrDefault(e => e.Key > u);
-        return key != null;
+        var index = FindIndexBefore(u) + 1;
+
+        if (index >= 0 && index < _state.Table.Count)
+        {
+            key = _state.Table.Values[index];
+            return true;
+        }
+
+        key = null;
+        return false;
     }
-        
+
+    public int FindIndexBefore(double u)
+    {
+        u = Math.Round(u, TimePrecision);
+        var keys = _state.Table.Keys;
+
+        var low = 0;
+        var high = keys.Count - 1;
+        var candidate = -1;
+
+        while (low <= high)
+        {
+            var mid = (low + high) / 2;
+            var midKey = keys[mid];
+
+            if (midKey < u)
+            {
+                candidate = mid;
+                low = mid + 1;
+            }
+            else
+            {
+                high = mid - 1;
+            }
+        }
+
+        return candidate;
+    }
 
     public void AddOrUpdateV(double u, VDefinition key)
     {
-        u = Math.Round(u, TIME_PRECISION);
+        u = Math.Round(u, TimePrecision);
         key.U = u;
         _state.Table[u] = key;
         SplineInterpolator.UpdateTangents(_state.Table.ToList());
@@ -97,7 +127,7 @@ public class Curve : IEditableInputType
 
     public void RemoveKeyframeAt(double u)
     {
-        u = Math.Round(u, TIME_PRECISION);
+        u = Math.Round(u, TimePrecision);
         var state = _state;
         state.Table.Remove(u);
         SplineInterpolator.UpdateTangents(state.Table.ToList());
@@ -108,15 +138,14 @@ public class Curve : IEditableInputType
         SplineInterpolator.UpdateTangents(_state.Table.ToList());
     }
 
-
     /// <summary>
     /// Tries to move a keyframe to a new position
     /// </summary>
     /// <returns>Returns false if the position is already taken by a keyframe</returns>
     public void MoveKey(double u, double newU)
     {
-        u = Math.Round(u, TIME_PRECISION);
-        newU = Math.Round(newU, TIME_PRECISION);
+        u = Math.Round(u, TimePrecision);
+        newU = Math.Round(newU, TimePrecision);
         var state = _state;
         if (!state.Table.ContainsKey(u))
         {
@@ -135,29 +164,13 @@ public class Curve : IEditableInputType
         key.U = newU;
         SplineInterpolator.UpdateTangents(state.Table.ToList());
     }
-
-    public List<KeyValuePair<double, VDefinition>> GetPointTable()
-    {
-        var points = new List<KeyValuePair<double, VDefinition>>();
-        foreach (var item in _state.Table)
-        {
-            //points.Add(new KeyValuePair<double, VDefinition>(item.Key, item.Value.Clone()));
-            points.Add(new KeyValuePair<double, VDefinition>(item.Key, item.Value));
-        }
-        return points;
-    }
-
-    public IList<VDefinition> GetVDefinitions()
-    {
-        return _state.Table.Values;
-    }
-
+    
     // Returns null if there is no vDefinition at that position
-    public VDefinition GetV(double u)
+    public VDefinition? GetV(double u)
     {
-        u = Math.Round(u, TIME_PRECISION);
-        return _state.Table.TryGetValue(u, out var foundValue) 
-                   ? foundValue.Clone() 
+        u = Math.Round(u, TimePrecision);
+        return _state.Table.TryGetValue(u, out var foundValue)
+                   ? foundValue.Clone()
                    : null;
     }
 
@@ -166,7 +179,7 @@ public class Curve : IEditableInputType
         if (_state.Table.Count < 1 || double.IsNaN(u) || double.IsInfinity(u))
             return 0.0;
 
-        u = Math.Round(u, TIME_PRECISION);
+        u = Math.Round(u, TimePrecision);
         double offset = 0.0;
         double mappedU = u;
         var first = _state.Table.First();
@@ -174,14 +187,14 @@ public class Curve : IEditableInputType
 
         if (u <= first.Key)
         {
-            _state.PreCurveMapper.Calc(u, _state.Table, out mappedU, out offset);
+            _state.PreCurveMapper?.Calc(u, _state.Table, out mappedU, out offset);
         }
         else if (u >= last.Key)
         {
-            _state.PostCurveMapper.Calc(u, _state.Table, out mappedU, out offset);
+            _state.PostCurveMapper?.Calc(u, _state.Table, out mappedU, out offset);
         }
 
-        double resultValue = 0.0;
+        double resultValue;
         if (mappedU <= first.Key)
         {
             resultValue = offset + first.Value.Value;
@@ -213,12 +226,12 @@ public class Curve : IEditableInputType
         return resultValue;
     }
 
-    public virtual void Write(JsonTextWriter writer)
+    internal void Write(JsonTextWriter writer)
     {
         _state.Write(writer);
     }
 
-    public virtual void Read(JToken inputToken)
+    internal void Read(JToken inputToken)
     {
         _state.Read(inputToken);
     }
@@ -239,7 +252,6 @@ public class Curve : IEditableInputType
         curves.AddOrUpdateV(time, key);
     }
 
-        
     public static void UpdateCurveValues(Curve[] curves, double time, float[] values)
     {
         for (var index = 0; index < curves.Length; index++)
@@ -249,7 +261,7 @@ public class Curve : IEditableInputType
             curves[index].AddOrUpdateV(time, key);
         }
     }
-        
+
     public static void UpdateCurveValues(Curve[] curves, double time, int[] values)
     {
         for (var index = 0; index < curves.Length; index++)
@@ -260,10 +272,10 @@ public class Curve : IEditableInputType
                                                           InType = VDefinition.Interpolation.Constant,
                                                           OutType = VDefinition.Interpolation.Constant,
                                                           InEditMode = VDefinition.EditMode.Constant,
-                                                          OutEditMode = VDefinition.EditMode.Constant,                                                                   
+                                                          OutEditMode = VDefinition.EditMode.Constant,
                                                       };
             key.Value = values[index];
             curves[index].AddOrUpdateV(time, key);
         }
-    }        
+    }
 }
