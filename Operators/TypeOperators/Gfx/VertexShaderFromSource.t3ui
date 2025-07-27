@@ -1,0 +1,35 @@
+{
+  "Id": "18e09bad-5b18-439f-b5fc-ef61ce54b190"/*VertexShaderFromSource*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "0a8663a0-5630-4e53-8400-1d050ec1c470"/*ModuloValue*/,
+      "Position": {
+        "X": 197.0,
+        "Y": 328.0
+      },
+      "Min": -100.0,
+      "Max": 100.0,
+      "Scale": 0.01
+    },
+    {
+      "InputId": "a379d0ad-0719-4e49-8e4e-e63f41c7a18a"/*Value*/,
+      "Position": {
+        "X": 36.0,
+        "Y": 334.0
+      },
+      "Min": -100.0,
+      "Max": 100.0
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "a71983f8-1310-4847-85e3-14079ff3ce0b"/*Result*/,
+      "Position": {
+        "X": 133.0,
+        "Y": 38.0
+      }
+    }
+  ]
+}

@@ -6,10 +6,6 @@
       "DefaultValue": ""
     },
     {
-      "Id": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"/*TemplateCode*/,
-      "DefaultValue": ""
-    },
-    {
       "Id": "f6fb3be8-53f2-4d68-bf0f-3f519bc09ff4"/*AdditionalDefines*/,
       "DefaultValue": ""
     },

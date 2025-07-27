@@ -365,9 +365,6 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
     [Input(Guid = "0B5CBBDF-AFE7-4DAF-9F1E-0E79792691F1")]
     public readonly InputSlot<string> TemplateFilePath = new();
     
-    [Input(Guid = "BCF6DE27-1FFD-422C-9F5B-910D89CAD1A4")]
-    public readonly InputSlot<string> TemplateCode = new();
-
     [Input(Guid = "F6FB3BE8-53F2-4D68-BF0F-3F519BC09FF4")]
     public readonly InputSlot<string> AdditionalDefines = new();
 
