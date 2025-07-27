@@ -15,13 +15,11 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
     [Output(Guid = "5E37DA80-5D1F-4E17-A0A1-1E386B3A2561")]
     public readonly Slot<float> DeltaOnHit = new();
 
-        
     public HasValueChanged()
     {
         HasChanged.UpdateAction += Update;
         Delta.UpdateAction += Update;
     }
-
 
     private void Update(EvaluationContext context)
     {
@@ -35,26 +33,26 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
 
         _lastEvalTime = context.LocalFxTime;
 
-            
         var hasChanged = false;
-            
-        float delta = Math.Abs(newValue - _lastValue);
 
-        switch ((Modes)Mode.GetValue(context).Clamp(0, Enum.GetNames(typeof(Modes)).Length -1))
+        var absDelta = Math.Abs(newValue - _lastValue);
+
+        switch (Mode.GetEnumValue<Modes>(context))
         {
             case Modes.Changed:
-                var increase = delta > threshold;
+
+                var increase = absDelta > threshold;
                 hasChanged = increase;
                 break;
-                
+
             case Modes.Increased:
                 hasChanged = newValue > _lastValue + threshold;
                 break;
-                
+
             case Modes.Decreased:
                 hasChanged = newValue < _lastValue - threshold;
                 break;
-                
+
             default:
                 throw new ArgumentOutOfRangeException();
         }
@@ -63,25 +61,24 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
 
         if (hasChanged && (preventContinuedChanges || wasTriggered))
         {
-            var timeSinceLastHit = context.LocalFxTime - _lastHitTime;
+            var timeSinceLastHit = Math.Abs(context.LocalFxTime - _lastHitTime);
             if (timeSinceLastHit >= minTimeBetweenHits)
             {
                 _lastHitTime = context.LocalFxTime;
-                _lastHitDelta = delta;
-
+                _lastHitDelta = absDelta;
             }
             else
             {
                 hasChanged = false;
             }
         }
-            
+
         HasChanged.Value = hasChanged;
 
         Delta.Value = newValue - _lastValue;
         _lastValue = newValue;
 
-        DeltaOnHit.Value = (float)_lastHitDelta;
+        DeltaOnHit.Value = _lastHitDelta;
     }
 
     private float _lastValue;
@@ -89,7 +86,7 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
     private float _lastHitDelta;
     private bool _wasHit;
     private double _lastEvalTime = -1;
-    
+
     [Input(Guid = "7f5fb125-8aca-4344-8b30-e7d4e7873c1c")]
     public readonly InputSlot<float> Value = new();
 
@@ -104,7 +101,6 @@ internal sealed class HasValueChanged : Instance<HasValueChanged>
 
     [Input(Guid = "8EBF4715-0B4B-4CDD-A079-9F91C2DF0476")]
     public readonly InputSlot<bool> PreventContinuedChanges = new();
-
 
     private enum Modes
     {
