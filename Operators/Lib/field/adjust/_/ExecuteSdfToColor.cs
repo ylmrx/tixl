@@ -1,6 +1,6 @@
 #nullable enable
 using T3.Core.DataTypes.ShaderGraph;
-using T3.Core.Utils;
+
 
 namespace Lib.field.adjust._;
 
@@ -21,6 +21,15 @@ internal sealed class ExecuteSdfToColor : Instance<ExecuteSdfToColor>
 
     private void Update(EvaluationContext context)
     {
+        if (Parent == null)
+        {
+            Log.Warning("Can't initialized SDF to color without parent");
+            return;
+        }
+
+        // Override to ensure unique prefix id
+        ShaderNode.InstanceForPrefixId = Parent;
+
         ShaderNode.Update(context);
         _srv = GradientSrv.GetValue(context);
         if (_srv == null || _srv.IsDisposed)

@@ -40,14 +40,17 @@ namespace T3.Core.DataTypes;
  */
 
 
-public class ShaderGraphNode
+public sealed class ShaderGraphNode
 {
+     
+    
     #region node handling
     public ShaderGraphNode(Instance instance,
                            MultiInputSlot<ShaderGraphNode>? nodeMultiInputInput = null,
                            params InputSlot<ShaderGraphNode>?[] inputsSlots)
     {
         _instance = instance;
+        InstanceForPrefixId = _instance;
         _nodeOp = instance as IGraphNodeOp;
         if (_nodeOp == null)
         {
@@ -84,7 +87,7 @@ public class ShaderGraphNode
         // (Deferred because symbolChildId is not set at construction time)
         if (string.IsNullOrEmpty(_prefix))
         {
-            _prefix = BuildNodeId(_instance);
+            _prefix = BuildNodeId(InstanceForPrefixId);
             _shaderParameterInputs = ShaderParamHandling.CollectInputSlots(_instance, _prefix);
         }
 
@@ -358,6 +361,12 @@ public class ShaderGraphNode
     private int _lastBufferUpdateFrame;
     
     private readonly Instance _instance;
+    
+    /// <summary>
+    /// For nested operators like SdfToColor the SymbolChildId would no longer be unique.
+    /// In these cases we can override this parameter.
+    /// </summary>
+    public Instance InstanceForPrefixId;
     private readonly IGraphNodeOp? _nodeOp;
 
     public sealed class Parameter(string shaderTypeName, string name, object value)
@@ -382,7 +391,7 @@ public class ShaderGraphNode
 
     private static string BuildNodeId(Instance instance)
     {
-        return instance.GetType().Name + "_" + StringUtils.ShortenGuid(instance.SymbolChildId) + "_";
+        return instance.GetType().Name + "_" + instance.SymbolChildId.ShortenGuid() + "_";
     }
 
     public override string? ToString() => _prefix;
