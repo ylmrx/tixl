@@ -1,0 +1,76 @@
+{
+  "Id": "97ea4288-2deb-44ea-8714-8374c71fda88"/*SetKeyframes*/,
+  "Description": "Allows to record keyframes to a connected animated operator",
+  "InputUis": [
+    {
+      "InputId": "198c6328-1b1c-4ba3-81dd-3b109ac86353"/*OpIndex*/,
+      "Position": {
+        "X": 197.0,
+        "Y": 463.0
+      }
+    },
+    {
+      "InputId": "3832ce07-4e54-4d72-ac86-c34667f6561f"/*Mode*/,
+      "Position": {
+        "X": 197.0,
+        "Y": 373.0
+      }
+    },
+    {
+      "InputId": "6c918e42-d313-4921-8b8f-6485f3f5cb6c"/*CurveIndex*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "InputId": "92ecce97-9412-44f6-808e-9036f3f99ce4"/*AnimatedOp*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 197.0,
+        "Y": 328.0
+      },
+      "Min": -100.0,
+      "Max": 100.0,
+      "Scale": 0.01
+    },
+    {
+      "InputId": "a710f087-786e-467c-a135-713c4614dfc0"/*WrapIndex*/,
+      "Position": {
+        "X": 197.0,
+        "Y": 463.0
+      }
+    },
+    {
+      "InputId": "a9060d3b-b61b-49a9-a521-7f6bb37a8b4e"/*IndexOrTime*/,
+      "Position": {
+        "X": 197.0,
+        "Y": 418.0
+      }
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "014f013c-41b0-4bbc-8ae6-9f962329b4ad"/*Time*/,
+      "Position": {
+        "X": 133.0,
+        "Y": 38.0
+      }
+    },
+    {
+      "OutputId": "8fd6b471-5ff1-45bd-bc0e-3810241f1f99"/*KeyframeCount*/,
+      "Position": {
+        "X": 133.0,
+        "Y": 138.0
+      }
+    },
+    {
+      "OutputId": "02bdfa79-7076-4095-85d9-740401db0f9d"/*Value*/,
+      "Position": {
+        "X": 133.0,
+        "Y": 238.0
+      }
+    }
+  ]
+}

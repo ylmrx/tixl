@@ -1,0 +1,31 @@
+{
+  "Id": "97ea4288-2deb-44ea-8714-8374c71fda88"/*SetKeyframes*/,
+  "Inputs": [
+    {
+      "Id": "198c6328-1b1c-4ba3-81dd-3b109ac86353"/*OpIndex*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "3832ce07-4e54-4d72-ac86-c34667f6561f"/*Mode*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "6c918e42-d313-4921-8b8f-6485f3f5cb6c"/*CurveIndex*/,
+      "DefaultValue": 0
+    },
+    {
+      "Id": "92ecce97-9412-44f6-808e-9036f3f99ce4"/*AnimatedOp*/,
+      "DefaultValue": 1.0
+    },
+    {
+      "Id": "a710f087-786e-467c-a135-713c4614dfc0"/*WrapIndex*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "a9060d3b-b61b-49a9-a521-7f6bb37a8b4e"/*IndexOrTime*/,
+      "DefaultValue": 0.0
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}
