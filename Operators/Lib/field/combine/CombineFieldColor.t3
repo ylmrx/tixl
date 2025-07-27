@@ -11,7 +11,7 @@
     },
     {
       "Id": "d17f87db-7500-4780-aece-d8400cfe4da0"/*CombineMethod*/,
-      "DefaultValue": 2
+      "DefaultValue": 0
     }
   ],
   "Children": [],

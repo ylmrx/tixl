@@ -59,12 +59,16 @@ internal sealed class CombineFieldColor : Instance<CombineFieldColor>
             // // Combine initial value with new value...
             switch (_combineMethod)
             {
+                case CombineMethods.Mix:
+                    cac.AppendCall($"f{contextId} = lerp(f{contextId},  f{subContextId}, {ShaderNode}K);"); 
+                    break;
+                
                 case CombineMethods.Add:
-                    cac.AppendCall($"f{contextId}.rgb = f{contextId}.rgb +  f{subContextId}.rgb;"); 
+                    cac.AppendCall($"f{contextId} = f{contextId} +  f{subContextId};"); 
                     break;
                 
                 case CombineMethods.Multiply:
-                    cac.AppendCall($"f{contextId}.rgb = f{contextId}.rgb * f{subContextId}.rgb;"); 
+                    cac.AppendCall($"f{contextId} = f{contextId} * f{subContextId};"); 
                     break;
             
             }
@@ -77,6 +81,7 @@ internal sealed class CombineFieldColor : Instance<CombineFieldColor>
 
     private enum CombineMethods
     {
+        Mix,
         Add,
         Multiply,
     }
