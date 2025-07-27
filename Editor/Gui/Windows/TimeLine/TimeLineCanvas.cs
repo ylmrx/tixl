@@ -1,8 +1,12 @@
+#nullable enable
+
+using System.Diagnostics.CodeAnalysis;
 using ImGuiNET;
 using T3.Core.Animation;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.Gui.Interaction.Keyboard;
 using T3.Editor.Gui.Interaction.Timing;
@@ -28,7 +32,7 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     public TimeLineCanvas(NodeSelection nodeSelection, Func<Instance> getCompositionOp, Func<Guid, bool> requestChildCompositionFunc)
     {
         _nodeSelection = nodeSelection;
-        
+
         DopeSheetArea = new DopeSheetArea(SnapHandlerForU, this);
         _timelineCurveEditArea = new TimelineCurveEditArea(this, SnapHandlerForU, SnapHandlerForV);
         _timeSelectionRange = new TimeSelectionRange(this, SnapHandlerForU);
@@ -41,7 +45,8 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
         SnapHandlerForU.AddSnapAttractor(_currentTimeMarker);
         SnapHandlerForU.AddSnapAttractor(LayersArea);
 
-        Folding = new TimelineHeight(this);
+        FoldingHeight = new TimelineHeight(this);
+        Playback = null!;
     }
 
     public NodeSelection NodeSelection => _nodeSelection;
@@ -50,54 +55,51 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     {
         Current = this;
         Playback = playback;
-        SelectedAnimationParameters = GetAnimationParametersForSelectedNodes(compositionOp);
-
-        // UpdateLocalTimeTranslation(compositionOp);
-        // ImGui.TextUnformatted($"Scroll: {Scroll.X}   Scale: {Scale.X}");
+        _selectedAnimationParameters = GetAnimationParametersForSelectedNodes(compositionOp);
 
         // Very ugly hack to prevent scaling the output above window size
         var keepScale = T3Ui.UiScaleFactor;
         T3Ui.UiScaleFactor = 1;
-            
+
         ScrollToTimeAfterStopped();
 
         var modeChanged = UpdateMode();
         DrawCurveCanvas(drawAdditionalCanvasContent: DrawCanvasContent, _selectionFence, 0, T3Ui.EditingFlags.AllowHoveredChildWindows);
         Current = null;
-            
+
         T3Ui.UiScaleFactor = keepScale;
         return;
 
         void DrawCanvasContent(InteractionState interactionState)
         {
-            ImGui.SetCursorPosY(ImGui.GetCursorPosY()-6);
+            ImGui.SetCursorPosY(ImGui.GetCursorPosY() - 6);
             if (PlaybackUtils.TryFindingSoundtrack(out var soundtrack, out var composition))
             {
                 TimeLineImage.Draw(Drawlist, soundtrack);
             }
+
             _timeRasterSwitcher.Draw(Playback);
 
-                
             HandleDeferredActions();
 
             ImGui.BeginChild(ImGuiTitle, new Vector2(0, -30), true,
-                             ImGuiWindowFlags.NoMove 
-                             |ImGuiWindowFlags.NoBackground
-                             |ImGuiWindowFlags.NoScrollWithMouse);
+                             ImGuiWindowFlags.NoMove
+                             | ImGuiWindowFlags.NoBackground
+                             | ImGuiWindowFlags.NoScrollWithMouse);
 
             {
                 if (KeyActionHandling.Triggered(UserActions.DeleteSelection))
                     DeleteSelectedElements(compositionOp);
-                    
+
                 switch (Mode)
                 {
                     case Modes.DopeView:
                         LayersArea.Draw(compositionOp, Playback, SnapHandlerForU);
-                        DopeSheetArea.Draw(compositionOp, SelectedAnimationParameters);
+                        DopeSheetArea.Draw(compositionOp, _selectedAnimationParameters);
                         break;
                     case Modes.CurveEditor:
                         _horizontalRaster.Draw(this);
-                        _timelineCurveEditArea.Draw(compositionOp, SelectedAnimationParameters, fitCurvesVertically: modeChanged);
+                        _timelineCurveEditArea.Draw(compositionOp, _selectedAnimationParameters, fitCurvesVertically: modeChanged);
                         break;
                 }
 
@@ -114,9 +116,9 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
 
                 CustomComponents.HandleDragScrolling(this);
             }
-                
+
             ImGui.EndChild();
-                
+
             _currentTimeMarker.Draw(Playback.TimeInBars, this);
             _timeSelectionRange.Draw(compositionOp, Drawlist);
             DrawDragTimeArea(interactionState.MouseState.Position.X);
@@ -139,11 +141,11 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
             }
         }
     }
-    
+
     #region handle nested timelines ----------------------------------
     public override void UpdateScaleAndTranslation(Instance compositionOp, ICanvas.Transition transition)
     {
-        if (transition == ICanvas.Transition.Instant) 
+        if (transition == ICanvas.Transition.Instant)
             return;
 
         // remember the old scroll state
@@ -193,16 +195,15 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     {
         if (UserActionRegistry.WasActionQueued(UserActions.PlaybackJumpToNextKeyframe))
         {
-
             var bestNextTime = double.PositiveInfinity;
             var foundNext = false;
             var time = Playback.TimeInBars + 0.001f;
-            foreach (var next in SelectedAnimationParameters)
+            foreach (var next in _selectedAnimationParameters)
             {
                 foreach (var curve in next.Curves)
                 {
                     if (!curve.TryGetNextKey(time, out var key)
-                        || key.U > bestNextTime )
+                        || key.U > bestNextTime)
                         continue;
 
                     foundNext = true;
@@ -218,14 +219,14 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
         {
             var bestPreviousTime = double.NegativeInfinity;
             var foundNext = false;
-                
+
             var time = Playback.TimeInBars - 0.001f;
-            foreach (var next in SelectedAnimationParameters)
+            foreach (var next in _selectedAnimationParameters)
             {
                 foreach (var curve in next.Curves)
                 {
                     if (!curve.TryGetPreviousKey(time, out var key)
-                        || key.U < bestPreviousTime )
+                        || key.U < bestPreviousTime)
                         continue;
 
                     foundNext = true;
@@ -234,7 +235,7 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
             }
 
             if (foundNext)
-                Playback.TimeInBars = bestPreviousTime;                
+                Playback.TimeInBars = bestPreviousTime;
         }
     }
 
@@ -263,7 +264,6 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
             var draggedTime = InverseTransformX(mouseX);
             if (ImGui.GetIO().KeyShift)
             {
-
                 if (SnapHandlerForU.TryCheckForSnapping(draggedTime, out var snappedValue, Scale.X, [_currentTimeMarker]))
                 {
                     draggedTime = (float)snappedValue;
@@ -288,9 +288,9 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
                 // assume we are not scrolling, what screen position would the playhead be at?
                 var oldScroll = Scroll;
                 Scroll = new Vector2(0, Scroll.Y);
-                var posScreen = TransformX((float) Playback.TimeInBars);
+                var posScreen = TransformX((float)Playback.TimeInBars);
                 // position that playhead in the center of the window
-                ScrollTarget.X = InverseTransformX(posScreen - WindowSize.X*0.5f);
+                ScrollTarget.X = InverseTransformX(posScreen - WindowSize.X * 0.5f);
                 // restore old state of scrolling
                 Scroll = oldScroll;
             }
@@ -358,64 +358,136 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     private Modes _lastMode = Modes.CurveEditor; // Make different to force initial update
     #endregion
 
-        
-        
     // TODO: this is horrible and should be refactored
     private List<AnimationParameter> GetAnimationParametersForSelectedNodes(Instance compositionOp)
     {
-        var selection = _nodeSelection.GetSelectedNodes<ISelectableCanvasObject>();
         var symbolUi = compositionOp.GetSymbolUi();
         var animator = symbolUi.Symbol.Animator;
-            
-        // No Linq to avoid allocations
+
+        // Copy objects to reuse if possible
+        _tmpAnimationParameters.Clear();
+        _tmpAnimationParameters.AddRange(_pinnedParams);
+
         _pinnedParams.Clear();
-        var children = compositionOp.Children.Values;
-        foreach (Instance child in children)
-        foreach (var input in child.Inputs)
-        {
-            if (animator.IsInputSlotAnimated(input))
-                foreach (var pinnedInputSlot in DopeSheetArea.PinnedParameters)
-                {
-                    if (pinnedInputSlot == input.GetHashCode())
-                        _pinnedParams.Add(new AnimationParameter() { Instance = child, Input = input, Curves = animator.GetCurvesForInput(input), ChildUi = symbolUi.ChildUis[child.SymbolChildId] });
-                }
-        }
-
         _curvesForSelection.Clear();
-            
-        foreach (Instance child in children)
-        foreach (var selectedElement in selection)
+
+        var children = compositionOp.Children.Values;
+        foreach (var child in children)
         {
-            if (child.SymbolChildId == selectedElement.Id)
-                foreach (var input in child.Inputs)
+            var isChildSelected = Selected.Unknown;
+
+            for (var inputIndex = 0; inputIndex < child.Inputs.Count; inputIndex++)
+            {
+                var input = child.Inputs[inputIndex];
+                if (!animator.IsInputSlotAnimated(input))
+                    continue;
+
+                // Test if child is selected only once and only if required
+                if (isChildSelected == Selected.Unknown)
                 {
-                    if (animator.IsInputSlotAnimated(input))
-                        _curvesForSelection.Add(new AnimationParameter() { Instance = child, Input = input, Curves = animator.GetCurvesForInput(input), ChildUi = symbolUi.ChildUis[selectedElement.Id] });
+                    isChildSelected = Selected.No;
+                    foreach (var s in _nodeSelection.Selection)
+                    {
+                        if (s.Id != child.SymbolChildId)
+                            continue;
+
+                        isChildSelected = Selected.Yes;
+                        break;
+                    }
                 }
+
+                var paramHash = input.GetChildSlotHash();
+                var isPinned = false;
+
+                // Collect pinned
+                foreach (var pinnedInputSlot in DopeSheetArea.PinnedParametersHashes)
+                {
+                    if (pinnedInputSlot != input.GetChildSlotHash())
+                        continue;
+
+                    if (!TryGetParamFromSpan(paramHash, out var param))
+                    {
+                        param = new AnimationParameter
+                                    {
+                                        Instance = child,
+                                        Input = input,
+                                        Curves = animator.GetCurvesForInput(input),
+                                        ChildUi = symbolUi.ChildUis[child.SymbolChildId],
+                                        Hash = paramHash,
+                                    };
+                    }
+
+                    _pinnedParams.Add(param);
+                    isPinned = true;
+                }
+
+                if (!isPinned && isChildSelected == Selected.Yes)
+                {
+                    if (!TryGetParamFromSpan(paramHash, out var param))
+                    {
+                        param = new AnimationParameter
+                                    {
+                                        Instance = child,
+                                        Input = input,
+                                        Curves = animator.GetCurvesForInput(input),
+                                        ChildUi = symbolUi.ChildUis[child.SymbolChildId],
+                                        Hash = paramHash,
+                                    };
+                    }
+
+                    _curvesForSelection.Add(param);
+                }
+            }
         }
 
+        // Merge collections
         _pinnedParams.AddRange(_curvesForSelection.FindAll(sp => _pinnedParams.All(pp => pp.Input != sp.Input)));
         return _pinnedParams;
     }
 
-    public List<AnimationParameter> SelectedAnimationParameters = new();
+    private static bool TryGetParamFromSpan(int paramHash, [NotNullWhen(true)] out AnimationParameter? parameter)
+    {
+        parameter = null;
+        foreach (var p in _tmpAnimationParameters)
+        {
+            if (p.Hash != paramHash)
+                continue;
+
+            parameter = p;
+            return true;
+        }
+
+        return false;
+    }
 
     internal Playback Playback;
+    public readonly DopeSheetArea DopeSheetArea;
+    public readonly LayersArea LayersArea;
+    public static TimeLineCanvas? Current;
+
+    private enum Selected
+    {
+        Yes,
+        No,
+        Unknown,
+    }
+
+
+
+    /** Only used to avoid allocations */
+    private static readonly List<AnimationParameter> _tmpAnimationParameters = [];
+
+    private List<AnimationParameter> _selectedAnimationParameters = [];
 
     private readonly TimeRasterSwitcher _timeRasterSwitcher = new();
     private readonly HorizontalRaster _horizontalRaster = new();
     private readonly ClipRange _clipRange = new();
     private readonly LoopRange _loopRange = new();
 
-    public readonly DopeSheetArea DopeSheetArea;
     private readonly TimelineCurveEditArea _timelineCurveEditArea;
-    private readonly TimeLineImage _timeLineImage = new();
 
     private readonly CurrentTimeMarker _currentTimeMarker = new();
     private readonly TimeSelectionRange _timeSelectionRange;
-    public readonly LayersArea LayersArea;
-
-    public static TimeLineCanvas Current;
     private readonly NodeSelection _nodeSelection;
 
     private double _lastPlaybackSpeed;
@@ -424,17 +496,21 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
     private readonly SelectionFence _selectionFence = new();
 
     // Styling
-    public const float TimeLineDragHeight = 30;
+    private const float TimeLineDragHeight = 30;
 
-    public struct AnimationParameter
+    internal readonly TimelineHeight FoldingHeight;
+
+    
+    public sealed class AnimationParameter
     {
-        public IEnumerable<Curve> Curves;
-        public IInputSlot Input;
-        public Instance Instance;
-        public SymbolUi.Child ChildUi;
+        public required IEnumerable<Curve> Curves;
+        public required IInputSlot Input;
+        public required Instance Instance;
+        public required SymbolUi.Child ChildUi;
+        public required int Hash;
+        public float DampedMinValue;
+        public float DampedMaxValue;
     }
-
-    internal TimelineHeight Folding;
     
     internal sealed class TimelineHeight
     {
@@ -445,7 +521,7 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
 
         public void DrawSplit(out int newContentHeight)
         {
-            var currentTimelineHeight = _timeline.Folding.CurrentHeight;
+            var currentTimelineHeight = _timeline.FoldingHeight.CurrentHeight;
             if (CustomComponents.SplitFromBottom(ref currentTimelineHeight))
             {
                 _customTimeLineHeight = (int)currentTimelineHeight;
@@ -454,14 +530,15 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
             newContentHeight = (int)ImGui.GetWindowHeight() - (int)currentTimelineHeight -
                                4; // Hack that also depends on when a window-title is being rendered            
         }
-        
+
         private const int UseComputedHeight = -1;
         private int _customTimeLineHeight = UseComputedHeight;
         private readonly TimeLineCanvas _timeline;
         public bool UsingCustomTimelineHeight => _customTimeLineHeight > UseComputedHeight;
 
-        public float CurrentHeight => UsingCustomTimelineHeight ? _customTimeLineHeight : ComputedTimelineHeight;
-        public float ComputedTimelineHeight => _timeline.SelectedAnimationParameters.Count * DopeSheetArea.LayerHeight
+        private float CurrentHeight => UsingCustomTimelineHeight ? _customTimeLineHeight : ComputedTimelineHeight;
+
+        private float ComputedTimelineHeight => _timeline._selectedAnimationParameters.Count * DopeSheetArea.LayerHeight
                                                 + _timeline.LayersArea.LastHeight
                                                 + TimeLineDragHeight
                                                 + 1;

@@ -428,6 +428,20 @@ public static class MathUtils
         return (int)(a + (b - a) * t);
     }
 
+    /// <summary>
+    /// Slowly lerps the parameter in place towards the target. 
+    /// </summary>
+    /// <returns>Also returns the new parameter for convenience.</returns>
+    public static float DampTowards(this ref float value, float target, float damping = 0.9f)
+    {
+        value = Lerp( target,value, damping);
+        if (!value._IsFinite())
+        {
+            value = 0;
+        }
+        return value;
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static double Log2(double value)
     {

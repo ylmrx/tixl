@@ -174,7 +174,7 @@ internal sealed class GraphWindow : Windows.Window
 
         if (UserSettings.Config.ShowTimeline)
         {
-            ProjectView.TimeLineCanvas.Folding.DrawSplit(out windowContentHeight);
+            ProjectView.TimeLineCanvas.FoldingHeight.DrawSplit(out windowContentHeight);
         }
 
         ImGui.BeginChild("##graph", new Vector2(0, windowContentHeight), false,

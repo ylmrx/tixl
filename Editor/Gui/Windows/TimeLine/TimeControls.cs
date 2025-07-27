@@ -610,7 +610,7 @@ internal static class TimeControls
 
                 if (!UserSettings.Config.AutoPinAllAnimations)
                 {
-                    timeLineCanvas.DopeSheetArea.PinnedParameters.Clear();
+                    timeLineCanvas.DopeSheetArea.PinnedParametersHashes.Clear();
                 }
             }
         }

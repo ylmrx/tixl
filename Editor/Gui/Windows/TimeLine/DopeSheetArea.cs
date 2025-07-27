@@ -1,4 +1,5 @@
 #nullable enable
+using System.Diagnostics;
 using ImGuiNET;
 using T3.Core.Animation;
 using T3.Core.DataTypes.Vector;
@@ -28,7 +29,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         TimeLineCanvas = timeLineCanvas;
     }
 
-    private TimeLineCanvas.AnimationParameter _currentAnimationParameter;
+    private TimeLineCanvas.AnimationParameter? _currentAnimationParameter;
 
     public void Draw(Instance compositionOp, List<TimeLineCanvas.AnimationParameter> animationParameters)
     {
@@ -39,41 +40,39 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             RebuildCurveTables();
             CurvesTablesNeedsRefresh = false;
         }
-                
+
         var drawList = ImGui.GetWindowDrawList();
-            
+
         AnimationParameters = animationParameters;
 
         if (ImGui.IsMouseClicked(ImGuiMouseButton.Left))
         {
             _selectionCountBeforeClick = SelectedKeyframes.Count;
         }
-            
 
         ImGui.BeginGroup();
         {
-            if (KeyActionHandling.Triggered(UserActions.FocusSelection))
+            if (UserActions.FocusSelection.Triggered())
             {
                 ViewAllOrSelectedKeys(alsoChangeTimeRange: true);
             }
 
-            if (KeyActionHandling.Triggered(UserActions.Duplicate))
+            if (UserActions.Duplicate.Triggered())
             {
                 symbolUi.FlagAsModified();
                 DuplicateSelectedKeyframes(TimeLineCanvas.Playback.TimeInBars);
             }
 
-            if (KeyActionHandling.Triggered(UserActions.InsertKeyframe))
+            if (UserActions.InsertKeyframe.Triggered())
             {
                 symbolUi.FlagAsModified();
                 foreach (var p in AnimationParameters)
                 {
                     InsertNewKeyframe(p, (float)TimeLineCanvas.Playback.TimeInBars);
                 }
-                    
             }
 
-            if (KeyActionHandling.Triggered(UserActions.InsertKeyframeWithIncrement))
+            if (UserActions.InsertKeyframeWithIncrement.Triggered())
             {
                 symbolUi.FlagAsModified();
                 SelectedKeyframes.Clear();
@@ -104,12 +103,13 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     private void DrawProperty(TimeLineCanvas.AnimationParameter parameter, Guid compositionSymbolChildId, ImDrawListPtr drawList, Instance compositionOp)
     {
-
+        Debug.Assert(TimeLineCanvas.Current != null);
+        
         var min = ImGui.GetCursorScreenPos();
-        var max = min + new Vector2(ImGui.GetContentRegionAvail().X, LayerHeight );
+        var max = min + new Vector2(ImGui.GetContentRegionAvail().X, LayerHeight);
         drawList.AddRectFilled(new Vector2(min.X, max.Y),
                                new Vector2(max.X, max.Y + 1), UiColors.BackgroundFull);
-            
+
         var mousePos = ImGui.GetMousePos();
         var mouseTime = TimeLineCanvas.InverseTransformX(mousePos.X);
         var layerArea = new ImRect(min, max);
@@ -120,59 +120,59 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         {
             drawList.AddRectFilled(new Vector2(min.X, min.Y),
                                    new Vector2(max.X, max.Y), UiColors.ForegroundFull.Fade(0.04f));
-            
         }
 
         // Draw label and pinning
         {
-            var hash = parameter.Input.GetHashCode();
+            //var hash = parameter.Input.GetHashCode();
+            var hash = parameter.Hash;
             ImGui.PushID(hash);
-                
+
             var label = $"{parameter.ChildUi.SymbolChild.ReadableName}.{parameter.Input.Input.Name}";
             var opLabelSize = ImGui.CalcTextSize(label);
             var buttonSize = opLabelSize + new Vector2(16, 0);
-            var isPinned = PinnedParameters.Contains(hash);
-                
+            var isPinned = PinnedParametersHashes.Contains(hash);
+
             if (UserSettings.Config.AutoPinAllAnimations)
             {
-                PinnedParameters.Add(hash);
+                PinnedParametersHashes.Add(hash);
             }
 
             if (ImGui.InvisibleButton("label", buttonSize) && !UserSettings.Config.AutoPinAllAnimations)
             {
                 if (!isPinned)
                 {
-                    PinnedParameters.Add(hash);
+                    PinnedParametersHashes.Add(hash);
                 }
                 else
                 {
-                    PinnedParameters.Remove(hash);
+                    PinnedParametersHashes.Remove(hash);
                 }
             }
 
             var lastPos = ImGui.GetItemRectMin();
-            var iconColor = isPinned? UiColors.StatusAnimated : UiColors.Gray;
+            var iconColor = isPinned ? UiColors.StatusAnimated : UiColors.Gray;
             iconColor = iconColor.Fade(ImGui.IsItemHovered() ? 1 : 0.8f);
-                
-            Icons.DrawIconAtScreenPosition(Icon.Pin, lastPos + new Vector2(2,5), drawList, iconColor);
+
+            Icons.DrawIconAtScreenPosition(Icon.Pin, lastPos + new Vector2(2, 5), drawList, iconColor);
             var labelColor = layerHovered
                                  ? UiColors.ForegroundFull
                                  : isPinned
                                      ? UiColors.StatusAnimated
                                      : UiColors.TextMuted;
-            drawList.AddText( lastPos+ new Vector2(20,3), labelColor, label);
+            drawList.AddText(lastPos + new Vector2(20, 3), labelColor, label);
             ImGui.PopID();
         }
-            
+
         if (layerHovered)
         {
             drawList.AddRectFilled(new Vector2(mousePos.X, min.Y),
-                                   new Vector2(mousePos.X+1, max.Y), UiColors.StatusAnimated.Fade(0.4f));
+                                   new Vector2(mousePos.X + 1, max.Y), UiColors.StatusAnimated.Fade(0.4f));
             ImGui.BeginTooltip();
 
             ImGui.PushFont(Fonts.FontSmall);
             ImGui.TextUnformatted(parameter.Input.Input.Name);
-                
+
             //@pixtur: Make sure this works
             //FrameStats.AddHoveredId(parameter.Input.Parent.SymbolChildId);
             FrameStats.AddHoveredId(parameter.Input.Parent.SymbolChildId);
@@ -186,13 +186,12 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             ImGui.PopFont();
             ImGui.EndTooltip();
 
-            var isAnyKeysSelected = _selectionCountBeforeClick>0;
-                
-            var wasMouseDragging= ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 0).Length() > 2;
+            var isAnyKeysSelected = _selectionCountBeforeClick > 0;
+
+            var wasMouseDragging = ImGui.GetMouseDragDelta(ImGuiMouseButton.Left, 0).Length() > 2;
             var isMouseReleased = ImGui.IsMouseReleased(ImGuiMouseButton.Left);
             var isLayerBackgroundClicked = !ImGui.IsAnyItemHovered() && isMouseReleased && !wasMouseDragging;
-                
-            
+
             if (!isAnyKeysSelected && ImGui.IsMouseDoubleClicked(ImGuiMouseButton.Left))
             {
                 if (compositionOp.Children.TryGetChildInstance(parameter.ChildUi.SymbolChild.Id, out _))
@@ -202,16 +201,16 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
                     FitViewToSelectionHandling.FitViewToSelection();
                 }
             }
-            
+
             // Select and focus parameter if no keyframes are selected
             if (isLayerBackgroundClicked)
             {
-                if(ImGui.GetIO().KeyShift)
+                if (ImGui.GetIO().KeyShift)
                 {
                     var someKeysNotVisible = false;
                     foreach (var curve in parameter.Curves)
                     {
-                        foreach(var k in curve.GetVDefinitions())
+                        foreach (var k in curve.GetVDefinitions())
                         {
                             var x = TimeLineCanvas.Current.TransformX((float)k.U);
                             var isNotVisible = x < min.X || x > max.X;
@@ -221,22 +220,25 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
                                 break;
                             }
                         }
+
                         SelectedKeyframes.UnionWith(curve.GetVDefinitions().Select(v => v));
                     }
-                        
+
                     if (someKeysNotVisible)
                     {
                         ViewAllOrSelectedKeys();
                     }
+
                     MouseClickChangedSelection = true;
                 }
-                else if(ImGui.GetIO().KeyCtrl)
+                else if (ImGui.GetIO().KeyCtrl)
                 {
                     foreach (var curve in parameter.Curves)
                     {
                         // remove keys from selection
                         SelectedKeyframes.ExceptWith(curve.GetVDefinitions().Select(v => v));
                     }
+
                     MouseClickChangedSelection = true;
                 }
                 else if (isAnyKeysSelected)
@@ -246,7 +248,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
                 }
             }
         }
-            
+
         // Draw curves and gradients...
         if (parameter.Curves.Count() == 4)
         {
@@ -273,10 +275,12 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         ImGui.SetCursorScreenPos(min + new Vector2(0, LayerHeight)); // Next Line
     }
 
-    public readonly HashSet<int> PinnedParameters = new();
+    public readonly HashSet<int> PinnedParametersHashes = new();
 
     private bool HandleCreateNewKeyframes(TimeLineCanvas.AnimationParameter parameter, ImRect layerArea)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+
         var hoverNewKeyframe = !ImGui.IsAnyItemActive()
                                && ImGui.IsWindowHovered()
                                && ImGui.GetIO().KeyAlt
@@ -317,6 +321,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     private void InsertNewKeyframe(TimeLineCanvas.AnimationParameter parameter, float time, bool setPlaybackTime = false, float increment = 0)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+
         var curves = parameter.Curves;
         var newKeyframes = AnimationOperations.InsertKeyframeToCurves(curves, time, increment);
 
@@ -324,7 +330,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         {
             SelectedKeyframes.Add(k);
         }
-            
+
         if (setPlaybackTime)
             TimeLineCanvas.Current.Playback.TimeInBars = time;
     }
@@ -343,18 +349,23 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         [
             "X", "Y", "Z", "W", "5", "6", "7", "8", "9", "10", "11", "12"
         ];
+
     internal static readonly string[] ColorCurveNames =
         [
             "R", "G", "B", "A"
         ];
 
-    private static readonly List<Vector2> _positions = new(100);  // Reuse list to avoid allocations
-        
+    private static readonly List<Vector2> _positions = new(100); // Reuse list to avoid allocations
+
     private static void DrawCurveLines(TimeLineCanvas.AnimationParameter parameter, ImRect layerArea, ImDrawListPtr drawList)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+
         const float padding = 2;
         // Lines
         var curveIndex = 0;
+        var screenMinX = TimeLineCanvas.Current.WindowPos.X - TimeLineCanvas.Current.WindowSize.X / 4;
+        var screenMaxX = TimeLineCanvas.Current.WindowPos.X + TimeLineCanvas.Current.WindowSize.X * 1.25f;
         foreach (var curve in parameter.Curves)
         {
             var points = curve.GetPointTable();
@@ -363,65 +374,78 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
             _positions.Clear();
 
-            // TODO: Scanning twice is expensive. We could scale the positions after initial scan 
             var minValue = float.PositiveInfinity;
             var maxValue = float.NegativeInfinity;
-            foreach (var (_, vDef) in points)
-            {
-                if (minValue > vDef.Value)
-                    minValue = (float)vDef.Value;
-                if (maxValue < vDef.Value)
-                    maxValue = (float)vDef.Value;
-            }
 
             VDefinition? lastVDef = null;
             float lastValue = 0;
             float lastUOnScreen = 0;
 
             var pointCount = points.Count;
-                
-            for(var pointIndex = 0; pointIndex < pointCount; pointIndex++)
+
+            for (var pointIndex = 0; pointIndex < pointCount; pointIndex++)
             {
                 var (u, vDef) = points[pointIndex];
+
+                // Sample new value range
                 var uOnScreen = TimeLineCanvas.Current.TransformX((float)u) - 1;
+                if (uOnScreen > screenMinX && uOnScreen < screenMaxX)
+                {
+                    if (minValue > vDef.Value)
+                        minValue = (float)vDef.Value;
+                    if (maxValue < vDef.Value)
+                        maxValue = (float)vDef.Value;
+                }
+
                 if (lastVDef != null && lastVDef.OutEditMode == VDefinition.EditMode.Constant)
                 {
                     _positions.Add(new Vector2(
-                                              uOnScreen,
-                                              lastValue));
+                                               uOnScreen,
+                                               lastValue));
                 }
-                else if ( (uOnScreen - lastUOnScreen) > 15 &&  lastVDef != null 
-                                                           && (lastVDef.OutEditMode != VDefinition.EditMode.Linear || 
-                                                               vDef.OutEditMode != VDefinition.EditMode.Linear))
+                else if ((uOnScreen - lastUOnScreen) > 15 && lastVDef != null
+                                                          && (lastVDef.OutEditMode != VDefinition.EditMode.Linear ||
+                                                              vDef.OutEditMode != VDefinition.EditMode.Linear))
                 {
                     const int curveSteps = 6;
                     for (var stepIndex = 0; stepIndex < curveSteps; stepIndex++)
                     {
                         var blendU = MathUtils.Lerp(lastVDef.U, u, (float)(stepIndex + 1) / (curveSteps + 1));
-                            
-                        var value1 = (float)curve.GetSampledValue(blendU);
-                        var value = value1.RemapAndClamp(maxValue, minValue, layerArea.Min.Y + padding, layerArea.Max.Y - padding);
-                            
-                        _positions.Add(new Vector2(TimeLineCanvas.Current.TransformX((float)blendU),
-                                                  value));
-                    }
-                } 
 
-                lastValue = ((float)vDef.Value).RemapAndClamp(maxValue, minValue, layerArea.Min.Y + padding, layerArea.Max.Y - padding);
+                        var value = (float)curve.GetSampledValue(blendU);
+                        _positions.Add(new Vector2(TimeLineCanvas.Current.TransformX((float)blendU),
+                                                   value));
+                    }
+                }
+
+                lastValue = (float)vDef.Value; 
                 _positions.Add(new Vector2(
-                                          TimeLineCanvas.Current.TransformX((float)u),
-                                          lastValue));
+                                           TimeLineCanvas.Current.TransformX((float)u),
+                                           lastValue));
 
                 lastVDef = vDef;
                 lastUOnScreen = uOnScreen;
             }
 
-            drawList.AddPolyline(
-                                 ref _positions.ToArray()[0],
-                                 _positions.Count,
-                                 parameter.Curves.Count() > 1 ? CurveColors[curveIndex % 4] : _grayCurveColor,
-                                 ImDrawFlags.None,
-                                 0.5f);
+            minValue = parameter.DampedMinValue.DampTowards(minValue);
+            maxValue = parameter.DampedMaxValue.DampTowards(maxValue);
+
+            for (var index = 0; index < _positions.Count; index++)
+            {
+                var p = _positions[index];
+                p.Y = p.Y.RemapAndClamp(maxValue, minValue, layerArea.Min.Y + padding, layerArea.Max.Y - padding);
+                _positions[index] = p;
+            }
+
+            if (_positions.Count > 0)
+            {
+                drawList.AddPolyline(
+                                     ref _positions.ToArray()[0],
+                                     _positions.Count,
+                                     parameter.Curves.Count() > 1 ? CurveColors[curveIndex % 4] : _grayCurveColor,
+                                     ImDrawFlags.None,
+                                     0.5f);
+            }
 
             // Debug visualization...
             // foreach (var p in _positions)
@@ -432,8 +456,10 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         }
     }
 
-    private void DrawCurveGradient(TimeLineCanvas.AnimationParameter parameter, ImRect layerArea, ImDrawListPtr drawList)
+    private static void DrawCurveGradient(TimeLineCanvas.AnimationParameter parameter, ImRect layerArea, ImDrawListPtr drawList)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+
         if (parameter.Curves.Count() != 4)
             return;
 
@@ -473,16 +499,20 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
     private void DrawKeyframe(in Guid compositionSymbolId, VDefinition vDef, ImRect layerArea, TimeLineCanvas.AnimationParameter parameter,
                               VDefinition? nextVDef, ImDrawListPtr drawList)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+        Debug.Assert(_currentAnimationParameter != null);
+
         var vDefU = (float)vDef.U;
         if (vDefU < Playback.Current.TimeInBars)
         {
             FrameStats.Current.HasKeyframesBeforeCurrentTime = true;
         }
+
         if (vDefU > Playback.Current.TimeInBars)
         {
             FrameStats.Current.HasKeyframesAfterCurrentTime = true;
         }
-            
+
         var posOnScreen = new Vector2(
                                       TimeLineCanvas.Current.TransformX(vDefU) - KeyframeIconWidth / 2 + 1,
                                       layerArea.Min.Y);
@@ -495,8 +525,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
             if (availableSpace > 30)
             {
-                var labelPos = new Vector2(posOnScreen.X + KeyframeIconWidth / 2 + 1,
-                                           layerArea.Min.Y + 5);
+                var labelPos = new Vector2(posOnScreen.X + KeyframeIconWidth / 2 + 6,
+                                           layerArea.Min.Y + 3);
 
                 var color = UiColors.StatusAnimated.Fade(availableSpace.RemapAndClamp(30, 50, 0, 1).Clamp(0, 1));
                 ImGui.PushFont(Fonts.FontSmall);
@@ -530,6 +560,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             {
                 Icons.Draw(isSelected ? Icon.DopeSheetKeyframeLinearSelected : Icon.DopeSheetKeyframeLinear, posOnScreen);
             }
+
             ImGui.PopStyleColor();
 
             ImGui.SetCursorScreenPos(posOnScreen);
@@ -637,6 +668,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     protected internal override void HandleCurvePointDragging(in Guid compositionSymbolId, VDefinition vDef, bool isSelected)
     {
+        Debug.Assert(TimeLineCanvas.Current != null);
+
         if (ImGui.IsItemHovered())
         {
             ImGui.SetMouseCursor(ImGuiMouseCursor.ResizeEW);
@@ -649,7 +682,7 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         }
 
         _draggedKeyframe = vDef;
-            
+
         if (UpdateSelectionOnClickOrDrag(vDef, isSelected))
             return;
 
@@ -674,6 +707,9 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     private bool UpdateSelectionOnClickOrDrag(VDefinition vDef, bool isSelected)
     {
+        if (TimeLineCanvas.Current == null)
+            return false;
+
         // Deselect
         if (ImGui.GetIO().KeyCtrl)
         {
@@ -722,6 +758,9 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
     public void UpdateSelectionForArea(ImRect screenArea, SelectionFence.SelectModes selectMode)
     {
+        if (TimeLineCanvas.Current == null)
+            return;
+
         if (selectMode == SelectionFence.SelectModes.Replace)
         {
             SelectedKeyframes.Clear();
@@ -799,8 +838,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
     void ITimeObjectManipulation.DeleteSelectedElements(Instance compositionOp)
     {
         AnimationOperations
-           .DeleteSelectedKeyframesFromAnimationParameters(SelectedKeyframes, 
-                                                           AnimationParameters, 
+           .DeleteSelectedKeyframesFromAnimationParameters(SelectedKeyframes,
+                                                           AnimationParameters,
                                                            compositionOp);
         RebuildCurveTables();
     }
@@ -811,20 +850,19 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
     /// </summary>
     void IValueSnapAttractor.CheckForSnap(ref SnapResult snapResult)
     {
-        
         foreach (var vDefinition in GetAllKeyframes())
         {
             if (SelectedKeyframes.Contains(vDefinition))
                 continue;
-                
-            if(_draggedKeyframe == vDefinition)
+
+            if (_draggedKeyframe == vDefinition)
                 continue;
 
             snapResult.TryToImproveWithAnchorValue(vDefinition.U);
         }
     }
 
-    private VDefinition? _draggedKeyframe;   // ignore snapping to self
+    private VDefinition? _draggedKeyframe; // ignore snapping to self
     private const float KeyframeIconWidth = 10;
     private Vector2 _minScreenPos;
     private static ChangeKeyframesCommand? _changeKeyframesCommand;

@@ -43,7 +43,7 @@ internal sealed class LoopRange : IValueSnapAttractor
             if (ImGui.IsItemActive() && ImGui.IsMouseDragging(ImGuiMouseButton.Left))
             {
                 var newTime = canvas.InverseTransformX(ImGui.GetIO().MousePos.X);
-                if(snapHandler.TryCheckForSnapping( newTime, out var snappedValue, TimeLineCanvas.Current.Scale.X, [this]))
+                if(snapHandler.TryCheckForSnapping( newTime, out var snappedValue, canvas.Scale.X, [this]))
                 {
                     newTime = (float)snappedValue;
                 }
