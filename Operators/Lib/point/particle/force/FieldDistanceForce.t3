@@ -73,7 +73,13 @@
     {
       "Id": "39983d4f-12ea-40a9-92a8-c9a05b1828cc"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/particles/FieldDistanceForce.hlsl"
+        }
+      ],
       "Outputs": []
     },
     {
@@ -182,12 +188,6 @@
       "SourceSlotId": "4883b1ec-16c1-422f-8db6-c74c3d48e5be",
       "TargetParentOrChildId": "299a8fd7-db02-46bb-9a48-198bf7f4db0f",
       "TargetSlotId": "fa9f7267-d138-4219-ab78-ed37546a259c"
-    },
-    {
-      "SourceParentOrChildId": "46848bda-c266-4ce4-b905-2d3d2ed7d32d",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "39983d4f-12ea-40a9-92a8-c9a05b1828cc",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

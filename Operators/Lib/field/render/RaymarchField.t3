@@ -256,6 +256,11 @@
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
       "InputValues": [
         {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/img/generate/RaymarchSDFFieldWithMatTemplate.hlsl"
+        },
+        {
           "Id": "f6fb3be8-53f2-4d68-bf0f-3f519bc09ff4"/*AdditionalDefines*/,
           "Type": "System.String",
           "Value": ""
@@ -616,12 +621,6 @@
       "SourceSlotId": "228e1dc2-944e-4235-bf2d-2eb3f895858c",
       "TargetParentOrChildId": "a6abf7ea-3d55-4136-ad8e-c25828bb6f0c",
       "TargetSlotId": "63d0e4e8-fa00-4059-a11b-6a31e66757dc"
-    },
-    {
-      "SourceParentOrChildId": "41605222-0a75-4d34-a466-0aa5e3c5cb91",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "b8773240-5218-4217-8475-975199bc0235",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "0667216d-478f-4854-a1e6-6b311b598306",

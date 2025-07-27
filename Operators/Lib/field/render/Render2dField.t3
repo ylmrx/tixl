@@ -197,7 +197,13 @@
     {
       "Id": "83d5519a-0bad-4300-a599-468f0febe5a6"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/img/generate/Render2dColorField.hlsl"
+        }
+      ],
       "Outputs": []
     },
     {
@@ -542,18 +548,6 @@
       "SourceSlotId": "d6d2b97d-1722-4190-a7f9-ebe07cded454",
       "TargetParentOrChildId": "7d1a07e0-165d-4c26-84e0-35b4b9e4e432",
       "TargetSlotId": "36f14238-5bb8-4521-9533-f4d1e8fb802b"
-    },
-    {
-      "SourceParentOrChildId": "ae4c5ac6-a124-47a3-8581-2a1bb2fdf8d0",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "83d5519a-0bad-4300-a599-468f0febe5a6",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
-    },
-    {
-      "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",
-      "SourceSlotId": "7e97e88d-4b66-4232-9c65-357948554fdd",
-      "TargetParentOrChildId": "83d5519a-0bad-4300-a599-468f0febe5a6",
-      "TargetSlotId": "f1e138ac-f226-43ad-bcaf-e48350ffe4b4"
     },
     {
       "SourceParentOrChildId": "47d2cbe6-750f-41b2-8c06-f46414ae01da",

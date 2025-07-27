@@ -180,6 +180,11 @@
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
       "InputValues": [
         {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/points/modify/MovePointsToSDF.hlsl"
+        },
+        {
           "Id": "f6fb3be8-53f2-4d68-bf0f-3f519bc09ff4"/*AdditionalDefines*/,
           "Type": "System.String",
           "Value": ""
@@ -374,12 +379,6 @@
       "SourceSlotId": "a1ab0c16-ed15-4334-a529-10e3c217df1a",
       "TargetParentOrChildId": "c2f4dfde-56b8-4acc-81f4-aa2df4876be5",
       "TargetSlotId": "a8ee59c3-cb62-42e5-a3c9-f4968876c9cc"
-    },
-    {
-      "SourceParentOrChildId": "57e314ce-d022-4e5f-a97b-9531cfd8c0b5",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "e4dd6046-c4a6-4cc4-91ff-6953dd957b07",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

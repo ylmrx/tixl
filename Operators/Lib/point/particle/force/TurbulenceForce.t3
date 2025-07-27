@@ -117,6 +117,11 @@
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
       "InputValues": [
         {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "Resources/lib/particles/TurbulanceForce.hlsl"
+        },
+        {
           "Id": "f6fb3be8-53f2-4d68-bf0f-3f519bc09ff4"/*AdditionalDefines*/,
           "Type": "System.String",
           "Value": "#define USE_WORLDSPACE2"
@@ -270,12 +275,6 @@
       "SourceSlotId": "190e262f-6554-4b34-b5b6-6617a98ab123",
       "TargetParentOrChildId": "a4c4627d-93fd-4f5c-a5f7-b14a2b8b027f",
       "TargetSlotId": "5c0e9c96-9aba-4757-ae1f-cc50fb6173f1"
-    },
-    {
-      "SourceParentOrChildId": "591dd78a-61b5-4d2d-9b7b-493b13c7ec7e",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "a82a5cb4-be6c-4d6a-a3cf-6c1fd4459ef5",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

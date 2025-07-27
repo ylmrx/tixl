@@ -99,6 +99,11 @@
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
       "InputValues": [
         {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "Resources/lib/3d/mesh/mesh-Draw.hlsl"
+        },
+        {
           "Id": "f6fb3be8-53f2-4d68-bf0f-3f519bc09ff4"/*AdditionalDefines*/,
           "Type": "System.String",
           "Value": "#define USE_WORLDSPACE2"
@@ -440,12 +445,6 @@
       "SourceSlotId": "66ce8660-253c-4a0b-8aec-f7a56751a1e4",
       "TargetParentOrChildId": "0cd63020-d4dc-4de9-9ee9-db2449ab24c3",
       "TargetSlotId": "980ef785-6ae2-44d1-803e-febfc75791c5"
-    },
-    {
-      "SourceParentOrChildId": "8326ff74-6dd5-4159-a5a1-aa288e6ad897",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "151209ef-f52b-4c88-9d9c-5a8882fb0e1d",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

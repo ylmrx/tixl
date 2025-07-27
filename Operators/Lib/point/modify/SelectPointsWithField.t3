@@ -56,7 +56,13 @@
     {
       "Id": "1eab1da0-07ef-4fb7-b5c4-9f8a249cb249"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/points/_research/SelectPointsWithField.hlsl"
+        }
+      ],
       "Outputs": []
     },
     {
@@ -189,12 +195,6 @@
       "SourceSlotId": "9a66687e-a834-452c-a652-ba1fc70c2c7b",
       "TargetParentOrChildId": "00000000-0000-0000-0000-000000000000",
       "TargetSlotId": "7a77a26e-88b5-43ed-84b1-b35682ceda7d"
-    },
-    {
-      "SourceParentOrChildId": "3659cd5c-6ea9-4530-ad99-8d2e611fe4ca",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "1eab1da0-07ef-4fb7-b5c4-9f8a249cb249",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

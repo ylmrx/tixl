@@ -124,7 +124,13 @@
     {
       "Id": "3aac3d34-49fb-477f-a899-04e8b86fa5e9"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "Lib/img/generate/VisualizeSDFFieldTemplate.hlsl"
+        }
+      ],
       "Outputs": []
     },
     {
@@ -304,12 +310,6 @@
       "SourceSlotId": "6ef6c44b-ee22-4c64-9910-4f7595c41897",
       "TargetParentOrChildId": "3a2dc19e-f2b5-4588-b16b-f1ebe7cae07d",
       "TargetSlotId": "e0bc9cf8-42c8-4632-b958-7a96f6d03ba2"
-    },
-    {
-      "SourceParentOrChildId": "83232cfd-2f2f-4d6d-82ff-d1e98529f28e",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "3aac3d34-49fb-477f-a899-04e8b86fa5e9",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

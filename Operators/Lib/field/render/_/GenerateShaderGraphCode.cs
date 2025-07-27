@@ -45,10 +45,14 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
     
     public GenerateShaderGraphCode()
     {
+        _fileContents = new Resource<string>(TemplateFilePath, TryLoadTemplate);
+        _fileContents.AddDependentSlots(ShaderCode, FloatParams, Resources);
+        
         ShaderCode.UpdateAction += Update;
         _graphId = GetHashCode();
     }
 
+    private bool _templateChanged = false; 
     
     /// <summary>
     /// This is only updated if subgraph has been changed.
@@ -57,7 +61,7 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
     {
         _lastErrorMessage = null;
         
-        var hasTemplateChanged = TemplateCode.DirtyFlag.IsDirty;
+        var hasTemplateChanged =  _templateChanged;
 
         var definesAreDirty = AdditionalDefines.DirtyFlag.IsDirty;
         if (definesAreDirty)
@@ -69,8 +73,8 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
                 hasTemplateChanged= true;
             }
         }
-        
-        var templateCode = TemplateCode.GetValue(context);
+
+        var templateCode = _fileContents.GetValue(context);// TemplateCode.GetValue(context);
         if (string.IsNullOrEmpty(templateCode))
         {
             this.LogErrorState("Missing input template code");
@@ -104,6 +108,7 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
         if (changes == ShaderGraphNode.ChangedFlags.None && !hasTemplateChanged)
             return;
 
+        
         AssembleParams();
 
         AssembleResources();
@@ -120,6 +125,7 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
             ShaderCode.Value = GenerateShaderCode(_additionalDefines + "\n\n" + templateCode);    // Should probably use a string builder here...
         }
         
+        _templateChanged = false;
         _updateCycleCount++;
     }
 
@@ -311,6 +317,34 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
         }        
     }    
     
+    private bool TryLoadTemplate(FileResource file, string currentValue, out string newValue, out string failureReason)
+    {
+        if (!file.TryOpenFileStream(out var stream, out failureReason, FileAccess.Read))
+        {
+            newValue = null;
+            return false;
+        }
+
+        try
+        {
+            using var fileStream = stream;
+            using var reader = new StreamReader(fileStream);
+            newValue = reader.ReadToEnd();
+            this.ClearErrorState();
+            _templateChanged = true;
+            return true;
+        }
+        catch (Exception e)
+        {
+            failureReason = $"Failed to read file {file.AbsolutePath}:" + e.Message;
+            this.LogErrorState( failureReason);
+            newValue = null;
+            return false;
+        }
+    }
+    
+    
+    
         
     #region Implementation of IStatusProvider
     IStatusProvider.StatusLevel IStatusProvider.GetStatusLevel() =>
@@ -323,10 +357,13 @@ internal sealed class GenerateShaderGraphCode : Instance<GenerateShaderGraphCode
     private ShaderGraphNode _graphNode;
     private bool _needsInvalidation = true;
     private string _additionalDefines = "";
-
-
+    private readonly Resource<string> _fileContents;
+    
     [Input(Guid = "FFC1C70E-B717-4337-916D-C3A13343E9CC")]
     public readonly InputSlot<ShaderGraphNode> Field = new();
+
+    [Input(Guid = "0B5CBBDF-AFE7-4DAF-9F1E-0E79792691F1")]
+    public readonly InputSlot<string> TemplateFilePath = new();
     
     [Input(Guid = "BCF6DE27-1FFD-422C-9F5B-910D89CAD1A4")]
     public readonly InputSlot<string> TemplateCode = new();

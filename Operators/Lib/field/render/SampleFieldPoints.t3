@@ -88,7 +88,13 @@
     {
       "Id": "a9ef46b8-f40e-4acb-95fa-071b1a5b5553"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "lib/field/use/SampleFieldPointsTemplate.hlsl"
+        }
+      ],
       "Outputs": []
     },
     {
@@ -180,12 +186,6 @@
       "SourceSlotId": "d7918fd8-906e-424d-8c5c-9631941cfc9d",
       "TargetParentOrChildId": "9d16e65a-2d90-461a-bf8a-ae88345f21c5",
       "TargetSlotId": "16f98211-fe97-4235-b33a-ddbbd2b5997f"
-    },
-    {
-      "SourceParentOrChildId": "6a2063b1-e529-408b-bc75-84812a5b9f41",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "a9ef46b8-f40e-4acb-95fa-071b1a5b5553",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",

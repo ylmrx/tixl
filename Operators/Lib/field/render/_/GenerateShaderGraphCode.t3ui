@@ -4,6 +4,15 @@
   "SymbolTags": "24",
   "InputUis": [
     {
+      "InputId": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 75.0
+      },
+      "Usage": "FilePath",
+      "FileFilter": "Shaders (*.hlsl)|*.hlsl"
+    },
+    {
       "InputId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"/*TemplateCode*/,
       "Relevancy": "Required",
       "Position": {

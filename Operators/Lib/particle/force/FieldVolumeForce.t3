@@ -179,7 +179,13 @@
     {
       "Id": "f3a9d17e-2847-45e1-a751-8752cf4f98e3"/*GenerateShaderGraphCode*/,
       "SymbolId": "73c028d1-3de2-4269-b503-97f62bbce320",
-      "InputValues": [],
+      "InputValues": [
+        {
+          "Id": "0b5cbbdf-afe7-4daf-9f1e-0e79792691f1"/*TemplateFilePath*/,
+          "Type": "System.String",
+          "Value": "/Lib/particles/FieldVolumeForce.hlsl"
+        }
+      ],
       "Outputs": []
     }
   ],
@@ -339,12 +345,6 @@
       "SourceSlotId": "4883b1ec-16c1-422f-8db6-c74c3d48e5be",
       "TargetParentOrChildId": "e76acc71-9691-4faa-8b20-30b42591fd64",
       "TargetSlotId": "fa9f7267-d138-4219-ab78-ed37546a259c"
-    },
-    {
-      "SourceParentOrChildId": "735946ff-da89-4200-aa29-c0550efb68db",
-      "SourceSlotId": "d792d3b4-b800-41f1-9d69-6ee55751ad37",
-      "TargetParentOrChildId": "f3a9d17e-2847-45e1-a751-8752cf4f98e3",
-      "TargetSlotId": "bcf6de27-1ffd-422c-9f5b-910d89cad1a4"
     },
     {
       "SourceParentOrChildId": "00000000-0000-0000-0000-000000000000",
