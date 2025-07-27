@@ -35,7 +35,7 @@ internal sealed class KeyBinding
 
         // Prevent keyboard shortcuts while inputs are active
         if ((_flags & KeyActionHandling.Flags.RemainActiveWhenItemActive) == 0
-            && !ImGui.IsAnyItemActive())
+            && ImGui.IsAnyItemActive())
             return false;
         
         return true;
