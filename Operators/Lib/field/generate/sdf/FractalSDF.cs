@@ -31,7 +31,7 @@ internal sealed class FractalSDF : Instance<FractalSDF>
 
     public ShaderGraphNode ShaderNode { get; }
 
-    public void GetPreShaderCode(CodeAssembleContext c, int inputIndex)
+    public void AddDefinitions(CodeAssembleContext c)
     {
         c.Globals["MandelBulbFractal"]
             = """
@@ -67,15 +67,15 @@ internal sealed class FractalSDF : Instance<FractalSDF>
                   return d;
               }
               """;
-
+    }
+    
+    public void GetPreShaderCode(CodeAssembleContext c, int inputIndex)
+    {
         var n = ShaderNode;
         c.AppendCall($"f{c}.w = fMandelBulbFractal(p{c}.xyz, {n}Scale, {n}Clamping, {n}Increment, {n}Minrad, {n}Fold, clamp({n}Iterations,1,20));");
+        c.AppendCall($"f{c}.xyz = p.w < 0.5 ?  p{c}.xyz : 1;"); // save local space
     }
-
-    public void GetPostShaderCode(CodeAssembleContext c, int inputIndex)
-    {
-    }
-
+    
     private int _iterations = 5;
 
     [GraphParam]

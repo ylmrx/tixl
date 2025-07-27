@@ -35,10 +35,7 @@ internal sealed class SphereSDF : Instance<SphereSDF>, ITransformable
         c.AppendCall($"f{c}.w = length(p{c}.xyz - {n}Center) - {n}Radius;");
         c.AppendCall($"f{c}.xyz = p.w < 0.5 ?  p{c}.xyz : 1;"); // save local space
     }
-
-    public void GetPostShaderCode(CodeAssembleContext c, int inputIndex)
-    {
-    }
+    
 
 
     [GraphParam]
