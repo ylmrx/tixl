@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using ManagedBass;
 using T3.Core.Animation;
+using T3.Core.IO;
 using T3.Core.Operator;
 
 namespace T3.Core.Audio;
@@ -36,7 +37,7 @@ public static class AudioEngine
             Bass.Init();
             _bassInitialized = true;
         }
-
+        
         // For audio-soundtrack we update once every frame. For Wasapi-inputs, we process directly in the new data callback
         if(playback.Settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
             AudioAnalysis.ProcessUpdate(playback.Settings.AudioGainFactor, playback.Settings.AudioDecayFactor);
@@ -105,19 +106,11 @@ public static class AudioEngine
     public static void SetMute(bool configAudioMuted)
     {
         IsMuted = configAudioMuted;
-        UpdateMuting();
     }
 
     public static bool IsMuted { get; private set; }
 
-    private static void UpdateMuting()
-    {
-        foreach (var stream in ClipStreams.Values)
-        {
-            var volume = IsMuted ? 0 : 1;
-            Bass.ChannelSetAttribute(stream.StreamHandle, ChannelAttribute.Volume, volume);
-        }
-    }
+
 
     internal static void UpdateFftBufferFromSoundtrack(int soundStreamHandle, Playback playback)
     {

@@ -189,6 +189,12 @@ internal sealed class SettingsWindow : Window
                                                    0.0f, 0.2f, 0.01f, true,
                                                    "Controls the distance until items such as keyframes snap in the timeline",
                                                    UserSettings.Defaults.SnapStrength);
+                    
+                    changed |= FormInputs.AddFloat("Audio Volume",
+                                                   ref ProjectSettings.Config.PlaybackVolume,
+                                                   0.0f, 10f, 0.01f, true,
+                                                   "Limit the audio playback volume",
+                                                   ProjectSettings.Defaults.PlaybackVolume);
 
                     changed |= FormInputs.AddEnumDropdown(ref UserSettings.Config.FrameStepAmount,
                                                           "Frame step amount",

@@ -15,6 +15,7 @@ public class ProjectSettings : Settings<ProjectSettings.ConfigData>
     {
         public bool TimeClipSuspending = true;
         public float AudioResyncThreshold = 0.04f;
+        public float PlaybackVolume = 1;
         public bool EnablePlaybackControlWithKeyboard = true;
 
         public bool SkipOptimization;
@@ -26,7 +27,6 @@ public class ProjectSettings : Settings<ProjectSettings.ConfigData>
         public bool EnableMidiSnapshotIndication = false;
         public WindowMode DefaultWindowMode = WindowMode.Fullscreen;
         public int DefaultOscPort = 8000;
-
         
         public bool LogCompilationDetails = false;
         public bool LogAssemblyLoadingDetails = false;
