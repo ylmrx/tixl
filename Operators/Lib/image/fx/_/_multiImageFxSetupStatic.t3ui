@@ -62,7 +62,8 @@
         "X": 656.6387,
         "Y": 363.90527
       },
-      "Usage": "FilePath"
+      "Usage": "FilePath",
+      "FileFilter": "HLSL-Files|*.hlsl"
     }
   ],
   "SymbolChildUis": [

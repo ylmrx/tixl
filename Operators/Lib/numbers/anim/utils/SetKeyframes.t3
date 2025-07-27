@@ -6,8 +6,8 @@
       "DefaultValue": 0
     },
     {
-      "Id": "3832ce07-4e54-4d72-ac86-c34667f6561f"/*Mode*/,
-      "DefaultValue": 0
+      "Id": "36b4906d-1cab-4589-b368-d63c5a9a3ba6"/*Value*/,
+      "DefaultValue": 0.0
     },
     {
       "Id": "6c918e42-d313-4921-8b8f-6485f3f5cb6c"/*CurveIndex*/,
@@ -18,12 +18,12 @@
       "DefaultValue": 1.0
     },
     {
-      "Id": "a710f087-786e-467c-a135-713c4614dfc0"/*WrapIndex*/,
+      "Id": "e1c338e4-db8d-4d12-b073-34db00170565"/*TriggerClear*/,
       "DefaultValue": false
     },
     {
-      "Id": "a9060d3b-b61b-49a9-a521-7f6bb37a8b4e"/*IndexOrTime*/,
-      "DefaultValue": 0.0
+      "Id": "fc7c69f7-8f6b-4be9-96b7-bf3145f4def4"/*TriggerSet*/,
+      "DefaultValue": false
     }
   ],
   "Children": [],

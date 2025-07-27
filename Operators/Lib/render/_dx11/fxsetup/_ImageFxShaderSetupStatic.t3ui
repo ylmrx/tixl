@@ -9,7 +9,8 @@
         "X": 1042.055,
         "Y": 991.1764
       },
-      "Usage": "FilePath"
+      "Usage": "FilePath",
+      "FileFilter": "HLSL-Files|*.hlsl"
     },
     {
       "InputId": "2624d563-bad7-4fcb-a201-0ee0b9b93afa"/*Filter*/,
