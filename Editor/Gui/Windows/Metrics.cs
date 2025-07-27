@@ -136,9 +136,9 @@ internal static class T3Metrics
         history.CopyTo(_floatGraphBuffer);
         var average = _floatGraphBuffer.Average();
         var min = _floatGraphBuffer.Min();
-        var jitter = _floatGraphBuffer.Max() - min;
+        var maxValue = _floatGraphBuffer.Max() ;
         var last = _floatGraphBuffer[^1];
-        ImGui.TextUnformatted($"{label}: {last:0.0}{unit} (~{average:0.0}  [{min:0.0} ..  +{jitter:0.0}])");
+        ImGui.TextUnformatted($"{label}: ~{average:0.0}{unit} [{min:0.0} .. {maxValue:0.0}]");
         ImGui.PlotLines("##uiDurations", ref _floatGraphBuffer[0], _uiRenderDurations.Count, 0,
                         null,
                         0.00f, max
