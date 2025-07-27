@@ -8,10 +8,14 @@ using T3.Core.Model;
 
 namespace T3.Core.Operator;
 
+// TODO: Making this a IReadOnlyDictionary and causes excessive GC allocations. It's cleaned but causes frame drops on larger graphs. 
 public sealed class InstanceChildren : IReadOnlyDictionary<Guid, Instance>
 {
-    private readonly Symbol.Child _asChild; // the symbol child of the instance this collection belongs to
-    private readonly Guid[] _childSearchPath; // a cached search path to avoid creating new arrays for each child lookup
+    /** The symbol child of the instance this collection belongs to */
+    private readonly Symbol.Child _asChild; 
+    
+    /** A cached search path to avoid creating new arrays for each child lookup */
+    private readonly Guid[] _childSearchPath; 
     
     public int Count => _asChild.Symbol.Children.Count;
     
@@ -26,7 +30,7 @@ public sealed class InstanceChildren : IReadOnlyDictionary<Guid, Instance>
         _childSearchPath[^1] = Guid.Empty;
     }
     
-    // dictionary accessor overload
+    /* Dictionary accessor overload */
     public Instance this[Guid sourceParentOrChildId]
     {
         get

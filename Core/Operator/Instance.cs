@@ -20,8 +20,8 @@ public abstract partial class Instance :  IGuidPathContainer, IResourceConsumer
 
     public abstract Symbol Symbol { get; }
     public Symbol.Child SymbolChild { get; private set; }
-    public readonly IReadOnlyList<ISlot> Outputs;
-    public readonly IReadOnlyList<IInputSlot> Inputs;
+    public readonly List<ISlot> Outputs;
+    public readonly List<IInputSlot> Inputs;
     public IReadOnlyList<Guid> InstancePath { get; private set; }
 
     public IReadOnlyList<IResourcePackage> AvailableResourcePackages
