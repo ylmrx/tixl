@@ -224,7 +224,7 @@ internal sealed class UiElements
 
         var dl = ImGui.GetWindowDrawList();
         ImGui.PushStyleVar(ImGuiStyleVar.ItemSpacing, new Vector2(5,5));
-        foreach (var package in EditableSymbolProject.AllProjects.OrderByDescending(x => x.CreatedAt))
+        foreach (var package in EditableSymbolProject.AllProjects)
         {
             if (!package.HasHome)
                 continue;

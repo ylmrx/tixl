@@ -34,6 +34,8 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
         SymbolUpdated += OnSymbolUpdated;
         SymbolRemoved += OnSymbolRemoved;
         InitializeResources();
+
+        _allProjectsCache = null;
     }
 
     public void OpenProjectInCodeEditor()
@@ -130,6 +132,8 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
         base.Dispose();
         FileWatcher?.Dispose();
         ProjectSetup.RemoveSymbolPackage(this, false);
+
+        _allProjectsCache = null;
     }
 
     /// <summary>
@@ -142,5 +146,21 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
     public override bool IsReadOnly => false;
     
 
-    public static IEnumerable<EditableSymbolProject> AllProjects => ProjectSetup.AllPackages.Where(x => x is EditableSymbolProject).Cast<EditableSymbolProject>();
+    private static IEnumerable<EditableSymbolProject>? _allProjectsCache = null;
+    public static IEnumerable<EditableSymbolProject> AllProjects
+    {
+        get
+        {
+            if (_allProjectsCache == null)
+            {
+                _allProjectsCache = ProjectSetup
+                    .AllPackages
+                    .Where(x => x is EditableSymbolProject)
+                    .Cast<EditableSymbolProject>()
+                    .OrderByDescending(x => x.CreatedAt)
+                    .ToList();
+            }
+            return _allProjectsCache;
+        }
+    }
 }
