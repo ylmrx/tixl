@@ -142,7 +142,7 @@ internal static partial class ProjectSetup
         {
             if (projectInfo is { csProjFile: not null, success: true })
             {
-                var project = new EditableSymbolProject(projectInfo.csProjFile);
+                var project = new EditableSymbolProject(projectInfo.csProjFile, projectInfo.fileInfo.CreationTimeUtc);
                 AddToLoadedPackages(project);
             }
             else
