@@ -15,10 +15,9 @@ internal sealed class TimeLineImage
     {
         if (soundTrackHandle == null)
             return;
-            
-        //var soundTrack = soundTrackHandle.Value;
+        
         UpdateSoundTexture(soundTrackHandle);
-        if (_loadedImagePath == null)
+        if (_loadedImagePath == null || TimeLineCanvas.Current == null)
             return;
             
         var clip = soundTrackHandle.Clip;
@@ -29,9 +28,7 @@ internal sealed class TimeLineImage
             
         var size = contentRegionMax - contentRegionMin;
         var yMin = (contentRegionMin + windowPos).Y;
-            
-        // drawlist.AddRectFilled(contentRegionMin + windowPos, 
-        //                        contentRegionMax + windowPos, new Color(0,0,0,0.3f));
+        
             
         var songDurationInBars = (float)(clip.LengthInSeconds * clip.Bpm / 240);
         var xMin = TimeLineCanvas.Current.TransformX((float) clip.StartTime);
