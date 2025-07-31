@@ -40,8 +40,8 @@ internal static partial class PlayerExporter
         }
 
         // traverse starting at output and collect everything
-        var exportInfo = new ExportData();
-        exportInfo.TryAddSymbol(symbol);
+        var exportData = new ExportData();
+        exportData.TryAddSymbol(symbol);
 
         exportDir = Path.Combine(UserSettings.Config.ProjectsFolder, FileLocations.ExportFolderName, childUi.SymbolChild.ReadableName);
 
@@ -66,27 +66,16 @@ internal static partial class PlayerExporter
         // Copy assemblies into export dir
         // Get symbol packages directly used by the exported symbols
 
-        if (!TryExportPackages(out reason, exportInfo.SymbolPackages, operatorDir))
+        if (!TryExportPackages(out reason, exportData.SymbolPackages, operatorDir))
             return false;
 
         // Copy referenced resources
-        RecursivelyCollectExportData(output, exportInfo);
-        exportInfo.PrintInfo();
+        RecursivelyCollectExportData(output, exportData);
+        exportData.PrintInfo();
 
-        // Todo: Use exportInfo instead
         if (TryFindSoundtrack(exportedInstance, symbol, out var fileResource, out var relativePath))
         {
-            if (!TryCreateResourceExportFilepath(exportDir, fileResource, relativePath, symbol, out var targetPath, out var reason2))
-            {
-                reason = reason2;
-                return false;
-            }
-
-            if (!TryCopyFile(fileResource.AbsolutePath, targetPath))
-            {
-                reason = $"Failed to copy soundtrack from \"{fileResource.AbsolutePath}\" to \"{targetPath}\"";
-                return false;
-            }
+            exportData.TryAddSharedResource(relativePath, null, fileResource);
         }
         else
         {
@@ -110,7 +99,7 @@ internal static partial class PlayerExporter
         if (!TryCopyDirectory(playerDirectory, exportDir, out reason))
             return false;
 
-        if (!ExportDataFile.TryCopyToExportDir(exportInfo.ExportDataFiles, exportDir))
+        if (!ExportDataFile.TryCopyToExportDir(exportData.ExportDataFiles, exportDir))
         {
             reason = "Failed to copy resource files - see log for details";
             return false;
@@ -379,7 +368,8 @@ internal static partial class PlayerExporter
         }
     }
 
-    private static bool TryFindSoundtrack(Instance instance, Symbol symbol, [NotNullWhen(true)] out FileResource? file,
+    private static bool TryFindSoundtrack(Instance instance, Symbol symbol, 
+                                          [NotNullWhen(true)] out FileResource? file,
                                           [NotNullWhen(true)] out string? relativePath)
     {
         var playbackSettings = symbol.PlaybackSettings;

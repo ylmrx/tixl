@@ -61,7 +61,8 @@ internal sealed partial class TixlAssemblyLoadContext : AssemblyLoadContext
         }
         catch (Exception e)
         {
-            Log.Error($"Failed to delete shadow copy directory {_rootShadowCopyDir}: {e}");
+            // This warning happens quite frequently
+            Log.Debug($"Failed to delete shadow copy directory {_rootShadowCopyDir}: {e.Message}");
         }
         
         Directory.CreateDirectory(_rootShadowCopyDir);

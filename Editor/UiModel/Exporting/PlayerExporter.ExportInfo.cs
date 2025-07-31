@@ -56,9 +56,14 @@ internal static partial class PlayerExporter
             }
         }
 
-        public bool TryAddSharedResource(string resourcePath, IReadOnlyList<IResourcePackage>? otherDirs = null)
+        public bool TryAddSharedResource(string resourcePath, IReadOnlyList<IResourcePackage>? otherDirs = null, FileResource? fileResource= null)
         {
-            var searchDirs = otherDirs ?? Array.Empty<IResourcePackage>();
+            IResourcePackage[] resources  = fileResource?.ResourcePackage != null 
+                                                 ? [fileResource.ResourcePackage] 
+                                                 : [];
+            
+            var searchDirs = otherDirs ?? resources;
+            
             var tempResourceConsumer = new TempResourceConsumer(searchDirs);
             if (!ResourceManager.TryResolvePath(resourcePath, tempResourceConsumer, out var absolutePath, out var package))
             {
