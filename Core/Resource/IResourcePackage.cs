@@ -10,6 +10,7 @@ public interface IResourcePackage
     public string DisplayName { get; }
     public string? Alias { get; }
     public string ResourcesFolder { get; }
+    public string? RootNamespace { get; }
     public ResourceFileWatcher? FileWatcher { get; }
     public bool IsReadOnly { get; }
     public IReadOnlyCollection<DependencyCounter> Dependencies { get; }

@@ -110,6 +110,7 @@ public static class SharedResources
         public string Alias => "t3";
         // ReSharper disable once ReplaceAutoPropertyWithComputedProperty
         public string ResourcesFolder { get; } = Directory;
+        public string RootNamespace => null;
         public ResourceFileWatcher FileWatcher => null;
         public bool IsReadOnly => true;
         public IReadOnlyCollection<DependencyCounter> Dependencies { get; } = Array.Empty<DependencyCounter>();

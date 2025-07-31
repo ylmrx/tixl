@@ -170,6 +170,7 @@ public abstract partial class ShaderCompiler
         public string? Alias => null;
         public string ResourcesFolder { get; }
         public ResourceFileWatcher? FileWatcher => _resourceConsumer?.Package?.FileWatcher;
+        public string? RootNamespace => _resourceConsumer?.Package?.RootNamespace;
         public bool IsReadOnly => true;
         public IReadOnlyCollection<DependencyCounter> Dependencies => _resourceConsumer?.Package?.Dependencies ?? Array.Empty<DependencyCounter>();
         public IReadOnlyList<IResourcePackage> AvailableResourcePackages { get; }

@@ -1,26 +1,28 @@
 #nullable enable
 using System.IO;
+using System.Threading;
 using T3.Core.Model;
 using T3.Core.Operator;
 using T3.Core.Resource;
+using T3.Core.UserData;
 
 namespace T3.Editor.UiModel.Exporting;
 
 internal static partial class PlayerExporter
 {
-    private sealed class ExportInfo
+    private sealed class ExportData
     {
-        public IReadOnlyCollection<ResourcePath> ResourcePaths => _resourcePaths;
+        public IReadOnlyCollection<ExportDataFile> ExportDataFiles => _exportDataFiles;
         public IEnumerable<SymbolPackage> SymbolPackages => _symbolPackages.Keys;
 
         private readonly HashSet<Symbol> _symbols = new();
         private readonly Dictionary<SymbolPackage, List<Symbol>> _symbolPackages = new();
-        private readonly HashSet<ResourcePath> _resourcePaths = new();
+        private readonly HashSet<ExportDataFile> _exportDataFiles = new();
         private readonly HashSet<Instance> _collectedInstances = new();
 
         public bool TryAddInstance(Instance instance) => _collectedInstances.Add(instance);
 
-        public void TryAddResourcePath(in ResourcePath path) => _resourcePaths.Add(path);
+        public void TryAddResourcePath(in ExportDataFile path) => _exportDataFiles.Add(path);
 
         public bool TryAddSymbol(Symbol symbol)
         {
@@ -48,34 +50,43 @@ internal static partial class PlayerExporter
         public void PrintInfo()
         {
             Log.Info($"Collected {_collectedInstances.Count} instances for export in {_symbols.Count} different symbols:");
-            foreach (var resourcePath in ResourcePaths)
+            foreach (var resourcePath in ExportDataFiles)
             {
                 Log.Info($"  {resourcePath}");
             }
         }
 
-        public bool TryAddSharedResource(string relativePath, IReadOnlyList<IResourcePackage>? otherDirs = null)
+        public bool TryAddSharedResource(string resourcePath, IReadOnlyList<IResourcePackage>? otherDirs = null)
         {
             var searchDirs = otherDirs ?? Array.Empty<IResourcePackage>();
             var tempResourceConsumer = new TempResourceConsumer(searchDirs);
-            if (!ResourceManager.TryResolvePath(relativePath, tempResourceConsumer, out var absolutePath, out _))
+            if (!ResourceManager.TryResolvePath(resourcePath, tempResourceConsumer, out var absolutePath, out var package))
             {
-                Log.Error($"Can't find file: {relativePath}");
+                Log.Error($"Can't find file: {resourcePath}");
                 return false;
             }
             
-            
-            relativePath = relativePath.Replace("\\", "/");
+            resourcePath = resourcePath.Replace("\\", "/");
             absolutePath = absolutePath.Replace("\\", "/");
-
-            TryAddResourcePath(new ResourcePath(relativePath, absolutePath));
+            
+            
+            if (package == null)
+            {
+                Log.Error($"Can't add resource file without package: {resourcePath}");
+                return false;
+            }
+            
+            var relativePathInResourceFolder = Path.GetRelativePath(package.ResourcesFolder, absolutePath);
+            TryAddResourcePath(new ExportDataFile(package.RootNamespace, relativePathInResourceFolder, absolutePath));
 
             // Copy related font textures
-            if (relativePath.EndsWith(".fnt", StringComparison.OrdinalIgnoreCase))
+            if (resourcePath.EndsWith(".fnt", StringComparison.OrdinalIgnoreCase))
             {
-                var relativePathPng = relativePath.Replace(".fnt", ".png");
+                var resourcePathPng = resourcePath.Replace(".fnt", ".png");
                 var absolutePathPng = absolutePath.Replace(".fnt", ".png");
-                TryAddResourcePath(new ResourcePath(relativePathPng, absolutePathPng));
+                var relativePathInResourceFolderPng = relativePathInResourceFolder.Replace(".fnt", ".png");
+                
+                TryAddResourcePath(new ExportDataFile(package.RootNamespace,relativePathInResourceFolderPng, absolutePathPng));
             }
 
             // search for shader includes
@@ -92,6 +103,62 @@ internal static partial class PlayerExporter
             }
 
             return true;
+        }
+    }
+    
+    
+    private sealed class ExportDataFile(string? packageRootNamespace, string relativePathInResourcesFolder, string absolutePath)
+    {
+        private readonly string? _packageRootNamespace = packageRootNamespace;
+        private readonly string _relativePathInResourcesFolder = relativePathInResourcesFolder;
+        private readonly string _absolutePath = absolutePath;
+
+        // equality operators
+        public static bool operator ==(ExportDataFile left, ExportDataFile right) => left._absolutePath == right._absolutePath;
+        public static bool operator !=(ExportDataFile left, ExportDataFile right) => left._absolutePath != right._absolutePath;
+        public override int GetHashCode() => _absolutePath.GetHashCode();
+        public override bool Equals(object? obj) => obj is ExportDataFile other && other == this;
+
+        public override string ToString() => $"\"{_relativePathInResourcesFolder}\" (\"{_absolutePath}\")";
+
+        private bool TryCopy(ref int successInt, string exportDir)
+        {
+            //var targetPath = Path.Combine(exportDir, resourcePath.RelativePath);
+            var targetPath = GetTargetPathFolder(exportDir);
+            var success = TryCopyFile(_absolutePath, targetPath);
+
+            // Use bit operations to et successInt to 0 on failure
+            Interlocked.And(ref successInt, Convert.ToInt32(success));
+            if (!success)
+            {
+                Log.Error($"Failed to copy resource file for export: {_absolutePath}");
+                return false;
+            }
+
+            return true;
+        }
+
+        private string GetTargetPathFolder(string exportDir)
+        {
+            if (_packageRootNamespace != null)
+            {
+                return Path.Combine(exportDir, "Operators",
+                                    _packageRootNamespace,
+                                    FileLocations.ResourcesSubfolder,
+                                    _relativePathInResourcesFolder);
+            }
+
+            return Path.Combine(exportDir, _relativePathInResourcesFolder);
+        }
+
+        public static bool TryCopyToExportDir(IEnumerable<ExportDataFile> resourcePaths, string exportDir)
+        {
+            var successInt = Convert.ToInt32(true);
+            resourcePaths
+               .AsParallel()
+               .ForAll(resourcePath => resourcePath.TryCopy(ref successInt ,exportDir));
+
+            return Convert.ToBoolean(successInt);
         }
     }
 }
