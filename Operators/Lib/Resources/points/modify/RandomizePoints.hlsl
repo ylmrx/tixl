@@ -96,12 +96,18 @@ float3 rgb2hsb(float3 c)
                                   ? qRotateVec3(biasedA.xyz * RandomizePosition, p.Rotation)
                                   : biasedA.xyz * RandomizePosition);
 
-    float4 HSBa = float4(rgb2hsb(p.Color.rgb), p.Color.a);
-    HSBa += biasedB * RandomizeColor * strength;
-    HSBa.x = fmod(HSBa.x, 1);
+    float4 rgba = p.Color;
+    if(length(RandomizeColor) > 0.001) 
+    {
+        float4 HSBa = float4(rgb2hsb(p.Color.rgb), p.Color.a);
+        HSBa += biasedB * RandomizeColor * strength;
+        HSBa.x = fmod(HSBa.x, 1);
+        float4 rgba = float4(hsb2rgb(HSBa.xyz), HSBa.a);
+    }
 
-    float4 rgba = float4(hsb2rgb(HSBa.xyz), HSBa.a);
-    p.Color = ClampColorsEtc ? saturate(rgba) : rgba;
+    p.Color = ClampColorsEtc 
+                ? clamp(rgba, 0, float4(1000,1000,1000,1)) 
+                : rgba;
 
     p.FX1 += biasedA.w * RandomizeF1 * strength;
     p.FX2 += biasedA.r * RandomizeF2 * strength;

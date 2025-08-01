@@ -23,6 +23,7 @@
 - [ ] Fix Multiinput connection editing
 
 - [ ] File-browser auto complete shows .hlsl file 3 times ?
+- [ ] Search search relevancy. Why is [DrawPoint2] on top?
 
 ## Project handling
 
@@ -91,6 +92,8 @@
 - [ ] Add RotateImage or add option to [TransformImage]
 - [ ] Clean up [SnapPointsToGrid] with amount
 - [ ] FIX: Filter returns a point with count 0 (with random-seed not applied)
+- [ ] Deprecate DrawPoints2
+
 
 ## SDF-Stuff
 
