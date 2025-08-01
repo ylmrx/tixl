@@ -100,7 +100,7 @@ sampler texSampler : register(s0);
     ResultPoints[threadID.x].Position = float3(posXY, 0);
 
     ResultPoints[threadID.x].FX1 = 1;
-    ResultPoints[threadID.x].FX1 = 2;
+    ResultPoints[threadID.x].FX1 = 1;
     ResultPoints[threadID.x].Rotation = float4(0, 0, 0, 1);
 
     ResultPoints[threadID.x].Scale = 1;
