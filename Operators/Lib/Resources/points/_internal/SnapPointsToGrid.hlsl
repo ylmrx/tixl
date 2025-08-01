@@ -15,9 +15,11 @@ cbuffer Params : register(b0)
     float Scatter;
     float Mode;
     float2 GainAndBias;
+}
 
-    float UseWAsWeight;
-    float UseSelection;
+cbuffer IntParams : register(b1)
+{
+    int StrengthFactor;
 }
 
 StructuredBuffer<Point> Points1 : t0;
@@ -35,9 +37,6 @@ RWStructuredBuffer<Point> ResultPoints : u0;
     float3 normlizedOffsetPosition = normalizedPosition + 0.5 - GridOffset;
     float3 signedFraction = (mod(normlizedOffsetPosition, 1) - 0.5) * 2;
     float3 centerPoint = pos - signedFraction * gridSize / 2;
-
-    float wFactor = UseWAsWeight > 0.5 ? p.FX1 : 1;
-    float selectionFactor = UseSelection > 0.5 ? p.FX2 : 1;
 
     float3 scatter = (hash41u(i.x) - 0.5) * Scatter;
 
@@ -61,7 +60,12 @@ RWStructuredBuffer<Point> ResultPoints : u0;
 
     float3 biasedSnap = ApplyGainAndBias(snapAmount.xyzz, GainAndBias).xyz;
 
-    float3 ff = (1 - saturate(biasedSnap - Amount * 2 + 1)) * selectionFactor * wFactor;
+    float strength = Amount * (StrengthFactor == 0
+                                     ? 1
+                                 : (StrengthFactor == 1) ? p.FX1
+                                                         : p.FX2);
+
+    float3 ff = (1 - saturate(biasedSnap - Amount * 2 + 1)) * strength;
     p.Position = lerp(orgPosition, centerPoint, ff);
     ResultPoints[i.x] = p;
 }
