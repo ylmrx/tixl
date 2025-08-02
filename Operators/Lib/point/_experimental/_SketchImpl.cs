@@ -1,9 +1,12 @@
+#nullable enable
 using Newtonsoft.Json;
 using T3.Core.Animation;
+using T3.Core.Utils;
 using T3.Serialization;
 using T3.SystemUi;
 
 // ReSharper disable RedundantNameQualifier
+// ReSharper disable once InconsistentNaming
 
 namespace Lib.point._experimental;
 
@@ -32,28 +35,42 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         StatusMessage.UpdateAction += Update;
     }
 
+    private string GetAbsolutePath(string relativePath)
+    {
+        if (Parent?.Parent == null)
+            return relativePath;
+
+        return Path.Combine(Parent.Parent.Symbol.SymbolPackage.ResourcesFolder, relativePath.Replace("{id}", SymbolChildId.ShortenGuid()));
+    }
+
+    private string _absolutePath = string.Empty;
+    private int _overridePageIndex;
+
     private void Update(EvaluationContext context)
     {
         var isFilePathDirty = FilePath.DirtyFlag.IsDirty;
-        var filepath = FilePath.GetValue(context);
 
         var overrideIndexWasDirty = OverridePageIndex.DirtyFlag.IsDirty;
-        var overridePageIndex = OverridePageIndex.GetValue(context);
+        _overridePageIndex = OverridePageIndex.GetValue(context);
 
+        if (this.Parent == null)
+        {
+            Log.Warning("Implementation needs a wrapper op", this);
+            return;
+        }
+        
         if (isFilePathDirty)
         {
-            if(!TryGetFilePath(filepath, out var absolutePath))
-            {
-                Log.Error($"Could not find file: {filepath}", this);
-                return;
-            }
-            _paging.LoadPages(absolutePath);
+            var filepath = FilePath.GetValue(context);
+            _absolutePath = GetAbsolutePath(filepath);
+            //Log.Debug($"Absolute path: {_absolutePath}", this);
+            _paging.LoadPages(_absolutePath);
         }
 
         var pageIndexNeedsUpdate = Math.Abs(_lastUpdateContextTime - context.LocalTime) > 0.001;
         if (pageIndexNeedsUpdate || isFilePathDirty || overrideIndexWasDirty)
         {
-            _paging.UpdatePageIndex(context.LocalTime, overridePageIndex);
+            _paging.UpdatePageIndex(context.LocalTime, _overridePageIndex);
             _lastUpdateContextTime = context.LocalTime;
         }
 
@@ -74,7 +91,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         }
 
         // Switch modes
-        if(IsOpSelected) {
+        if(IsOpSelected && !KeyHandler.PressedKeys[(int)Key.CtrlKey]) {
             // if (Mode.DirtyFlag.IsDirty)
             // {
             //     _drawMode = (DrawModes)Mode.GetValue(context).Clamp(0, Enum.GetNames(typeof(DrawModes)).Length - 1);
@@ -83,21 +100,30 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
             if (KeyHandler.PressedKeys[(int)Key.P])
             {
                 _drawMode = DrawModes.Draw;
+                ClearSelection();
             }
             else if (KeyHandler.PressedKeys[(int)Key.E])
             {
+                EraseSelection();
                 _drawMode = DrawModes.Erase;
             }
             else if (KeyHandler.PressedKeys[(int)Key.X])
             {
-                if(!KeyHandler.PressedKeys[(int)Key.CtrlKey])
-                    _paging.Cut(overridePageIndex);
+                _paging.Cut(_overridePageIndex);
             }
             else if (KeyHandler.PressedKeys[(int)Key.V])
             {
-                if(!KeyHandler.PressedKeys[(int)Key.CtrlKey])
-                    _paging.Paste(context.LocalTime, overridePageIndex);
+                _paging.Paste(context.LocalTime, _overridePageIndex);
             }
+            else if (KeyHandler.PressedKeys[(int)Key.C])
+            {
+                ClearSelection();
+            }
+            else if (KeyHandler.PressedKeys[(int)Key.S])
+            {
+                _drawMode = DrawModes.Select;
+            }
+
         }
 
         var wasModified = DoSketch(context, out CursorPosInWorld.Value, out CurrentBrushSize.Value);
@@ -122,11 +148,55 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
         if (_needsSave && Playback.RunTimeInSecs - _lastModificationTime > 2)
         {
-            var filepath1 = FilePath.GetValue(context);
-            JsonUtils.TrySaveJson(_paging.Pages, filepath1);
+            //var filepath1 = FilePath.GetValue(context);
+            var folder = Path.GetDirectoryName(_absolutePath);
+            if (string.IsNullOrEmpty(folder))
+            {
+                Log.Warning("No directory for sketch?", this);
+                return;
+            }
+
+            try
+            {
+                Directory.CreateDirectory(folder);
+            }
+            catch (Exception e)
+            {
+                Log.Warning($"Can't create sketch directory {folder}? (${e.Message}", this);
+                return;
+            }
+            
+            JsonUtils.TrySaveJson(_paging.Pages, _absolutePath);
             _needsSave = false;
         }
     }
+
+    private void ClearSelection()
+    {
+        if (_paging.ActivePage == null  || CurrentPointList==null)
+            return;
+
+        for (var index = 0; index < CurrentPointList.TypedElements.Length; index++)
+        {
+            CurrentPointList.TypedElements[index].F2 = 0;
+        }
+    }
+    
+    private void EraseSelection()
+    {
+        if (_paging.ActivePage == null  || CurrentPointList==null)
+            return;
+
+        for (var index = 0; index < CurrentPointList.TypedElements.Length; index++)
+        {
+            var selection =CurrentPointList.TypedElements[index].F2;
+            if (selection > 0.9f)
+            {
+                CurrentPointList.TypedElements[index].Scale = Vector3.One * float.NaN;
+            }
+        }
+    }
+
 
     private bool DoSketch(EvaluationContext context, out Vector3 posInWorld, out float visibleBrushSize)
     {
@@ -195,7 +265,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
                 if (!_paging.HasActivePage)
                     _paging.InsertNewPage();
 
-                if (justPressed && KeyHandler.PressedKeys[(int)Key.ShiftKey] && _paging.ActivePage.WriteIndex > 1)
+                if (justPressed && KeyHandler.PressedKeys[(int)Key.ShiftKey] && _paging.ActivePage!.WriteIndex > 1)
                 {
                     // Discard last separator point
                     _paging.ActivePage.WriteIndex--;
@@ -204,26 +274,21 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
                 var color = BrushColor.GetValue(context);
 
-                AppendPoint(new Point()
+                AppendPoint(new Point
                                 {
                                     Position = posInWorld,
                                     Color = color,
-                                        
-                                    // Orientation = new Quaternion(
-                                    //                              BrushColor.GetValue(context).X,
-                                    //                              BrushColor.GetValue(context).Y,
-                                    //                              BrushColor.GetValue(context).Z,
-                                    //                              BrushColor.GetValue(context).W
-                                    //                             ),
-                                    F1 = visibleBrushSize / 2 + 0.002f, // prevent getting too small
+                                    Scale = Vector3.One * (visibleBrushSize / 2 + 0.002f ),
+                                    F2 = 0, // Not selected by default
                                 });
                 AppendPoint(Point.Separator(), advanceIndex: false);
                 _currentStrokeLength++;
                 return true;
 
             case DrawModes.Erase:
+            case DrawModes.Select:
             {
-                if (!_paging.HasActivePage)
+                if (_paging.ActivePage == null || CurrentPointList == null)
                     return false;
 
                 var wasModified = false;
@@ -233,7 +298,33 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
                     if (!(distanceToPoint < visibleBrushSize * 0.02f))
                         continue;
 
-                    CurrentPointList.TypedElements[index].F1 = float.NaN;
+                    if (_drawMode == DrawModes.Erase)
+                    {
+                        CurrentPointList.TypedElements[index].Scale = Vector3.One* float.NaN;
+                    }
+                    else if (_drawMode == DrawModes.Select)
+                    {
+                        CurrentPointList.TypedElements[index].F2 = 1;
+                    }
+                    wasModified = true;
+                }
+
+                return wasModified;
+            }
+            
+            {
+                if (_paging.ActivePage == null || CurrentPointList == null)
+                    return false;
+
+                var wasModified = false;
+                for (var index = 0; index < CurrentPointList.NumElements; index++)
+                {
+                    var distanceToPoint = Vector3.Distance(posInWorld, CurrentPointList.TypedElements[index].Position);
+                    if (!(distanceToPoint < visibleBrushSize * 0.02f))
+                        continue;
+
+                    CurrentPointList.TypedElements[index].Scale = Vector3.One* float.NaN;
+                    //CurrentPointList.TypedElements[index].F2 = 0.8f;
                     wasModified = true;
                 }
 
@@ -250,7 +341,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         var posInClipSpace = new System.Numerics.Vector4((mousePos.X - 0.5f) * 2, (-mousePos.Y + 0.5f) * 2, offsetFromCamPlane, 1);
         Matrix4x4.Invert(context.CameraToClipSpace, out var clipSpaceToCamera);
         Matrix4x4.Invert(context.WorldToCamera, out var cameraToWorld);
-        Matrix4x4.Invert(context.ObjectToWorld, out var worldToObject);
+        //Matrix4x4.Invert(context.ObjectToWorld, out var worldToObject);
 
         var clipSpaceToWorld = Matrix4x4.Multiply(clipSpaceToCamera, cameraToWorld);
         var m = Matrix4x4.Multiply(cameraToWorld, clipSpaceToCamera);
@@ -262,7 +353,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
     private void AppendPoint(Point p, bool advanceIndex = true)
     {
-        if (!_paging.HasActivePage)
+        if (_paging.ActivePage == null || CurrentPointList == null)
         {
             Log.Warning("Tried writing to undefined sketch page", this);
             return;
@@ -282,7 +373,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
     private bool GetPreviousStrokePoint(out Point point)
     {
-        if (!_paging.HasActivePage || _currentStrokeLength == 0 || _paging.ActivePage.WriteIndex == 0)
+        if (_paging.ActivePage == null || _currentStrokeLength == 0 || _paging.ActivePage.WriteIndex == 0 || CurrentPointList==null)
         {
             Log.Warning("Can't get previous stroke point", this);
             point = new Point();
@@ -294,7 +385,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
     }
 
     private double _lastModificationTime;
-    private StructuredList<Point> CurrentPointList => _paging.ActivePage.PointsList;
+    private StructuredList<Point>? CurrentPointList => _paging.ActivePage?.PointsList;
 
     private float _brushSize;
     private bool _needsSave;
@@ -305,7 +396,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
     private double _lastUpdateContextTime = -1;
 
-    private bool IsOpSelected => MouseInput.SelectedChildId == Parent.SymbolChildId;
+    private bool IsOpSelected => MouseInput.SelectedChildId == Parent?.SymbolChildId;
 
     internal sealed class Page
     {
@@ -313,13 +404,13 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         public double Time;
 
         [JsonConverter(typeof(StructuredListConverter))]
-        public StructuredList<Point> PointsList;
+        public StructuredList<Point> PointsList= new();
     }
 
     /// <summary>
     /// Controls switching between different sketch pages
     /// </summary>
-    private class Paging
+    private sealed class Paging
     {
         /// <summary>
         /// Derives active page index from local time or parameter override 
@@ -327,6 +418,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         public void UpdatePageIndex(double contextLocalTime, int overridePageIndex)
         {
             _lastContextTime = contextLocalTime;
+            
 
             if (overridePageIndex >= 0)
             {
@@ -369,38 +461,31 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
         public void LoadPages(string filepath)
         {
-            Pages = new List<Page>();
+            Pages = [];
             try
             {
                 try
                 {
-                    Pages = JsonUtils.TryLoadingJson<List<Page>>(filepath);
+                    Pages = JsonUtils.TryLoadingJson<List<Page>>(filepath) ?? []; 
                 }
                 catch ( Exception e)
                 {
                     Log.Debug("Failed reading sketch pages from json: " + e.Message, this);
                 }
 
-                if (Pages != null)
+                foreach (var page in Pages)
                 {
-                    foreach (var page in Pages)
+                    if (page.PointsList.NumElements == 0)
                     {
-                        if (page.PointsList == null)
-                        {
-                            page.PointsList = new StructuredList<Point>(BufferIncreaseStep);
-                            continue;
-                        }
-
-                        if (page.PointsList.NumElements > page.WriteIndex)
-                            continue;
-
-                        //Log.Warning($"Adjusting writing index {page.WriteIndex} -> {page.PointsList.NumElements}", this);
-                        page.WriteIndex = page.PointsList.NumElements + 1;
+                        page.PointsList = new StructuredList<Point>(BufferIncreaseStep);
+                        continue;
                     }
-                }
-                else
-                {
-                    Pages = new List<Page>();
+
+                    if (page.PointsList.NumElements > page.WriteIndex)
+                        continue;
+
+                    //Log.Warning($"Adjusting writing index {page.WriteIndex} -> {page.PointsList.NumElements}", this);
+                    page.WriteIndex = page.PointsList.NumElements + 1;
                 }
             }
             catch(Exception e)
@@ -411,17 +496,33 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
         public bool HasActivePage => ActivePage != null;
 
-        public Page ActivePage;
+        public Page? ActivePage;
 
         public bool HasCutPage => _cutPage != null;
 
         public void Cut(int overridePageIndex)
         {
-            if (!HasActivePage)
+            if (ActivePage == null)
                 return;
 
             _cutPage = ActivePage;
+            var activeIndex = Pages.IndexOf(ActivePage);
+
             Pages.Remove(ActivePage);
+            if (overridePageIndex >= 0)
+            {
+                if (activeIndex != overridePageIndex)
+                {
+                    Log.Warning($"Expected active page index to be {overridePageIndex} not {activeIndex}", this);
+                }
+                
+                Pages.Insert(activeIndex, new Page
+                                              {
+                                                  Time = _lastContextTime,
+                                                  PointsList = new StructuredList<Point>(BufferIncreaseStep),
+                                              });
+            }
+            
             //if (overridePageIndex < 0)
             //{
             //
@@ -439,7 +540,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
         public void Paste(double time, int overridePageIndex)
         {
-            if (_cutPage == null)
+            if (_cutPage == null || ActivePage == null)
                 return;
 
             if (HasActivePage)
@@ -452,8 +553,8 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
 
         public int ActivePageIndex { get; private set; } = NoPageIndex;
 
-        public List<Page> Pages = new();
-        private Page _cutPage;
+        public List<Page> Pages = [];
+        private Page? _cutPage;
         private double _lastContextTime;
 
         private const int NoPageIndex = -1;
@@ -471,6 +572,7 @@ internal sealed class _SketchImpl : Instance<_SketchImpl>
         View,
         Draw,
         Erase,
+        Select,
     }
 
     [Input(Guid = "C427F009-7E04-4168-82E6-5EBE2640204D")]

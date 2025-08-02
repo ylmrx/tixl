@@ -36,6 +36,9 @@ internal sealed class Sketch : Instance<Sketch>
         [Input(Guid = "5cdb04d5-9bef-4789-8082-ea04e56b3ca7")]
         public readonly InputSlot<T3.Core.DataTypes.Vector.Int2> Resolution = new InputSlot<T3.Core.DataTypes.Vector.Int2>();
 
+        [Input(Guid = "046a932b-6331-4e97-b289-be88420951cc")]
+        public readonly InputSlot<float> OnionSkinRange = new InputSlot<float>();
+
     private enum ShowModes
     {
         OnlyAtFrame,
