@@ -47,5 +47,6 @@ public struct Point
                    };
     }
 
+    [Newtonsoft.Json.JsonIgnore]
     public const int Stride = 16 * 4;
 }

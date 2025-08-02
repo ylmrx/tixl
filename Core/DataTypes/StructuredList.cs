@@ -253,6 +253,9 @@ public class StructuredList<T> : StructuredList where T : unmanaged
             var childJson = jArray[index];
             foreach (var fieldInfo in fieldInfos)
             {
+                if (fieldInfo.IsStatic)
+                    continue;
+                
                 var valueConverter = JsonToTypeValueConverters.Entries[fieldInfo.FieldType];
                 var valueJson = childJson[fieldInfo.Name];
                 var objValue =valueConverter(valueJson);
