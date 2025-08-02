@@ -25,7 +25,8 @@ public class MsForms : ICoreSystemUiService
         var startInfo = new ProcessStartInfo
                             {
                                 FileName = "cmd",
-                                Arguments = $"/c start {uri}",
+                                // The first empty argument is the title of the console window.
+                                Arguments = $"/c start \"\" \"{uri}\"",
                             };
 
         Process.Start(startInfo);
