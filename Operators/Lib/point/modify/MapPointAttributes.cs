@@ -16,6 +16,9 @@ internal sealed class MapPointAttributes : Instance<MapPointAttributes>
         [Input(Guid = "d5a5862b-d3a2-4e6e-ad54-32cff7ced0fd")]
         public readonly InputSlot<float> Strength = new InputSlot<float>();
 
+        [Input(Guid = "3c94faca-61dd-4af6-883b-9eba1ed80b06", MappedType = typeof(StrengthFactors))]
+        public readonly InputSlot<int> StrengthFactor = new InputSlot<int>();
+
         [Input(Guid = "840aa616-6983-4840-a58b-d5396a91c2f9", MappedType = typeof(MappingModes))]
         public readonly InputSlot<int> Mapping = new InputSlot<int>();
 
@@ -80,5 +83,12 @@ internal sealed class MapPointAttributes : Instance<MapPointAttributes>
         None,
         Replace,
         Multiply,
+    }
+    
+    private enum StrengthFactors
+    {
+        None = 0,
+        F1 = 1,
+        F2 = 2,
     }
 }

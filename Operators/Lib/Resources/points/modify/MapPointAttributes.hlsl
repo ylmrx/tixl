@@ -17,6 +17,7 @@ cbuffer Params : register(b1)
     int ApplyMode;
     int WriteTo;
     int WriteColor;
+    int StrengthFactor;
 }
 
 StructuredBuffer<Point> SourcePoints : t0;
@@ -62,11 +63,10 @@ inline float3 fmod(float3 x, float3 y)
 
     Point p = SourcePoints[index];
 
-    // if (Mode != SPREADMODE_BUFFER && (isnan(p.W)))
-    // {
-    //     ResultPoints[index] = p;
-    //     return;
-    // }
+    float strength = Strength * (StrengthFactor == 0
+                                     ? 1
+                                 : (StrengthFactor == 1) ? p.FX1
+                                                         : p.FX2);
 
     float f0 = 0;
     switch (InputMode)
@@ -170,13 +170,13 @@ inline float3 fmod(float3 x, float3 y)
         switch (WriteTo)
         {
         case 1:
-            p.FX1 = lerp(org, newValue, Strength);
+            p.FX1 = lerp(org, newValue, strength);
             break;
         case 2:
-            p.FX2 = lerp(org, newValue, Strength);
+            p.FX2 = lerp(org, newValue, strength);
             break;
         case 3:
-            p.Scale = lerp(org, p.Scale * newValue, Strength);
+            p.Scale = lerp(org, p.Scale * newValue, strength);
             break;
         }
     }
@@ -185,10 +185,10 @@ inline float3 fmod(float3 x, float3 y)
     switch (WriteColor)
     {
     case 1:
-        p.Color = lerp(p.Color, p.Color * gradientColor, Strength);
+        p.Color = lerp(p.Color, p.Color * gradientColor, strength);
         break;
     case 2:
-        p.Color = lerp(p.Color, gradientColor, Strength);
+        p.Color = lerp(p.Color, gradientColor, strength);
         break;
     }
 
