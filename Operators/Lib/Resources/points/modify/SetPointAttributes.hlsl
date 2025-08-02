@@ -4,7 +4,7 @@
 #include "shared/quat-functions.hlsl"
 
 cbuffer Params : register(b0)
-{    
+{
     float SetPosition;
     float3 Position;
 
@@ -16,53 +16,65 @@ cbuffer Params : register(b0)
     float SetStretch;
 
     float3 Stretch;
-    float SetW;
+    float __Padding2;
 
-    float W;
-    float2 Padding;
-    float SetColor;
+    float SetF1;
+    float FX1;
+    float SetF2;
+    float FX2;
 
     float4 Color;
 
-    float SetSelected;
-    float Selected;
+    float SetColor;
     float Amount;
 }
 
-StructuredBuffer<LegacyPoint> SourcePoints : t0;        
+cbuffer Params : register(b1)
+{
+    int AmountFactor;
+}
 
-RWStructuredBuffer<LegacyPoint> ResultPoints : u0;
+StructuredBuffer<Point> SourcePoints : t0;
 
+RWStructuredBuffer<Point> ResultPoints : u0;
 
-[numthreads(64,1,1)]
-void main(uint3 i : SV_DispatchThreadID)
+[numthreads(64, 1, 1)] void main(uint3 i : SV_DispatchThreadID)
 {
     uint index = (uint)i.x;
     uint pointCount, stride;
+
     SourcePoints.GetDimensions(pointCount, stride);
-    if(index >= pointCount) {        
+    if (index >= pointCount)
+    {
         return;
     }
 
-    LegacyPoint p = SourcePoints[index];
+    Point p = SourcePoints[index];
 
-    if(SetColor > 0.5)
-        p.Color = lerp(p.Color, Color, Amount);
+    float strength = Amount * (AmountFactor == 0
+                                   ? 1
+                               : (AmountFactor == 1) ? p.FX1
+                                                     : p.FX2);
 
-    if(SetPosition)
-        p.Position = lerp(p.Position, Position, Amount);
+    if (SetColor > 0.5)
+        p.Color = lerp(p.Color, Color, strength);
 
-    if(SetStretch)
-        p.Stretch = lerp(p.Stretch, Stretch, Amount);
+    if (SetPosition)
+        p.Position = lerp(p.Position, Position, strength);
 
-    if(SetW)
-        p.W = lerp(p.W, W, Amount);
+    if (SetStretch)
+        p.Scale = lerp(p.Scale, Stretch, strength);
 
-    if(SetRotation) 
+    if (SetF1)
+        p.FX1 = lerp(p.FX1, FX1, strength);
+
+    if (SetF2)
+        p.FX2 = lerp(p.FX2, FX2, strength);
+
+    if (SetRotation)
     {
-        p.Rotation = qSlerp(p.Rotation, qFromAngleAxis(RotationAngle / 180 * PI, RotationAxis), Amount);
+        p.Rotation = qSlerp(p.Rotation, qFromAngleAxis(RotationAngle / 180 * PI, RotationAxis), strength);
     }
 
-    ResultPoints[index] = p; 
+    ResultPoints[index] = p;
 }
-
