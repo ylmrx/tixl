@@ -442,7 +442,7 @@ internal sealed partial class MagGraphCanvas
 
                             drawList.AddRectFilled(new Vector2(pMin.X + itemWidth * 0.04f, y2),
                                                    new Vector2(pMin.X + itemWidth * 0.20f, y2 + 1),
-                                                   borderColor.Fade(0.4f)
+                                                   borderColor.Fade(0.8f)
                                                   );
                         }
                     }

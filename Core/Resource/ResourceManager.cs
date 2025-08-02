@@ -63,6 +63,7 @@ public static partial class ResourceManager
             }
         }
             
+        // TODO: What is that "*.hlsl" extension here? This method should be file type agnostic.
         var sharedResourcePackages = relativePath.EndsWith(".hlsl") ? _shaderPackages : _sharedResourcePackages;
 
         if (TestPath(relativePath, sharedResourcePackages, out absolutePath, out resourceContainer, isFolder))
