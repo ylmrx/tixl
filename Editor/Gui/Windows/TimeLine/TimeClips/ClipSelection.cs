@@ -42,6 +42,15 @@ internal sealed class ClipSelection
             yield return CompositionTimeClips[id];
         }
     }
+
+    public IEnumerable<TimeClip> GetSelectedClips()
+    {
+        foreach (var id in SelectedClipsIds)
+        {
+            yield return CompositionTimeClips[id];
+        }
+    }
+
     
     public void UpdateForComposition(Instance compositionOp)
     {
