@@ -192,7 +192,7 @@ public abstract class CurveEditing
 
     private void ForSelectedOrAllPointsDo(DoSomethingWithKeyframeDelegate doFunc)
     {
-        var selectedOrAllPoints = GetSelectedOrAllPoints().ToList();
+        var selectedOrAllPoints = GetSelectedOrAllPoints().OrderBy(v => v.U).ToList();
         var cmd = new ChangeKeyframesCommand(selectedOrAllPoints, GetAllCurves());
 
         foreach (var keyframe in selectedOrAllPoints)
