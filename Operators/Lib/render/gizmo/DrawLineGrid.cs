@@ -13,12 +13,18 @@ internal sealed class DrawLineGrid : Instance<DrawLineGrid>
     public readonly InputSlot<Vector4> Color = new();
 
     [Input(Guid = "a4ea3140-3397-4989-98ee-3cf02d11f242")]
-    public readonly InputSlot<float> Size = new();
+    public readonly InputSlot<float> LineWidth = new();
 
     [Input(Guid = "0b8c7835-078c-4990-8db5-edccd26018c9")]
     public readonly InputSlot<int> BlendMod = new InputSlot<int>();
 
     [Input(Guid = "5e7da35a-6537-4fc1-9f23-faab82c8eeaa")]
     public readonly InputSlot<Int2> Segments = new InputSlot<Int2>();
+
+        [Input(Guid = "80736d45-85dd-4f9e-bc93-97c8c4e9c362")]
+        public readonly InputSlot<int> Orientation = new InputSlot<int>();
+
+        [Input(Guid = "ee938995-46a3-49dd-a791-d15f4045310b")]
+        public readonly InputSlot<bool> ShowAxis = new InputSlot<bool>();
 
 }
