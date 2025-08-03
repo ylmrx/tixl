@@ -46,6 +46,13 @@
       "Description": "The lifetime of particles in bars (depending on the current BPM rate).\nA negative setting will compute the maximum lifetime from the MaxParticleCount and the number of currently emitted particles.\nThis will lead to flickering if changing the emit count during playback."
     },
     {
+      "InputId": "54b8bfc1-98b1-4cec-b008-8615c20ebb43"/*EmitVelocityFactor*/,
+      "Position": {
+        "X": 226.2659,
+        "Y": 162.61816
+      }
+    },
+    {
       "InputId": "5a61994e-42c7-47e7-b0a5-5beb48f4a34b"/*Drag*/,
       "Position": {
         "X": 202.45206,
@@ -119,8 +126,8 @@
     {
       "InputId": "cab3072c-694e-4278-9b1e-e30beb95e5c8"/*Update*/,
       "Position": {
-        "X": 737.6091,
-        "Y": -333.56708
+        "X": 814.58826,
+        "Y": -442.49432
       }
     }
   ],
@@ -128,8 +135,8 @@
     {
       "ChildId": "066038e0-ee67-4252-9034-c5d877f9e4a5"/*Any*/,
       "Position": {
-        "X": 788.1842,
-        "Y": -565.94006
+        "X": 954.58826,
+        "Y": -547.4943
       }
     },
     {
@@ -149,8 +156,8 @@
     {
       "ChildId": "0ea5cd85-6f28-45ba-8c87-634e8ee1148d"/*HasTimeChanged*/,
       "Position": {
-        "X": 788.18427,
-        "Y": -600.94006
+        "X": 954.5883,
+        "Y": -582.4943
       }
     },
     {
@@ -163,8 +170,8 @@
     {
       "ChildId": "174bd467-28fd-426f-b32b-d44f1b281a0c"/*ComputeShader*/,
       "Position": {
-        "X": 234.75275,
-        "Y": -915.7242
+        "X": 279.70566,
+        "Y": -929.9927
       }
     },
     {
@@ -191,8 +198,8 @@
     {
       "ChildId": "2f81d9b6-8709-4bd8-be99-50dbf948a597"/*All*/,
       "Position": {
-        "X": 982.03955,
-        "Y": -493.33154
+        "X": 954.58826,
+        "Y": -477.49432
       }
     },
     {
@@ -226,8 +233,8 @@
     {
       "ChildId": "5f8b07fd-9e8f-4a56-be23-4260c67b44ea"/*GetBufferComponents*/,
       "Position": {
-        "X": 419.70566,
-        "Y": -825.9927
+        "X": 155.62764,
+        "Y": -1189.5739
       }
     },
     {
@@ -240,8 +247,8 @@
     {
       "ChildId": "78d0975b-1a25-4437-ba0e-3e9137af87d6"/*ResultPoints*/,
       "Position": {
-        "X": 99.165375,
-        "Y": -731.6734
+        "X": 222.69604,
+        "Y": -742.1579
       }
     },
     {
@@ -296,8 +303,8 @@
     {
       "ChildId": "c1b1014e-3226-45fe-852b-b45300166682"/*GetBufferComponents*/,
       "Position": {
-        "X": 385.4676,
-        "Y": -703.4918
+        "X": 222.69604,
+        "Y": -707.1579
       }
     },
     {

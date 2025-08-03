@@ -138,7 +138,7 @@
           "Value": 20000
         },
         {
-          "Id": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*InitialVelocity*/,
+          "Id": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*EmitVelocity*/,
           "Type": "System.Single",
           "Value": 0.38
         },

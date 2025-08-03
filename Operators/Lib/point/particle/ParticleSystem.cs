@@ -23,7 +23,10 @@ internal sealed class ParticleSystem : Instance<ParticleSystem>
         public readonly InputSlot<int> MaxParticleCount = new InputSlot<int>();
 
         [Input(Guid = "38392c86-4a1b-4b6f-ac32-26920a73e1e2")]
-        public readonly InputSlot<float> InitialVelocity = new InputSlot<float>();
+        public readonly InputSlot<float> EmitVelocity = new InputSlot<float>();
+
+        [Input(Guid = "54b8bfc1-98b1-4cec-b008-8615c20ebb43", MappedType = typeof(StrengthFactors))]
+        public readonly InputSlot<int> EmitVelocityFactor = new InputSlot<int>();
 
         [Input(Guid = "b2c8f7cf-fdf5-4819-98ec-2c70ee9e8bc6")]
         public readonly InputSlot<float> RadiusFromW = new InputSlot<float>();
@@ -58,5 +61,12 @@ internal sealed class ParticleSystem : Instance<ParticleSystem>
     private enum EmitModes {
         Sequential,
         ForLines,
+    }
+    
+    private enum StrengthFactors
+    {
+        None = 0,
+        F1 = 1,
+        F2 = 2,
     }
 }

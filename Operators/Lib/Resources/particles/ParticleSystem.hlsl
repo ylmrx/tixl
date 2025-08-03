@@ -22,6 +22,7 @@ cbuffer IntParams : register(b1)
     int WMode;
     int EmitMode;
     int IsAutoCount;
+    int EmitVelocityFactor;
 }
 
 StructuredBuffer<Point> EmitPoints : t0;
@@ -73,23 +74,28 @@ RWStructuredBuffer<Point> ResultPoints : u1;
             Particles[(gi - 1) % maxParticleCount].Radius = NAN;
         }
 
-        Particles[gi].Position = EmitPoints[addIndex].Position;
-        Particles[gi].Rotation = EmitPoints[addIndex].Rotation;
-        
-        Particles[gi].Radius = EmitPoints[addIndex].Scale.x * RadiusFromW;
+        Point emitPoint = EmitPoints[addIndex];
+
+        Particles[gi].Position = emitPoint.Position;
+        Particles[gi].Rotation = emitPoint.Rotation;
+
+        Particles[gi].Radius = emitPoint.Scale.x * RadiusFromW;
         Particles[gi].BirthTime = Time;
-        Particles[gi].Velocity = qRotateVec3(float3(0, 0, 1), normalize(Particles[gi].Rotation)) * InitialVelocity;
-        // Particles[gi].Radius = EmitPoints[addIndex].W * RadiusFromW;
+
+        float emitVelocity = InitialVelocity * (EmitVelocityFactor == 0 ? 1 : (EmitVelocityFactor == 1 ? emitPoint.FX1 : emitPoint.FX2));
+
+        Particles[gi].Velocity = qRotateVec3(float3(0, 0, 1), normalize(Particles[gi].Rotation)) * emitVelocity;
+        // Particles[gi].Radius = emitPoint.W * RadiusFromW;
 
         // These will not change over lifetime...
-        Particles[gi].Color = EmitPoints[addIndex].Color;
-        // Particles[gi].Color = EmitPoints[addIndex].Color;
-        ResultPoints[gi].Scale = EmitPoints[addIndex].Scale;
-        ResultPoints[gi].FX1 = EmitPoints[addIndex].FX1;
-        ResultPoints[gi].FX2 = EmitPoints[addIndex].FX2;
-        ResultPoints[gi].Color = EmitPoints[addIndex].Color;
+        Particles[gi].Color = emitPoint.Color;
+        // Particles[gi].Color = emitPoint.Color;
+        ResultPoints[gi].Scale = emitPoint.Scale;
+        ResultPoints[gi].FX1 = emitPoint.FX1;
+        ResultPoints[gi].FX2 = emitPoint.FX2;
+        ResultPoints[gi].Color = emitPoint.Color;
 
-        // Particles[gi].Selected = EmitPoints[addIndex].Selected;
+        // Particles[gi].Selected = emitPoint.Selected;
     }
 
     if (Particles[gi].BirthTime == NAN)
@@ -131,7 +137,7 @@ RWStructuredBuffer<Point> ResultPoints : u1;
     if (WMode == W_KEEP_ORIGINAL)
     {
         // Maybe we could skip this?
-        //ResultPoints[gi].Scale = Particles[gi].Radius / RadiusFromW;
+        // ResultPoints[gi].Scale = Particles[gi].Radius / RadiusFromW;
     }
     else if (WMode == W_PARTICLE_AGE)
     {

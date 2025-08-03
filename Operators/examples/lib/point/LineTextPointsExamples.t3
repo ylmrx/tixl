@@ -425,7 +425,7 @@
       "SymbolId": "e44ae9b6-cd56-4224-8a5d-118eda4cd3f4",
       "InputValues": [
         {
-          "Id": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*InitialVelocity*/,
+          "Id": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*EmitVelocity*/,
           "Type": "System.Single",
           "Value": 0.15
         }
