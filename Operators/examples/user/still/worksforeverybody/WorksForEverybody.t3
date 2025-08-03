@@ -8715,7 +8715,7 @@
       "SymbolId": "296dddbd-250b-4801-a039-bcb3cd555774",
       "InputValues": [
         {
-          "Id": "a4ea3140-3397-4989-98ee-3cf02d11f242"/*Size*/,
+          "Id": "a4ea3140-3397-4989-98ee-3cf02d11f242"/*LineWidth*/,
           "Type": "System.Single",
           "Value": 0.005
         }

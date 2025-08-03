@@ -2355,12 +2355,12 @@
       "SymbolId": "86b61bcf-4eaa-4f77-a535-8a1dc876aada",
       "InputValues": [
         {
-          "Id": "35b5e37b-8d84-40ca-9995-c7ccde13d76e"/*SetW*/,
+          "Id": "35b5e37b-8d84-40ca-9995-c7ccde13d76e"/*SetFx1*/,
           "Type": "System.Boolean",
           "Value": false
         },
         {
-          "Id": "421bdf54-5b50-4c28-8370-576c1f3b265c"/*W*/,
+          "Id": "421bdf54-5b50-4c28-8370-576c1f3b265c"/*Fx1*/,
           "Type": "System.Single",
           "Value": 0.72
         },
