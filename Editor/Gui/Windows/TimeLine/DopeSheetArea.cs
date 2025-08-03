@@ -366,6 +366,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
         var curveIndex = 0;
         var screenMinX = TimeLineCanvas.Current.WindowPos.X - TimeLineCanvas.Current.WindowSize.X / 4;
         var screenMaxX = TimeLineCanvas.Current.WindowPos.X + TimeLineCanvas.Current.WindowSize.X * 1.25f;
+        var minValue = float.PositiveInfinity;
+        var maxValue = float.NegativeInfinity;
         foreach (var curve in parameter.Curves)
         {
             var points = curve.GetVDefinitions();
@@ -374,8 +376,6 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
 
             _positions.Clear();
 
-            var minValue = float.PositiveInfinity;
-            var maxValue = float.NegativeInfinity;
 
             VDefinition? lastVDef = null;
             float lastValue = 0;
@@ -408,10 +408,10 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
                                                           && (lastVDef.OutEditMode != VDefinition.EditMode.Linear ||
                                                               vDef.OutEditMode != VDefinition.EditMode.Linear))
                 {
-                    const int curveSteps = 6;
+                    int curveSteps = 6;
                     for (var stepIndex = 0; stepIndex < curveSteps; stepIndex++)
                     {
-                        var blendU = MathUtils.Lerp(lastVDef.U, u, (float)(stepIndex + 1) / (curveSteps + 1));
+                        var blendU = MathUtils.Remap(stepIndex, 0, curveSteps - 1, lastVDef.U, u);
 
                         var value = (float)curve.GetSampledValue(blendU);
                         _positions.Add(new Vector2(TimeLineCanvas.Current.TransformX((float)blendU),
@@ -428,13 +428,15 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
                 lastUOnScreen = uOnScreen;
             }
 
-            minValue = parameter.DampedMinValue.DampTowards(minValue);
-            maxValue = parameter.DampedMaxValue.DampTowards(maxValue);
+
 
             for (var index = 0; index < _positions.Count; index++)
             {
                 var p = _positions[index];
-                p.Y = p.Y.RemapAndClamp(maxValue, minValue, layerArea.Min.Y + padding, layerArea.Max.Y - padding);
+                p.Y = p.Y.RemapAndClamp(parameter.DampedMaxValue, 
+                                parameter.DampedMinValue, 
+                                layerArea.Min.Y + padding, 
+                                layerArea.Max.Y - padding);
                 _positions[index] = p;
             }
 
@@ -455,6 +457,8 @@ internal sealed class DopeSheetArea : AnimationParameterEditing, ITimeObjectMani
             // }
             curveIndex++;
         }
+        minValue = parameter.DampedMinValue.DampTowards(minValue);
+        maxValue = parameter.DampedMaxValue.DampTowards(maxValue);
     }
 
     private static void DrawCurveGradient(TimeLineCanvas.AnimationParameter parameter, ImRect layerArea, ImDrawListPtr drawList)
