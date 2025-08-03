@@ -1,4 +1,5 @@
 using T3.Core.Rendering;
+using T3.Core.Utils;
 using T3.Core.Utils.Geometry;
 
 
@@ -21,10 +22,15 @@ internal sealed class OrthographicCamera : Instance<OrthographicCamera>, ICamera
 
     private void Update(EvaluationContext context)
     {
+        LastObjectToWorld = context.ObjectToWorld;
+        
+        var roll = Roll.GetValue(context);
+        var rollRotation = Matrix4x4.CreateFromAxisAngle(Vector3.UnitZ, -roll * MathUtils.ToRad);
+        
         Vector2 size = Size.GetValue(context);
         Vector2 clip = NearFarClip.GetValue(context);
         CameraToClipSpace = Matrix4x4.CreateOrthographic(size.X, size.Y, clip.X, clip.Y);
-        LastObjectToWorld = context.ObjectToWorld;
+        
             
         var pos = Position.GetValue(context);
         Vector3 eye = new Vector3(pos.X, pos.Y, pos.Z);
@@ -32,7 +38,8 @@ internal sealed class OrthographicCamera : Instance<OrthographicCamera>, ICamera
         Vector3 target = new Vector3(t.X, t.Y, t.Z);
         var u = Up.GetValue(context);
         Vector3 up = new Vector3(u.X, u.Y, u.Z);
-        WorldToCamera = GraphicsMath.LookAtRH(eye, target, up);
+        WorldToCamera =  GraphicsMath.LookAtRH(eye, target, up) * rollRotation;
+
 
         var prevCameraToClipSpace = context.CameraToClipSpace;
         context.CameraToClipSpace = CameraToClipSpace;
