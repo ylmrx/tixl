@@ -9,8 +9,8 @@ cbuffer Params : register(b0)
     float Attraction;
     float Repulsion;
     float NormalSamplingDistance;
+    float DecayWithDistance;
 }
-
 
 cbuffer Params : register(b1)
 {
@@ -23,7 +23,7 @@ cbuffer Params : register(b2)
 }
 
 RWStructuredBuffer<Particle> Particles : u0;
-//StructuredBuffer<int3> Indices : t1;
+// StructuredBuffer<int3> Indices : t1;
 //=== Globals =======================================================
 /*{GLOBALS}*/
 
@@ -82,13 +82,17 @@ float3 GetFieldNormal(float3 p)
     float3 n = GetFieldNormal(pos);
     float d = GetDistance(pos);
 
-    if ( isnan(d) || isnan(n.x))
+    if (isnan(d) || isnan(n.x))
         return;
 
-    if(d > 0) {
-        p.Velocity -= n * Attraction * Amount;
+    // Attract outside
+    if (d > 0)
+    {
+        float decay = pow(d + 1, -DecayWithDistance);
+        p.Velocity -= n * Attraction * Amount * decay;
     }
-    else 
+    // Repell inside
+    else
     {
         p.Velocity += n * Repulsion * Amount;
     }
