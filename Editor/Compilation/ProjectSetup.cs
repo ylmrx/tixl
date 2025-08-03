@@ -53,7 +53,7 @@ internal static partial class ProjectSetup
             return false;
         }
 
-        newProject = new EditableSymbolProject(newCsProj, DateTime.UtcNow);
+        newProject = new EditableSymbolProject(newCsProj);
         
         if(!newProject.AssemblyInformation.TryGetReleaseInfo(out var releaseInfo))
         {

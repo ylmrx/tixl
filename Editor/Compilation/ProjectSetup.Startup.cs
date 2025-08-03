@@ -117,7 +117,7 @@ internal static partial class ProjectSetup
                       .AsParallel()
                       .Select(fileInfo =>
                               {
-                                  if (!CsProjectFile.TryLoad(fileInfo.FullName, out var loadInfo))
+                                  if (!CsProjectFile.TryLoad(fileInfo, out var loadInfo))
                                   {
                                       Log.Error($"Failed to load project at \"{fileInfo.FullName}\":\n{loadInfo.Error}");
                                       return new ProjectLoadInfo(fileInfo, null, false);
@@ -142,7 +142,7 @@ internal static partial class ProjectSetup
         {
             if (projectInfo is { csProjFile: not null, success: true })
             {
-                var project = new EditableSymbolProject(projectInfo.csProjFile, projectInfo.fileInfo.CreationTimeUtc);
+                var project = new EditableSymbolProject(projectInfo.csProjFile);
                 AddToLoadedPackages(project);
             }
             else

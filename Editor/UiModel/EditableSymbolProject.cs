@@ -16,13 +16,12 @@ namespace T3.Editor.UiModel;
 [DebuggerDisplay("{DisplayName}")]
 internal sealed partial class EditableSymbolProject : EditorSymbolPackage
 {
-    public readonly DateTime CreatedAt;
     public override string DisplayName { get; }
 
     /// <summary>
     /// Create a new <see cref="EditableSymbolProject"/> using the given <see cref="CsProjectFile"/>.
     /// </summary>
-    public EditableSymbolProject(CsProjectFile csProjectFile, DateTime createdAt) : base(assembly: AssemblyInformation.CreateUninitialized(), directory: csProjectFile.Directory, false)
+    public EditableSymbolProject(CsProjectFile csProjectFile) : base(assembly: AssemblyInformation.CreateUninitialized(), directory: csProjectFile.Directory, false)
     {
         AssemblyInformation.Initialize(csProjectFile.GetBuildTargetDirectory(), false);
         CsProjectFile = csProjectFile;
@@ -30,7 +29,6 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
         _csFileWatcher = new CodeFileWatcher(this, OnFileChanged, OnCodeFileRenamed);
         _csFileWatcher.EnableRaisingEvents = true;
         DisplayName = $"{csProjectFile.Name} ({CsProjectFile.RootNamespace})";
-        CreatedAt = createdAt;
         SymbolUpdated += OnSymbolUpdated;
         SymbolRemoved += OnSymbolRemoved;
         InitializeResources();
@@ -157,7 +155,7 @@ internal sealed partial class EditableSymbolProject : EditorSymbolPackage
                     .AllPackages
                     .Where(x => x is EditableSymbolProject)
                     .Cast<EditableSymbolProject>()
-                    .OrderByDescending(x => x.CreatedAt)
+                    .OrderByDescending(x => x.CsProjectFile.ModifiedAt)
                     .ToList();
             }
             return _allProjectsCache;

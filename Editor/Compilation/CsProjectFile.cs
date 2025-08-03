@@ -55,9 +55,15 @@ internal sealed class CsProjectFile
     /// </summary>
     private string TargetFramework => _projectRootElement.GetOrAddProperty(PropertyType.TargetFramework, ProjectXml.TargetFramework);
 
-    private CsProjectFile(ProjectRootElement projectRootElement)
+    public DateTime CreatedAt => _fileInfo.CreationTimeUtc;
+    public DateTime ModifiedAt => _fileInfo.LastWriteTimeUtc;
+
+    private CsProjectFile(ProjectRootElement projectRootElement) : this(projectRootElement, new FileInfo(projectRootElement.FullPath)) { }
+
+    private CsProjectFile(ProjectRootElement projectRootElement, FileInfo fileInfo)
     {
         _projectRootElement = projectRootElement;
+        _fileInfo = fileInfo;
 
         var targetFramework = TargetFramework;
         
@@ -199,9 +205,10 @@ internal sealed class CsProjectFile
     /// Does not actually handle any assemblies or type loading - it's just a way to load the xml file.
     /// </summary>
     /// <returns>True if successful</returns>
-    public static bool TryLoad(string filePath, out CsProjectLoadInfo loadInfo)
+    public static bool TryLoad(FileInfo fileInfo, out CsProjectLoadInfo loadInfo)
     {
         bool success;
+        var filePath = fileInfo.FullName;
         try
         {
             var fileContents = ProjectRootElement.Open(filePath);
@@ -212,7 +219,7 @@ internal sealed class CsProjectFile
             }
             else
             {
-                loadInfo = new CsProjectLoadInfo(new CsProjectFile(fileContents), null);
+                loadInfo = new CsProjectLoadInfo(new CsProjectFile(fileContents, fileInfo), null);
                 success = true;
             }
         }
@@ -283,6 +290,7 @@ internal sealed class CsProjectFile
         try
         {
             _projectRootElement.Save();
+            _fileInfo.Refresh();
         }
         catch (Exception e)
         {
@@ -298,6 +306,24 @@ internal sealed class CsProjectFile
     public bool TryCompileRelease(bool nugetRestore)
     {
         return Compiler.TryCompile(this, PlayerBuildMode, nugetRestore);
+    }
+
+    /// <summary>
+    /// Updates the last modified date of the project file by re-saving the project XML.
+    /// </summary>
+    public void UpdateLastModifiedDate()
+    {
+        // we can set the last modified date by re-saving the project xml
+        using var textWriter = new StreamWriter(_projectRootElement.FullPath);
+        try
+        {
+            _projectRootElement.Save(textWriter);
+            _fileInfo.Refresh();
+        }
+        catch (Exception e)
+        {
+            Log.Error($"{Name}: Failed to save project file {_projectRootElement.FullPath}: {e}");
+        }
     }
 
     // todo- use Microsoft.Build.Construction and Microsoft.Build.Evaluation
@@ -375,6 +401,7 @@ internal sealed class CsProjectFile
     private readonly string _releaseRootDirectory;
     private readonly string _debugRootDirectory;
     private readonly ProjectRootElement _projectRootElement;
+    private readonly FileInfo _fileInfo;
 
 
     public void IncrementBuildNumber(int amount)
