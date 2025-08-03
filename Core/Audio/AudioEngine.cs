@@ -39,7 +39,9 @@ public static class AudioEngine
         }
         
         // For audio-soundtrack we update once every frame. For Wasapi-inputs, we process directly in the new data callback
-        if(playback.Settings.AudioSource == PlaybackSettings.AudioSources.ProjectSoundTrack)
+        if(playback.Settings is { 
+               Enabled: true, 
+               AudioSource: PlaybackSettings.AudioSources.ProjectSoundTrack })
             AudioAnalysis.ProcessUpdate(playback.Settings.AudioGainFactor, playback.Settings.AudioDecayFactor);
 
         // Create new streams

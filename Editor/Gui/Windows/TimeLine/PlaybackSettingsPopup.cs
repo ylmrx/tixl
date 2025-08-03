@@ -64,6 +64,7 @@ internal static class PlaybackSettingsPopup
 
         // Main toggle with composition name 
         var isEnabledForCurrent = compositionWithSettings == composition && settings is { Enabled: true };
+        var wasEnabledForCurrent = isEnabledForCurrent;
 
         if (FormInputs.AddCheckBox("Specify settings for", ref isEnabledForCurrent))
         {
@@ -75,7 +76,8 @@ internal static class PlaybackSettingsPopup
                     settings = new PlaybackSettings();
                     composition.Symbol.PlaybackSettings = settings;
                 }
-                    
+
+                compositionWithSettings = composition;
                 settings.Enabled = true;
                 Playback.Current.Settings = settings;
             }

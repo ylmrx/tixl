@@ -33,6 +33,12 @@ public sealed class PlaybackSettings
 
     public bool TryGetMainSoundtrack(IResourceConsumer? instance, [NotNullWhen(true)] out AudioClipResourceHandle? soundtrack)
     {
+        if (!Enabled)
+        {
+            soundtrack = null;
+            return false;
+        }
+        
         foreach (var clip in AudioClips)
         {
             if (!clip.IsSoundtrack)

@@ -373,7 +373,15 @@ internal static partial class PlayerExporter
                                           [NotNullWhen(true)] out string? relativePath)
     {
         var playbackSettings = symbol.PlaybackSettings;
-        if (playbackSettings?.TryGetMainSoundtrack(instance, out var soundtrack) is not true)
+        if (playbackSettings == null)
+        {
+            Log.Warning($"Project {symbol} has no playback settings");
+            file = null;
+            relativePath = null;
+            return false;
+        }
+        
+        if (playbackSettings.TryGetMainSoundtrack(instance, out var soundtrack) is not true)
         {
             if (PlaybackUtils.TryFindingSoundtrack(out soundtrack, out _))
             {
