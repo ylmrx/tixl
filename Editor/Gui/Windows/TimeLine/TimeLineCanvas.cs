@@ -541,7 +541,7 @@ internal sealed class TimeLineCanvas : CurveEditCanvas
         private float ComputedTimelineHeight => _timeline._selectedAnimationParameters.Count * DopeSheetArea.LayerHeight
                                                 + _timeline.LayersArea.LastHeight
                                                 + TimeLineDragHeight
-                                                + 1;
+                                                + 10;
 
         public void Toggle()
         {
