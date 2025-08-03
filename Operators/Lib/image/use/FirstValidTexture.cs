@@ -38,6 +38,8 @@ internal sealed class FirstValidTexture : Instance<FirstValidTexture>
             Log.Debug("No valid texture found", this);
             _complainedOnce = true;
         }
+        
+        Input.DirtyFlag.Clear();
     }
 
     private bool _complainedOnce;
