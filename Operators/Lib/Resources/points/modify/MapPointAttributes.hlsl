@@ -185,10 +185,10 @@ inline float3 fmod(float3 x, float3 y)
     switch (WriteColor)
     {
     case 1:
-        p.Color = lerp(p.Color, p.Color * gradientColor, strength);
+        p.Color = lerp(p.Color, gradientColor, strength);
         break;
     case 2:
-        p.Color = lerp(p.Color, gradientColor, strength);
+        p.Color = lerp(p.Color, p.Color * gradientColor, strength);
         break;
     }
 
