@@ -1,6 +1,5 @@
-
-// #ifndef HASH_H
-// #define HASH_H
+#ifndef HASH_H
+#define HASH_H
 
 #define _PRIME0 13331U
 #define _PRIME1 1345777U
@@ -180,4 +179,4 @@ uint xxhash(in uint p)
     return h32 ^ (h32 >> 16);
 }
 
-// #endif
+#endif

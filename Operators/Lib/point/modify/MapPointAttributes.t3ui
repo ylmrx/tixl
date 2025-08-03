@@ -55,7 +55,7 @@
     {
       "InputId": "7c944690-d5b2-4894-a178-97593ecd797a"/*Gradient*/,
       "Position": {
-        "X": 20.246246,
+        "X": -64.73947,
         "Y": 1512.325
       },
       "Description": "Defines the colors to be applied for remapped input range.\n\nTip: Try to use a HOLD interpolated gradient with Random input mode."
@@ -172,7 +172,7 @@
     {
       "ChildId": "a727cbe7-3609-41c1-a2ab-af348b583d3e"/*SrvFromTexture2d*/,
       "Position": {
-        "X": 300.24625,
+        "X": 215.26053,
         "Y": 1512.325
       }
     },
@@ -200,7 +200,7 @@
     {
       "ChildId": "e6858bcc-16ce-45dc-a878-0ebe319e7872"/*GradientsToTexture*/,
       "Position": {
-        "X": 160.24625,
+        "X": 75.26053,
         "Y": 1512.325
       }
     },

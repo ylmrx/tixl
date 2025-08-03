@@ -50,6 +50,7 @@ internal sealed class SetKeyframes : Instance<SetKeyframes>
             if (triggeredSet)
             {
                 _curve.AddOrUpdateV(context.LocalFxTime, new VDefinition() { Value = value });
+                CurrentValue.Value = value;
             }
 
             if (triggeredClear)

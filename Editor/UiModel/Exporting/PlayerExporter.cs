@@ -54,7 +54,7 @@ internal static partial class PlayerExporter
         }
         catch (Exception e)
         {
-            reason = $"Failed to move export dir: {exportDir}. Exception: {e}";
+            reason = $"Failed to move export dir: {exportDir} ({e.Message}). Please close all files and File Explorer windows.";
             return false;
         }
 

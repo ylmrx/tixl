@@ -51,10 +51,7 @@ RWStructuredBuffer<Point> ResultPoints : u0;
 
     Point p = SourcePoints[index];
 
-    float strength = Amount * (AmountFactor == 0
-                                   ? 1
-                               : (AmountFactor == 1) ? p.FX1
-                                                     : p.FX2);
+    float strength = Amount * (AmountFactor == 0 ? 1 : (AmountFactor == 1 ? p.FX1 : p.FX2));
 
     if (SetColor > 0.5)
         p.Color = lerp(p.Color, Color, strength);
