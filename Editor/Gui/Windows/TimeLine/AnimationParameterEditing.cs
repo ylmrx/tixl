@@ -59,7 +59,7 @@ internal abstract class AnimationParameterEditing : CurveEditing
         var hasSomeKeys = TryGetBoundsOnCanvas(GetSelectedOrAllPoints(), out var bounds);
         if (this is DopeSheetArea dopeSheet)
         {
-            if (dopeSheet.TimeLineCanvas.LayersArea.TryGetBounds(out var clipBounds))
+            if (dopeSheet.TimeLineCanvas.LayersArea.TryGetBounds(out var clipBounds, !hasSomeKeys))
             {
                 if (hasSomeKeys)
                 {

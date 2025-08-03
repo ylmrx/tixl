@@ -571,13 +571,16 @@ internal sealed class LayersArea : ITimeObjectManipulation, IValueSnapAttractor
     private readonly Func<Instance> _getCompositionOp;
     private int _layerIndexOnDragStart;
 
-    public bool TryGetBounds(out ImRect bounds)
+    public bool TryGetBounds(out ImRect bounds, bool useAllIfNonSelected= true)
     {
         var isFirst = true;
 
         bounds = new ImRect();
-        
-        foreach (var c in _context.ClipSelection.GetAllOrSelectedClips())
+
+        var range = useAllIfNonSelected 
+                        ?_context.ClipSelection.GetAllOrSelectedClips() 
+                        : _context.ClipSelection.GetSelectedClips();
+        foreach (var c in range)
         {
             var clipBound = new ImRect(new Vector2(c.TimeRange.Start,c.LayerIndex * LayerHeight),
                                        new Vector2(c.TimeRange.End,(c.LayerIndex + 1) * LayerHeight));
