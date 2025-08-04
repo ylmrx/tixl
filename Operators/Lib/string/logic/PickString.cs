@@ -33,6 +33,8 @@ internal sealed class PickString : Instance<PickString>
 
             _isFirstUpdate = false;
         }
+        
+        Input.DirtyFlag.Clear();
     }
         
     private bool _isFirstUpdate = true; 
