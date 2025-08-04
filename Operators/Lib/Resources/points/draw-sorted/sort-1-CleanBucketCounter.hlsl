@@ -1,4 +1,4 @@
-RWStructuredBuffer<uint> BucketCounter :register(u2);      
+RWStructuredBuffer<uint> BucketCounter :register(u0);      
 
 cbuffer Params : register(b0)
 {
@@ -7,11 +7,9 @@ cbuffer Params : register(b0)
 }
 
 
-#define THREADS_PER_GROUP 64
-
  // 1. ClearBucketCounter.compute
 // Sets all bucket counts to 0
-[numthreads(THREADS_PER_GROUP, 1, 1)]
+[numthreads(64, 1, 1)]
 void ClearBucketCounter(uint3 DTid : SV_DispatchThreadID)
 {
     if (DTid.x < BucketCount)

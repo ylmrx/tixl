@@ -15,10 +15,20 @@ internal sealed class DrawInstancedIndirect: Instance<DrawInstancedIndirect>
     {
         Buffer buffer = Buffer.GetValue(context);
         if (buffer == null)
+        {
+            Log.Warning("Undefined drawArgs buffer", this);
             return;
+        }
+        
             
         var device = ResourceManager.Device;
         var deviceContext = device.ImmediateContext;
+        
+        //// Optional: finish compute shader writes
+        deviceContext.ComputeShader.Set(null);
+        deviceContext.ComputeShader.SetUnorderedAccessViews(0, new UnorderedAccessView[4]);
+        deviceContext.Flush(); 
+        
         deviceContext.DrawInstancedIndirect(buffer, AlignedByteOffsetForArgs.GetValue(context));
     }
 

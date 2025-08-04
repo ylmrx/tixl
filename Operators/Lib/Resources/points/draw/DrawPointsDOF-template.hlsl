@@ -40,6 +40,7 @@ cbuffer IntParams : register(b2)
     int SegmentCount;
     int ScaleFX;
     int UsePointScale;
+    int BucketCount;
 };
 
 cbuffer FogParams : register(b3)
@@ -67,7 +68,8 @@ sampler texSampler : register(s0);
 
 StructuredBuffer<Point> Points : register(t0);
 StructuredBuffer<uint> SortedIndices  : register(t1);
-Texture2D<float4> texture2 : register(t2);
+StructuredBuffer<uint> BucketIndices  : register(t2);
+Texture2D<float4> texture2 : register(t3);
 
 
 //=== Global functions ==============================================
@@ -127,6 +129,8 @@ psInput vsMain(uint id : SV_VertexID)
     quadPosInCamera.xy += quadPos.xy * 0.10 * s;
     output.position = mul(quadPosInCamera, CameraToClipSpace);
     float4 posInWorld = mul(posInObject, ObjectToWorld);
+
+    output.color.rgb *=  (float)BucketIndices[id / 6]/ (float)BucketCount + 0.2;
 
     // Fog
     output.fog = pow(saturate(-posInCamera.z / FogDistance), FogBias);

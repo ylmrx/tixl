@@ -11,14 +11,13 @@ cbuffer Params : register(b0)
     int ParticleCount;
 }
 
-cbuffer Params : register(b0)
+cbuffer Params : register(b1)
 {
     float InvBucketSize;
     float3 CameraPos;
     float3 ViewDir;
 }
 
-#define THREADS_PER_GROUP 64
 
 // 2. CountBuckets.compute
 // Writes per-particle bucket index to BucketIndices
@@ -26,18 +25,20 @@ cbuffer Params : register(b0)
 [numthreads(64, 1, 1)]
 void CountBuckets(uint3 id : SV_DispatchThreadID)
 {
-    if (id.x >= ParticleCount) 
+    if (id.x >= (uint)ParticleCount) 
         return;
 
     float3 pos = GPoints[id.x].Position;
 
     if (
-        dot(pos - CameraPos, ViewDir) < 0 // hidden
-    || isnan(GPoints[id.x].Scale.x))  // dead
+        //dot(pos - CameraPos, ViewDir) < 0 // hidden
+    //|| 
+    isnan(GPoints[id.x].Scale.x))  // dead
     {
         BucketIndices[id.x] = 0xFFFFFFFF;
         return;
     }
+    
 
     float dist = dot(pos - CameraPos, ViewDir);
     uint bucket = clamp((uint)(dist * InvBucketSize), 0, BucketCount - 1);
@@ -45,3 +46,4 @@ void CountBuckets(uint3 id : SV_DispatchThreadID)
     BucketIndices[id.x] = bucket;
     InterlockedAdd(BucketCounter[bucket], 1);
 }
+ 

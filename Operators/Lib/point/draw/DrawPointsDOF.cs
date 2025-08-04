@@ -49,6 +49,9 @@ internal sealed class DrawPointsDOF : Instance<DrawPointsDOF>
 
         [Input(Guid = "e285bab3-01cd-46ec-8f22-aa5ac6d5f5dd")]
         public readonly InputSlot<int> SortBucketCount = new InputSlot<int>();
+
+        [Input(Guid = "8ae89721-6a8d-4d55-b742-736226dfa3a5")]
+        public readonly InputSlot<float> BucketSize = new InputSlot<float>();
         
         private enum ScaleFXModes
         {
