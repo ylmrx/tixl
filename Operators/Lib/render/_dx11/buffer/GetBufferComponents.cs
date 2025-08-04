@@ -3,15 +3,15 @@ namespace Lib.render._dx11.buffer;
 [Guid("80dff680-5abf-484a-b9e0-81d72f3b7aa4")]
 internal sealed class GetBufferComponents : Instance<GetBufferComponents>
 {
-    [Output(Guid = "a7d11905-eb9e-42a4-a077-11d2c1cb41b2")] 
-    public readonly Slot<Buffer> Buffer = new();
-
     [Output(Guid = "1368ab8e-d75e-429f-8ecd-0944f3ede9ab")]
     public readonly Slot<ShaderResourceView> ShaderResourceView = new();
 
     [Output(Guid = "f03246a7-e39f-4a41-a0c3-22bc976a6000")]
     public readonly Slot<UnorderedAccessView> UnorderedAccessView = new();
 
+    [Output(Guid = "a7d11905-eb9e-42a4-a077-11d2c1cb41b2")] 
+    public readonly Slot<Buffer> Buffer = new();
+    
     [Output(Guid = "D7918FD8-906E-424D-8C5C-9631941CFC9D")]
     public readonly Slot<int> Length = new();
         

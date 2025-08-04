@@ -5,6 +5,7 @@
   "InputUis": [
     {
       "InputId": "6c87816c-da1d-4429-a1f6-61233aa3d7b1"/*Buffer*/,
+      "Relevancy": "Required",
       "Position": {
         "X": 0.0,
         "Y": 0.0

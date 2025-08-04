@@ -66,7 +66,9 @@ struct psInput
 sampler texSampler : register(s0);
 
 StructuredBuffer<Point> Points : register(t0);
-Texture2D<float4> texture2 : register(t1);
+StructuredBuffer<uint> SortedIndices  : register(t1);
+Texture2D<float4> texture2 : register(t2);
+
 
 //=== Global functions ==============================================
 /*{GLOBALS}*/
@@ -96,9 +98,12 @@ psInput vsMain(uint id : SV_VertexID)
 {
     psInput output;
 
-    int quadIndex = id % 6;
-    int particleId = id / 6;
+    int particleId = SortedIndices[id / 6];
     Point pointDef = Points[particleId];
+
+    int quadIndex = id % 6;
+    //int particleId = id / 6;
+    //Point pointDef = Points[particleId];
 
     // float4 aspect = float4(CameraToClipSpace[1][1] / CameraToClipSpace[0][0],1,1,1);
     float3 quadPos = Corners[quadIndex];

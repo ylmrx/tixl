@@ -46,6 +46,9 @@ internal sealed class DrawPointsDOF : Instance<DrawPointsDOF>
 
         [Input(Guid = "7e15e9be-6ec9-4975-af1d-9a3642bb5c70")]
         public readonly InputSlot<T3.Core.DataTypes.ShaderGraphNode> InputField = new InputSlot<T3.Core.DataTypes.ShaderGraphNode>();
+
+        [Input(Guid = "e285bab3-01cd-46ec-8f22-aa5ac6d5f5dd")]
+        public readonly InputSlot<int> SortBucketCount = new InputSlot<int>();
         
         private enum ScaleFXModes
         {

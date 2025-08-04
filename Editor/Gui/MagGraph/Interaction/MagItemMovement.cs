@@ -328,7 +328,7 @@ internal sealed partial class MagItemMovement
             bounds.Add(itemBounds);
         }
 
-        bounds.Expand(100);
+        bounds.Expand(200);
 
 
         _visibleItemsForSnapping.Clear();

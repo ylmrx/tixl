@@ -93,7 +93,7 @@
 - [ ] Clean up [SnapPointsToGrid] with amount
 - [ ] FIX: Filter returns a point with count 0 (with random-seed not applied)
 - [ ] Deprecate DrawPoints2
-
+    
 
 ## SDF-Stuff
 
