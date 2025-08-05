@@ -22,6 +22,7 @@ internal sealed partial class EditableSymbolProject
 
         MarkAsSaving();
         WriteAllSymbolFilesOf(SymbolUiDict.Values);
+        UpdateLastModifiedDate();
         UnmarkAsSaving();
     }
 
@@ -72,7 +73,13 @@ internal sealed partial class EditableSymbolProject
             WriteAllSymbolFilesOf(modifiedSymbolUis);
         }
 
+        UpdateLastModifiedDate();
         UnmarkAsSaving();
+    }
+
+    protected void UpdateLastModifiedDate() {
+        CsProjectFile.UpdateLastModifiedDate();
+        _allProjectsCache = null;
     }
 
     protected override void OnSymbolAdded(string? path, Symbol symbol)

@@ -74,6 +74,7 @@ internal partial class EditableSymbolProject
                 newSymbolUi!.FlagAsModified();
             }
 
+            _allProjectsCache = null;
             return gotSymbol;
         }
         
