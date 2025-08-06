@@ -24,7 +24,7 @@ internal sealed partial class MagGraphCanvas
 {
     private void DrawNode(MagGraphItem item, ImDrawListPtr drawList, GraphUiContext context)
     {
-        if (item.Variant == MagGraphItem.Variants.Placeholder)
+        if (item.Variant == MagGraphItem.Variants.Placeholder || item.Instance == null)
             return;
 
         if (!IsRectVisible(item.Area))
