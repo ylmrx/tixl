@@ -249,9 +249,9 @@ namespace T3.Editor.Gui.Windows.RenderExport
             }
         }
 
-        private void DisplayRenderingProgress(bool success)
+        private static void DisplayRenderingProgress(bool success)
         {
-            ImGui.ProgressBar((float)Progress, new Vector2(-1, 4));
+            ImGui.ProgressBar((float)Progress, new Vector2(-1, 16));
 
             var currentTime = Playback.RunTimeInSecs;
             var durationSoFar = currentTime - _exportStartedTime;
