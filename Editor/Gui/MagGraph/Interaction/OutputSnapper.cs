@@ -52,27 +52,35 @@ internal static class OutputSnapper
         Debug.Assert(context.MacroCommand != null);
 
         var didSomething = false;
-        foreach (var tempConnection in context.TempConnections.OrderBy(t => t.TargetInput.Id).ThenBy(t=> t.MultiInputIndex))
+        try
         {
-            var sourceParentOrChildId = BestOutputMatch.Item.Variant == MagGraphItem.Variants.Input ? Guid.Empty : BestOutputMatch.Item.Id;
-            var targetParentOrChildId = tempConnection.TargetItem.Variant == MagGraphItem.Variants.Output ? Guid.Empty : tempConnection.TargetItem.Id;
-            
-            // Create connection
-            var connectionToAdd = new Symbol.Connection(sourceParentOrChildId,
-                                                        BestOutputMatch.Anchor.SlotId,
-                                                        targetParentOrChildId,
-                                                        tempConnection.TargetInput.Id);
 
-            if (Structure.CheckForCycle(context.CompositionInstance.Symbol, connectionToAdd))
+            foreach (var tempConnection in context.TempConnections.OrderBy(t => t.TargetInput.Id).ThenBy(t => t.MultiInputIndex))
             {
-                Log.Debug("This action is not allowed. This connection would create a cycle.");
-                continue;
+                var sourceParentOrChildId = BestOutputMatch.Item.Variant == MagGraphItem.Variants.Input ? Guid.Empty : BestOutputMatch.Item.Id;
+                var targetParentOrChildId = tempConnection.TargetItem.Variant == MagGraphItem.Variants.Output ? Guid.Empty : tempConnection.TargetItem.Id;
+
+                // Create connection
+                var connectionToAdd = new Symbol.Connection(sourceParentOrChildId,
+                                                            BestOutputMatch.Anchor.SlotId,
+                                                            targetParentOrChildId,
+                                                            tempConnection.TargetInput.Id);
+
+                if (Structure.CheckForCycle(context.CompositionInstance.Symbol, connectionToAdd))
+                {
+                    Log.Debug("This action is not allowed. This connection would create a cycle.");
+                    continue;
+                }
+
+                context.MacroCommand.AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
+                                                                                connectionToAdd,
+                                                                                tempConnection.MultiInputIndex));
+                didSomething = true;
             }
-            
-            context.MacroCommand.AddAndExecCommand(new AddConnectionCommand(context.CompositionInstance.Symbol,
-                                                                            connectionToAdd,
-                                                                            tempConnection.MultiInputIndex));
-            didSomething = true;
+        }
+        catch (Exception e)
+        {
+            Log.Error("Failed to get temp connection? " + e.Message);
         }
 
         return didSomething;
