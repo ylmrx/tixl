@@ -251,7 +251,7 @@ namespace T3.Editor.Gui.Windows.RenderExport
 
         private static void DisplayRenderingProgress(bool success)
         {
-            ImGui.ProgressBar((float)Progress, new Vector2(-1, 16));
+            ImGui.ProgressBar((float)Progress, new Vector2(-1, 16 * T3Ui.UiScaleFactor));
 
             var currentTime = Playback.RunTimeInSecs;
             var durationSoFar = currentTime - _exportStartedTime;
