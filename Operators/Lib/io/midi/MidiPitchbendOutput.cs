@@ -137,10 +137,10 @@ internal sealed class MidiPitchbendOutput : Instance<MidiPitchbendOutput>, MidiC
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        Log.Debug($"Got {result}", this);
-        Device.SetTypedInputValue(result);
+        Log.Debug($"Got {selected}", this);
+        Device.SetTypedInputValue(selected);
     }
     #endregion
         

@@ -1,0 +1,31 @@
+{
+  "Id": "9a843835-d39c-428f-b996-6334323e8106"/*SetBoolVar*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "85cdc809-e835-4851-8956-bb0217b71f1a"/*Value*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "InputId": "c004cc68-a4ac-49ad-96e2-3ef32840df65"/*VariableName*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      },
+      "Usage": "CustomDropdown"
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "5fb59ef9-50c4-4b1e-8777-36ce341acf8a"/*Result*/,
+      "Position": {
+        "X": 300.0,
+        "Y": 200.0
+      }
+    }
+  ]
+}

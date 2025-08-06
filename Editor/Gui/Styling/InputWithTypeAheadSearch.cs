@@ -21,7 +21,7 @@ namespace T3.Editor.Gui.Styling;
 /// </remarks>
 internal static class InputWithTypeAheadSearch
 {
-    public static bool Draw(string label, IEnumerable<string> items, bool warning , ref string searchString, out string selected, bool outlineOnly=false)
+    public static bool Draw(string label, IEnumerable<string> items, bool warning , ref string searchString, out string selected, out bool isInList, bool outlineOnly=false)
     {
         var inputId = ImGui.GetID(label); 
         var isSearchResultWindowOpen = inputId == _activeInputId;
@@ -29,9 +29,26 @@ internal static class InputWithTypeAheadSearch
         var  wasSelected= false;
         selected = searchString;
 
-
+        if (outlineOnly)
+        {
+            ImGui.PushStyleColor(ImGuiCol.FrameBg, Color.Transparent.Rgba);
+            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Color.Red.Rgba);
+        }
+            
+        var color = warning ? UiColors.StatusWarning.Rgba : UiColors.Text.Rgba;
+        ImGui.PushStyleColor(ImGuiCol.Text, color);
+            
+        searchString ??= string.Empty;  // ImGui will crash if null is passed
+        var filterInputChanged = ImGui.InputText(label, ref searchString, 256, ImGuiInputTextFlags.AutoSelectAll);
+        if (filterInputChanged)
+        {
+            _lastTempSearch = searchString;
+            //Log.Debug("SearchString after: " + searchString);
+        }
+        
         if (isSearchResultWindowOpen)
         {
+            //Log.Debug("SearchString: " + searchString);
             if (ImGui.IsKeyPressed((ImGuiKey)Key.CursorDown, true))
             {
                 if (_lastTypeAheadResults.Count > 0)
@@ -54,6 +71,7 @@ internal static class InputWithTypeAheadSearch
                     wasSelected = true;
                 }
             }
+            
             if (ImGui.IsKeyPressed((ImGuiKey)Key.Return, false))
             {
                 if (_selectedResultIndex >= 0 && _selectedResultIndex < _lastTypeAheadResults.Count)
@@ -61,6 +79,14 @@ internal static class InputWithTypeAheadSearch
                     searchString = _lastTypeAheadResults[_selectedResultIndex];
                     selected = searchString;
                     _activeInputId = 0;
+                    isInList = true;
+                    return true;
+                }
+                else
+                {
+                    selected = searchString;
+                    _activeInputId = 0;
+                    isInList = false;
                     return true;
                 }
             }
@@ -68,23 +94,13 @@ internal static class InputWithTypeAheadSearch
             {
                 _activeInputId = 0;
                 selected = searchString;
+                isInList = false;
                 return false;
             }
-            
         }
 
-        if (outlineOnly)
-        {
-            ImGui.PushStyleColor(ImGuiCol.FrameBg, Color.Transparent.Rgba);
-            ImGui.PushStyleColor(ImGuiCol.FrameBgActive, Color.Red.Rgba);
-        }
-            
-        var color = warning ? UiColors.StatusWarning.Rgba : UiColors.Text.Rgba;
-        ImGui.PushStyleColor(ImGuiCol.Text, color);
-            
-        searchString ??= string.Empty;  // ImGui will crash if null is passed
         
-        var filterInputChanged = ImGui.InputText(label, ref searchString, 256, ImGuiInputTextFlags.AutoSelectAll);
+        //var filterInputChanged = true;
         
         // Sadly, ImGui will revert the searchSearch to its internal state if cursor is moved up or down.
         // To apply is as a new result we need to revert that...
@@ -212,8 +228,15 @@ internal static class InputWithTypeAheadSearch
             DrawUtils.RestoreImGuiKeyboardNavigation();
         }
 
+        isInList = true;
         return wasSelected;
     }
+
+    /// <summary>
+    /// During type ahead search for string with null or string.Empty value, ImGui will use its internal buffer.
+    /// This is only returned _after_ rendering the input value. To pass it as return value, we capture it here.  
+    /// </summary>
+    private static string _lastTempSearch;
 
     private static void FilterItems(IEnumerable<string?> allItems, string filter, ref List<string> filteredItems)
     {

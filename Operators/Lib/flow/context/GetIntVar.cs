@@ -88,14 +88,14 @@ public sealed class GetIntVar : Instance<GetIntVar>, ICustomDropdownHolder
         return _contextVariableNames;
     }
         
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
         if (inputId != VariableName.Input.InputDefinition.Id)
         {
             Log.Warning("Unexpected input id {inputId} in HandleResultForInput", inputId);
             return;
         }
-        VariableName.SetTypedInputValue(result);
+        VariableName.SetTypedInputValue(selected);
     }
         
     private List<string> _contextVariableNames = new();

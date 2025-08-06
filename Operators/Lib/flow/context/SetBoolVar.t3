@@ -1,0 +1,15 @@
+{
+  "Id": "9a843835-d39c-428f-b996-6334323e8106"/*SetBoolVar*/,
+  "Inputs": [
+    {
+      "Id": "85cdc809-e835-4851-8956-bb0217b71f1a"/*Value*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "c004cc68-a4ac-49ad-96e2-3ef32840df65"/*VariableName*/,
+      "DefaultValue": "b"
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

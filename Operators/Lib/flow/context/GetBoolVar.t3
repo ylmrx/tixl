@@ -1,0 +1,15 @@
+{
+  "Id": "604bfb46-fe8f-4c8b-896b-1b7bc827137b"/*GetBoolVar*/,
+  "Inputs": [
+    {
+      "Id": "a6c3c0a3-4166-4813-ad3b-1383ba42e44d"/*FallbackDefault*/,
+      "DefaultValue": 0.0
+    },
+    {
+      "Id": "b0821091-68c0-4e34-9f8b-926c0b6ebf94"/*VariableName*/,
+      "DefaultValue": "i"
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

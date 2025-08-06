@@ -54,9 +54,9 @@ public sealed class SelectFloatFromDict : Instance<SelectFloatFromDict>, IStatus
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        Select.SetTypedInputValue(result);
+        Select.SetTypedInputValue(selected);
     }
     #endregion        
         

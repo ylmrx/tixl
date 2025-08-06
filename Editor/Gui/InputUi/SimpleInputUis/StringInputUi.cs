@@ -155,10 +155,11 @@ public sealed class StringInputUi : InputValueUi<string>
             if (InputWithTypeAheadSearch.Draw("##customDropdown", 
                                               customValueHolder.GetOptionsForInput(input.InputDefinition.Id),
                                               false,
-                                              ref currentValue, out var selected))
+                                              
+                                              ref currentValue, out var selected, out var isInList))
             {
                 ImGui.CloseCurrentPopup();
-                customValueHolder.HandleResultForInput(input.InputDefinition.Id, selected);
+                customValueHolder.HandleResultForInput(input.InputDefinition.Id, selected, isInList);
                 changed = true;
             }
                 

@@ -66,7 +66,7 @@ public class GetMatrixVar : Instance<GetMatrixVar>
         return _contextVariableNames;
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
         if (inputId != VariableName.Input.InputDefinition.Id)
         {
@@ -74,7 +74,7 @@ public class GetMatrixVar : Instance<GetMatrixVar>
             return;
         }
 
-        VariableName.SetTypedInputValue(result);
+        VariableName.SetTypedInputValue(selected);
     }
 
     private List<string> _contextVariableNames = new();

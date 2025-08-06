@@ -459,7 +459,7 @@ internal static class FormInputs
         var modified = InputWithTypeAheadSearch.Draw("##typeAheadSearch", 
                                                      items,
                                                      !string.IsNullOrEmpty(warning),
-                                                     ref value!, out _);
+                                                     ref value!, out _, out var _);
         
         if (!modified && wasNull)
             value = null!;

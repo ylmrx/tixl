@@ -1,4 +1,5 @@
-﻿using System;
+﻿#nullable enable
+using System;
 using System.Collections.Generic;
 
 namespace T3.Core.Operator.Interfaces;
@@ -14,5 +15,5 @@ public interface ICustomDropdownHolder
 {
     string GetValueForInput(Guid inputId);
     IEnumerable<string> GetOptionsForInput(Guid inputId);
-    void HandleResultForInput(Guid inputId, string result);
+    void HandleResultForInput(Guid inputId, string? selected, bool isAListItem);
 }

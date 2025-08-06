@@ -14,7 +14,7 @@ public sealed class SetFloatVar : Instance<SetFloatVar>
     private void Update(EvaluationContext context)
     {
         var name = VariableName.GetValue(context);
-        var newValue = Value.GetValue(context);
+        var newValue = FloatValue.GetValue(context);
         var clearAfterExecution = ClearAfterExecution.GetValue(context);
             
         if (string.IsNullOrEmpty(name))
@@ -45,16 +45,15 @@ public sealed class SetFloatVar : Instance<SetFloatVar>
         }
     }
         
+    [Input(Guid = "68E31EAA-1481-48F4-B742-5177A241FE6D")]
+    public readonly InputSlot<float> FloatValue = new();
+    
+    [Input(Guid = "6EE64D39-855A-4B20-A8F5-39B4F98E8036")]
+    public readonly InputSlot<string> VariableName = new();
         
     [Input(Guid = "E64D396E-855A-4B20-A8F5-39B4F98E8036")]
     public readonly InputSlot<Command> SubGraph = new();
         
-    [Input(Guid = "6EE64D39-855A-4B20-A8F5-39B4F98E8036")]
-    public readonly InputSlot<string> VariableName = new();
-        
-    [Input(Guid = "68E31EAA-1481-48F4-B742-5177A241FE6D")]
-    public readonly InputSlot<float> Value = new();
-
     [Input(Guid = "DA431996-4C4C-4CDC-9723-9116BBB5440C")]
     public readonly InputSlot<bool> ClearAfterExecution = new ();
         

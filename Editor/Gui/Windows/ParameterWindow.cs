@@ -185,7 +185,9 @@ internal sealed class ParameterWindow : Window
                                                                                                 .Distinct()
                                                                                                 .OrderBy(i => i),
                                                                       false,
-                                                                      ref namespaceForEdit, out _);
+                                                                      ref namespaceForEdit, 
+                                                                      out _, 
+                                                                      out _);
                 if (namespaceModified && !string.IsNullOrEmpty(namespaceForEdit) && ImGui.IsKeyPressed((ImGuiKey)Key.Return))
                 {
                     if (!EditableSymbolProject.ChangeSymbolNamespace(symbol, namespaceForEdit, out var reason))

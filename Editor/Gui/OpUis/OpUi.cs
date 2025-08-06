@@ -86,8 +86,13 @@ public static class OpUi
                   // { Guid.Parse("bfe540ef-f8ad-45a2-b557-cd419d9c8e44"), DataListUi.DrawChildUi },
                   //
                   { Guid.Parse("470db771-c7f2-4c52-8897-d3a9b9fc6a4e"), GetIntVarUi.DrawChildUi },
+                  
                   { Guid.Parse("e6072ecf-30d2-4c52-afa1-3b195d61617b"), GetFloatVarUi.DrawChildUi },
                   { Guid.Parse("2a0c932a-eb81-4a7d-aeac-836a23b0b789"), SetFloatVarUi.DrawChildUi },
+                  
+                  { Guid.Parse("9a843835-d39c-428f-b996-6334323e8106"), SetBoolVarUi.DrawChildUi },
+                  { Guid.Parse("604bfb46-fe8f-4c8b-896b-1b7bc827137b"), GetBoolVarUi.DrawChildUi },
+                  
                   //
                   // { Guid.Parse("96b1e8f3-0b42-4a01-b82b-44ccbd857400"), SelectVec2FromDictUi.DrawChildUi },
                   // { Guid.Parse("05295c65-7dfd-4570-866e-9b5c4e735569"), SelectBoolFromFloatDictUi.DrawChildUi },

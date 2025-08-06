@@ -73,12 +73,12 @@ public class DrawScene : Instance<DrawScene>
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
         if (inputId != UseMaterialId.Input.Id)
             return;
             
-        UseMaterialId.SetTypedInputValue(result);
+        UseMaterialId.SetTypedInputValue(selected);
     }
 
     private readonly List<PbrMaterial> _pbrMaterials = new();

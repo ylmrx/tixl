@@ -71,9 +71,9 @@ internal sealed class DataRecording : Instance<DataRecording>,  IStatusProvider,
         }
     }
 
-    public void HandleResultForInput(Guid inputId, string result)
+    public void HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        ActiveDataSetId.SetTypedInputValue(result);
+        ActiveDataSetId.SetTypedInputValue(selected);
     }
         
     [Input(Guid = "48e9dd6c-87d2-4701-96ab-3971f3150ff1")]

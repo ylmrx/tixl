@@ -188,9 +188,9 @@ public class VideoDeviceInput : Instance<VideoDeviceInput>, ICustomDropdownHolde
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        InputDeviceName.SetTypedInputValue(result);
+        InputDeviceName.SetTypedInputValue(selected);
     }
     #endregion
 

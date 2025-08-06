@@ -494,19 +494,19 @@ internal sealed class OscInput : Instance<OscInput>, OscConnectionManager.IOscCo
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        if (string.IsNullOrEmpty(result))
+        if (string.IsNullOrEmpty(selected))
             return;
 
-        var parts = result.Split(Separator);
+        var parts = selected.Split(Separator);
         if (parts.Length > 1)
         {
             Address.SetTypedInputValue(parts[0]);
         }
         else
         {
-            Address.SetTypedInputValue(result);
+            Address.SetTypedInputValue(selected);
         }
     }
     #endregion

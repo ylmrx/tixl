@@ -55,10 +55,10 @@ public sealed class SelectVec2FromDict : Instance<SelectVec2FromDict>, ICustomDr
         }
     }
 
-    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string result)
+    void ICustomDropdownHolder.HandleResultForInput(Guid inputId, string selected, bool isAListItem)
     {
-        SelectX.SetTypedInputValue(result);
-        _yKey= FindKeyForY(result);
+        SelectX.SetTypedInputValue(selected);
+        _yKey= FindKeyForY(selected);
     }
 
     private string FindKeyForY( string xKey)

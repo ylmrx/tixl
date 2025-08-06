@@ -48,6 +48,7 @@ public class EvaluationContext
         LocalFxTime = Playback.FxTimeInBars;
         PointLights.Clear();
         FloatVariables.Clear();
+        BoolVariables.Clear();
         IntVariables.Clear();
         ObjectVariables.Clear();
             
@@ -136,6 +137,7 @@ public class EvaluationContext
     
     #region context variables
     public Dictionary<string, float> FloatVariables { get; } = new();
+    public Dictionary<string, bool> BoolVariables { get; } = new();
     public Dictionary<string, int> IntVariables { get; } = new();
     
     /// <summary>

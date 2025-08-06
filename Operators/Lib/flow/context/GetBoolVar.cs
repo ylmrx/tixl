@@ -1,23 +1,24 @@
 namespace Lib.flow.context;
 
-[Guid("e6072ecf-30d2-4c52-afa1-3b195d61617b")]
-public sealed class GetFloatVar : Instance<GetFloatVar>, ICustomDropdownHolder
+[Guid("604bfb46-fe8f-4c8b-896b-1b7bc827137b")]
+public sealed class GetBoolVar : Instance<GetBoolVar>
+,ICustomDropdownHolder
 {
-    [Output(Guid = "e368ba33-827e-4e08-aa19-ba894b40906a", DirtyFlagTrigger = DirtyFlagTrigger.Animated)]
-    public readonly Slot<float> Result = new();
+    [Output(Guid = "B5BB6CD9-58DD-4C9C-AAB3-AE0E21C81822", DirtyFlagTrigger = DirtyFlagTrigger.Animated)]
+    public readonly Slot<bool> Result = new();
 
-    public GetFloatVar()
+    public GetBoolVar()
     {
         Result.UpdateAction += Update;
     }
 
     private void Update(EvaluationContext context)
     {
-        //if (VariableName.DirtyFlag.IsDirty && !VariableName.HasInputConnections)
-        _contextVariableNames= context.FloatVariables.Keys.ToList();
+        if (VariableName.DirtyFlag.IsDirty && !VariableName.HasInputConnections)
+            _contextVariableNames= context.BoolVariables.Keys.ToList();
             
         var variableName = VariableName.GetValue(context);
-        if (variableName != null && context.FloatVariables.TryGetValue(variableName, out var value))
+        if (variableName != null && context.BoolVariables.TryGetValue(variableName, out var value))
         {
             Result.Value = value;
         }
@@ -54,9 +55,9 @@ public sealed class GetFloatVar : Instance<GetFloatVar>, ICustomDropdownHolder
         
     private  List<string> _contextVariableNames = new ();
 
-    [Input(Guid = "015d1ea0-ea51-4038-893a-4af2f8584631")]
+    [Input(Guid = "b0821091-68c0-4e34-9f8b-926c0b6ebf94")]
     public readonly InputSlot<string> VariableName = new();
         
-    [Input(Guid = "AE76829B-D17D-4443-9CF1-63E3C44B90C8")]
-    public readonly InputSlot<float> FallbackDefault = new();
+    [Input(Guid = "992EE524-633B-4705-A9D7-9DBF14B01EAB")]
+    public readonly InputSlot<bool> FallbackDefault = new();
 }
