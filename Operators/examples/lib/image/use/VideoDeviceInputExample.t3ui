@@ -1,0 +1,149 @@
+{
+  "Id": "62df21a2-901e-4cb9-a5ed-84d555860852"/*VideoDeviceInputExample*/,
+  "Description": "Uses a [DetectMotion] and [VideoDeviceInput] to interact with particles.\n\nYou will need to enter and change the video camera input",
+  "InputUis": [],
+  "SymbolChildUis": [
+    {
+      "ChildId": "010d78dc-fbb7-4429-a906-53ffeed3ff40"/*TurbulenceForce*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 242.67065
+      }
+    },
+    {
+      "ChildId": "2a1c42f9-ed61-4067-a7e6-79f8ccd07dc1"/*SphereSDF*/,
+      "Position": {
+        "X": 179.19043,
+        "Y": 207.67065
+      }
+    },
+    {
+      "ChildId": "2bf0404f-4602-41a5-aa62-3249cc941d77"/*SetFog*/,
+      "Position": {
+        "X": 459.19043,
+        "Y": 382.67065
+      }
+    },
+    {
+      "ChildId": "3ac3be4e-901f-4a0c-83d7-cf5b6bec21f9"/*Group*/,
+      "Position": {
+        "X": 706.4834,
+        "Y": 305.5918
+      }
+    },
+    {
+      "ChildId": "401fa94d-13a4-4056-b0f4-25c55f012ded"/*RenderTarget*/,
+      "Position": {
+        "X": 706.4834,
+        "Y": 375.5918
+      }
+    },
+    {
+      "ChildId": "52e6b5ea-6ad0-4231-81ea-2ff4b7a1e479"/*Trigger*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 137.67065
+      }
+    },
+    {
+      "ChildId": "554299e9-34c9-4bbd-a8fe-63c9f8d54ec6"/*DrawLines*/,
+      "Position": {
+        "X": 459.19043,
+        "Y": 347.67065
+      }
+    },
+    {
+      "ChildId": "58bc21bc-d7f8-48fe-b85c-74caafca6e1a"/*ParticleSystem*/,
+      "Position": {
+        "X": 459.19043,
+        "Y": 102.670654
+      }
+    },
+    {
+      "ChildId": "5faf496e-8254-4064-9811-5d5e55269d2c"/*RepeatAtGPoints*/,
+      "Position": {
+        "X": 459.19043,
+        "Y": 277.67065
+      }
+    },
+    {
+      "ChildId": "69b31c56-719b-4d50-a607-9198900f74aa"/*CommonPointSets*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 312.67065
+      }
+    },
+    {
+      "ChildId": "7931928d-9412-4bac-a7f5-4f06d035ded8"/*GridPoints*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 102.670654
+      }
+    },
+    {
+      "ChildId": "899889ac-2839-42db-a638-b79d701ebe53"/*Layer2d*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 70.0
+      }
+    },
+    {
+      "ChildId": "8d1c1d27-029e-4533-9368-7d75561600ac"/*DetectMotion*/,
+      "Position": {
+        "X": 140.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "ChildId": "90eebc1a-1514-46f9-9f72-9643bb5ab03b"/*Time*/,
+      "Position": {
+        "X": 179.19043,
+        "Y": 277.67065
+      }
+    },
+    {
+      "ChildId": "a19c52dc-b78d-4dc7-be90-5c97e8a6dfba"/*VideoDeviceInput*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "ChildId": "a38308de-db06-4064-900a-b993155d45ab"/*SSAO*/,
+      "Position": {
+        "X": 846.4834,
+        "Y": 375.5918
+      }
+    },
+    {
+      "ChildId": "deff5f85-42d9-4df6-bb82-4d61b73ed1b9"/*TextureMapForce*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 172.67065
+      }
+    },
+    {
+      "ChildId": "ee1df71d-0855-4c7f-b2ab-45b1981de195"/*FieldDistanceForce*/,
+      "Position": {
+        "X": 319.19043,
+        "Y": 207.67065
+      }
+    },
+    {
+      "ChildId": "f35425a4-c2ba-49bf-9174-b7c400e51ebd"/*DetectMotion*/,
+      "Position": {
+        "X": -11.197937,
+        "Y": -175.71179
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "e435738b-84fa-4f32-822d-0315d8a8455d"/*Output*/,
+      "Position": {
+        "X": 1256.4834,
+        "Y": 203.83533
+      }
+    }
+  ]
+}

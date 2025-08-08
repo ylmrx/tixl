@@ -1,0 +1,218 @@
+{
+  "Id": "830df85c-51df-4d55-956c-e6810e8e3081"/*DetectMotion*/,
+  "Description": "Uses motion history or difference to detect changes in an image.\nThis might be useful for tracking.",
+  "InputUis": [
+    {
+      "InputId": "0181b151-2601-4d65-9d69-5b0efd4044f3"/*RemapGradient*/,
+      "Position": {
+        "X": 671.0896,
+        "Y": 356.42737
+      },
+      "Description": "If enabled, can be used to increase contrast and reduce noise or key colors."
+    },
+    {
+      "InputId": "89e7a9a3-b73b-4296-aece-821e0c87362c"/*VideoTexture*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": -406.90933,
+        "Y": -8.568954
+      }
+    },
+    {
+      "InputId": "96f0f8da-bb16-439a-bc0c-41c18cc42a20"/*RemapColor*/,
+      "Position": {
+        "X": 879.1317,
+        "Y": 398.16144
+      },
+      "GroupTitle": "Output options",
+      "Description": "Enable color remap using the gradient below."
+    },
+    {
+      "InputId": "d0f131d3-80d7-45a5-b827-dd9cd8a514f7"/*Method*/,
+      "Position": {
+        "X": 671.0896,
+        "Y": 286.42737
+      }
+    },
+    {
+      "InputId": "e8ac51d9-1a0b-42c0-9695-f21ef7e7dcbc"/*VideoFrameIndex*/,
+      "Relevancy": "Relevant",
+      "Position": {
+        "X": -753.31836,
+        "Y": -164.96545
+      },
+      "Description": "For video inputs with frames different that 60fps (or the current refresh rate) you should pass in the frame count here.\n\nThis will prevent flickering."
+    },
+    {
+      "InputId": "f0da83e6-cd5a-46e7-80cb-4ff4c995009d"/*BackgroundFade*/,
+      "Position": {
+        "X": -141.0106,
+        "Y": 141.3941
+      },
+      "GroupTitle": "Motion History Option",
+      "Min": 0.0,
+      "Max": 0.1
+    }
+  ],
+  "SymbolChildUis": [
+    {
+      "ChildId": "0885a5d9-9379-4050-b783-465039571888"/*PickTexture*/,
+      "Position": {
+        "X": 811.0896,
+        "Y": 181.42737
+      }
+    },
+    {
+      "ChildId": "13e0706e-44b4-42d6-a16d-e0518cc8e3ca"/*BoolToInt*/,
+      "Position": {
+        "X": 1019.13184,
+        "Y": 398.16144
+      }
+    },
+    {
+      "ChildId": "188cfdb1-8c5b-44de-85cf-78e46d654b4c"/*Any*/,
+      "Position": {
+        "X": -426.2153,
+        "Y": -158.30392
+      }
+    },
+    {
+      "ChildId": "23d5af71-7482-4320-91a8-7c10d5c32351"/*KeepPreviousFrame2*/,
+      "Position": {
+        "X": 138.9894,
+        "Y": -130.05081
+      }
+    },
+    {
+      "ChildId": "2fdb8a67-992e-4493-857a-997c43eebc3d"/*RenderTarget*/,
+      "Position": {
+        "X": 414.1938,
+        "Y": 160.366
+      }
+    },
+    {
+      "ChildId": "32045ab6-225c-4117-93f3-13fc7b35608f"/*RgbaToColor*/,
+      "Position": {
+        "X": 138.9894,
+        "Y": 106.394104
+      }
+    },
+    {
+      "ChildId": "371ea85d-54d1-40cc-be24-70f990182860"/*Blend*/,
+      "Position": {
+        "X": 414.1938,
+        "Y": 230.366
+      }
+    },
+    {
+      "ChildId": "4aaaf9fe-13f9-4d60-bd39-a5018dce1aa8"/*HasIntChanged*/,
+      "Position": {
+        "X": -566.2152,
+        "Y": -123.303925
+      }
+    },
+    {
+      "ChildId": "538e6598-2915-4852-9db1-bcb2d6864ec2"/*GetTextureSize*/,
+      "Position": {
+        "X": 274.19385,
+        "Y": 195.366
+      }
+    },
+    {
+      "ChildId": "5441e1ac-cdc2-482d-ba2f-47f5582ecfda"/*CompareInt*/,
+      "Position": {
+        "X": -566.2152,
+        "Y": -158.30392
+      }
+    },
+    {
+      "ChildId": "76c81156-85b2-4dc6-b437-83e4452db6b0"/*OpticalFlow*/,
+      "Position": {
+        "X": 487.81625,
+        "Y": -369.55954
+      }
+    },
+    {
+      "ChildId": "81f12af0-61d1-4c84-a1b9-e1ba3bcf8fa0"/*Layer2d*/,
+      "Position": {
+        "X": 414.1938,
+        "Y": 90.366
+      }
+    },
+    {
+      "ChildId": "a40f6ae0-5fec-404d-8280-029903898940"/*RemapColor*/,
+      "Position": {
+        "X": 811.0896,
+        "Y": 321.42737
+      }
+    },
+    {
+      "ChildId": "c32d5ad7-a4ef-4124-bbc7-c91a326f222d"/*PickTexture*/,
+      "Position": {
+        "X": 1159.1317,
+        "Y": 328.16144
+      }
+    },
+    {
+      "ChildId": "f4db17ff-1c8b-4621-89cd-791820770175"/*Blend*/,
+      "Position": {
+        "X": 278.98932,
+        "Y": -130.05081
+      }
+    },
+    {
+      "ChildId": "fea41217-8c15-4f0c-8611-b41c84266fb4"/*Remap*/,
+      "Position": {
+        "X": -1.0106049,
+        "Y": 141.3941
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "6bbed7aa-310a-481b-b16e-ef5e398911a8"/*TextureOutput*/,
+      "Position": {
+        "X": 1159.1317,
+        "Y": 433.16144
+      }
+    }
+  ],
+  "Annotations": [
+    {
+      "Id": "699e694d-e3cd-4686-9552-d14f0a9e90bb",
+      "Label": "FrameDifference",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -201.0106,
+        "Y": -190.05081
+      },
+      "Size": {
+        "X": 650.0,
+        "Y": 180.0
+      }
+    },
+    {
+      "Id": "d084d931-014b-4f7f-967d-835ddd6dedc5",
+      "Label": "Motion History",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -201.0106,
+        "Y": 30.365997
+      },
+      "Size": {
+        "X": 785.2046,
+        "Y": 285.0
+      }
+    }
+  ]
+}

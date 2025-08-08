@@ -15,9 +15,13 @@ public class VideoDeviceInput : Instance<VideoDeviceInput>, ICustomDropdownHolde
     [Output(Guid = "1d0159cc-33d2-46b1-9c0c-7054aa560df5", DirtyFlagTrigger = DirtyFlagTrigger.Animated)]
     public readonly Slot<Texture2D> Texture = new();
 
+    [Output(Guid = "868D5FFE-032C-4522-B56B-D96B30841DB7", DirtyFlagTrigger = DirtyFlagTrigger.Animated)]
+    public readonly Slot<int> UpdateCount = new();
+    
     public VideoDeviceInput()
     {
         Texture.UpdateAction = Update;
+        UpdateCount.UpdateAction = Update;
     }
 
     private void Update(EvaluationContext context)
@@ -54,6 +58,7 @@ public class VideoDeviceInput : Instance<VideoDeviceInput>, ICustomDropdownHolde
 
         if (_capture != null && _grabbedNewFrame && _bitmap != null)
         {
+            UpdateCount.Value++;
             UploadBitmap(ResourceManager.Device, _bitmap);
             Texture.Value = _gpuTexture;
             _grabbedNewFrame = false;
