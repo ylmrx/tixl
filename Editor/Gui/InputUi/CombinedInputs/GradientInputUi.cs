@@ -1,6 +1,7 @@
 ﻿using ImGuiNET;
 using T3.Core.DataTypes;
 using T3.Core.Operator;
+using T3.Core.Operator.Slots;
 using T3.Editor.Gui.UiHelpers;
 using T3.Editor.UiModel.InputsAndTypes;
 
@@ -24,7 +25,15 @@ public sealed class GradientInputUi : InputValueUi<Gradient>
     {
         if (gradient == null)
         {
-            ImGui.TextUnformatted(name + " is null?!");
+            ImGui.TextUnformatted(name + " is null?!?");
+            if (input.IsDefault)
+            {
+                var newGradient = new InputValue<Gradient>();
+                newGradient.Value = new Gradient();
+                InputDefinition.DefaultValue.Assign(newGradient);
+                input.Value.Assign(newGradient);
+                input.SetCurrentValueAsDefault();
+            }
             return InputEditStateFlags.Nothing;
         }
 
