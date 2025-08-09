@@ -1,5 +1,6 @@
 ﻿#nullable enable
 using System.Diagnostics;
+using System.Text;
 using System.Text.RegularExpressions;
 using T3.Core.Operator;
 using T3.Editor.UiModel.ProjectHandling;
@@ -164,7 +165,15 @@ internal sealed class SymbolFilter
                                              .Reverse()
                                              .Take(limit)
                                              .ToList();
+
+        // Debug log to help tweaking relevancy factors
+        // foreach (var s in MatchingSymbolUis)
+        // {
+        //     ComputeRelevancy(s, _symbolFilterString, currentProject, composition, logOutput:true);
+        // }
     }
+
+    private static readonly List<string> _logList = [];
 
     internal static double ComputeRelevancy(SymbolUi symbolUi,
                                             string query,
@@ -172,27 +181,38 @@ internal sealed class SymbolFilter
                                             Instance? composition,
                                             int targetInputHash = 0,
                                             Type? filterInputType = null,
-                                            Type? filterOutputType = null)
+                                            Type? filterOutputType = null,
+                                            bool logOutput = false)
     {
         float relevancy = 1;
 
         var symbol = symbolUi.Symbol;
         var symbolName = symbol.Name;
+        _logList.Clear();
+        _logList.Add(symbolUi.Symbol.Name);
 
         if (symbol.Namespace.StartsWith("Types.", StringComparison.InvariantCulture))
+        {
+            _logList.Add("Type: x4");
             relevancy *= 4;
+        }
 
         if (symbolName.Equals(query, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logList.Add("Equals: x5");
             relevancy *= 5;
+        }
 
         if (symbolName.StartsWith(query, StringComparison.InvariantCultureIgnoreCase))
         {
+            _logList.Add("StartsWith: x8.5");
             relevancy *= 8.5f;
         }
         else
         {
             if (symbolName.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0)
             {
+                _logList.Add("Contains: x3");
                 relevancy *= 3f;
             }
         }
@@ -200,11 +220,10 @@ internal sealed class SymbolFilter
         if (!string.IsNullOrEmpty(symbolUi.Description)
             && symbolUi.Description.Contains(query, StringComparison.InvariantCultureIgnoreCase))
         {
+            _logList.Add("Description: x1.01");
             relevancy *= 1.01f;
         }
 
-        if (symbolName.Equals(query, StringComparison.InvariantCultureIgnoreCase))
-            relevancy *= 5;
 
         // Add usage count (the following statement is slow and should be cached)
         var count = SymbolAnalysis.InformationForSymbolIds.TryGetValue(symbol.Id, out var info)
@@ -212,7 +231,12 @@ internal sealed class SymbolFilter
                         : 0;
 
         //symbolUi.Symbol.InstancesOfSymbol.Select(instance =>instance.SymbolChildId).Distinct().Count();
-        relevancy *= 1 + (int)(100.0 * count / SymbolAnalysis.TotalUsageCount);
+        var totalUsageCountBoost = (float)(1 + (500.0 * (float)count / SymbolAnalysis.TotalUsageCount));
+        if (count > 0)
+        {
+            _logList.Add($"Used {count}: {totalUsageCountBoost:0.0}");
+        }
+        relevancy *= totalUsageCountBoost;
 
         // Bump if characters match upper characters
         // e.g. "ds" matches "DrawState"
@@ -234,7 +258,10 @@ internal sealed class SymbolFilter
             }
 
             if (pascalCaseMatch)
-                relevancy *= 2f;
+            {
+                _logList.Add($"PascalMath: x2");
+                relevancy *= 4f;
+            }
         }
 
         if (!string.IsNullOrEmpty(symbol.Namespace))
@@ -247,11 +274,17 @@ internal sealed class SymbolFilter
                 relevancy *= 3f;
 
             if (symbol.Namespace.StartsWith("examples"))
+            {
+                _logList.Add($"Examples x2");
                 relevancy *= 2f;
+            }
         }
 
         if (symbolName.StartsWith("_"))
+        {
+            _logList.Add($"_sym x0.1");
             relevancy *= 0.1f;
+        }
 
         if (symbolName.Contains("OBSOLETE"))
             relevancy *= 0.01f;
@@ -263,12 +296,14 @@ internal sealed class SymbolFilter
             // mega-boost symbols from the same package as the current project
             if (currentProject == symbolPackage)
             {
+                _logList.Add($"Proj x2");
                 relevancy *= 2f;
             }
 
             // or boost symbols from related namespaces
             else if (symbol.Namespace!.StartsWith(currentProject.RootNamespace))
             {
+                _logList.Add($"RotName x1.9");
                 relevancy *= 1.9f;
             }
         }
@@ -280,12 +315,18 @@ internal sealed class SymbolFilter
 
             // boost symbols from the same package as composition, or from related namespaces
             if (compositionPackage.Symbols.ContainsKey(symbolId) || symbolPackage.RootNamespace.StartsWith(compositionPackage.RootNamespace))
+            {
+                _logList.Add($"package: x1.9");
                 relevancy *= 1.9f;
+            }
         }
 
         // boost user symbols
         if (symbolPackage is EditableSymbolProject)
+        {
+            _logList.Add($"Editable x1.9");
             relevancy *= 1.9f;
+        }
 
         // Bump operators with matching connections 
         var matchingConnectionsCount = 0;
@@ -304,9 +345,15 @@ internal sealed class SymbolFilter
 
         if (matchingConnectionsCount > 0)
         {
-            relevancy *= 1 + MathF.Pow(matchingConnectionsCount, 0.33f) * 4f;
+            var matchingInputsBoost = 1 + MathF.Pow(matchingConnectionsCount, 0.33f) * 4f;
+            _logList.Add($"matchingInputs x{matchingInputsBoost}");
+            relevancy *= matchingInputsBoost;
         }
 
+        if (logOutput)
+        {
+            Log.Debug( $"{relevancy:0.0} " + string.Join(", ",_logList));
+        }
         return relevancy;
     }
 
