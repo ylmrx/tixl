@@ -15,7 +15,7 @@
     },
     {
       "Id": "f2fd304f-11e7-466f-b594-b1c3af901852"/*A*/,
-      "DefaultValue": 0.0
+      "DefaultValue": 1.0
     }
   ],
   "Children": [],
