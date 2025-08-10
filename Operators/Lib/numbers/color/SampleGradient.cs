@@ -22,9 +22,13 @@ public sealed class SampleGradient : Instance<SampleGradient>, IExtractedInput<G
     {
         var t = SamplePos.GetValue(context);
         var gradient = Gradient.GetValue(context);
-        var interpolation = (Gradient.Interpolations) Interpolation.GetValue(context);
-
-        gradient.Interpolation = interpolation;
+        
+        var overrideInterpolation = OverrideInterpolation.GetValue(context);
+        if (overrideInterpolation)
+        {
+            var interpolation = (Gradient.Interpolations) Interpolation.GetValue(context);
+            gradient.Interpolation = interpolation;
+        }
         Color.Value = gradient.Sample(t);
         OutGradient.Value = gradient.TypedClone();    //FIXME: This might not be efficient or required
     }
@@ -34,7 +38,10 @@ public sealed class SampleGradient : Instance<SampleGradient>, IExtractedInput<G
         
     [Input(Guid = "EFF10FAD-CF95-4133-91DB-EFC41258CD1B")]
     public readonly InputSlot<Gradient> Gradient = new();
-        
+
+    [Input(Guid = "11657D72-6AD9-41D9-AB5A-DE7177AF5BE4")]
+    public readonly InputSlot<bool> OverrideInterpolation = new();
+    
     [Input(Guid = "76CF4A72-2D25-48CB-A1EC-08D0DDABB053", MappedType = typeof(Gradient.Interpolations))]
     public readonly InputSlot<int> Interpolation = new();
 
