@@ -16,12 +16,12 @@
       "InputId": "21c666bb-a28f-498c-a834-a2ba4aca78a7"/*EmitMode*/,
       "Position": {
         "X": 226.2659,
-        "Y": 92.618164
+        "Y": 127.618164
       },
       "Description": "This will affect how particles are inserted into the particle buffer. This order will have an effect when drawing with lines.\nNote that switching this setting might require resetting the system."
     },
     {
-      "InputId": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*InitialVelocity*/,
+      "InputId": "38392c86-4a1b-4b6f-ac32-26920a73e1e2"/*EmitVelocity*/,
       "Position": {
         "X": 202.45206,
         "Y": -284.3761
@@ -38,6 +38,13 @@
       "Description": "Rotates the particles in relation to their velocity"
     },
     {
+      "InputId": "4c555ac3-3d62-47a7-9d1a-49e4d5808635"/*SetFx2To*/,
+      "Position": {
+        "X": 226.2659,
+        "Y": 92.618164
+      }
+    },
+    {
       "InputId": "4ca2f43a-ed90-4388-ae6f-2687e85db5a6"/*LifeTime*/,
       "Position": {
         "X": 202.45206,
@@ -49,7 +56,7 @@
       "InputId": "54b8bfc1-98b1-4cec-b008-8615c20ebb43"/*EmitVelocityFactor*/,
       "Position": {
         "X": 226.2659,
-        "Y": 162.61816
+        "Y": 197.61816
       }
     },
     {
@@ -81,7 +88,7 @@
       "Description": "The simulation speed. If set to 0 the simulation will be paused.\nNegative simulation speed can shortly look like rewinding but the simulation will quickly become inconsistent."
     },
     {
-      "InputId": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetWTo*/,
+      "InputId": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetFx1To*/,
       "Position": {
         "X": 226.2659,
         "Y": 57.618164
@@ -262,7 +269,7 @@
       "ChildId": "87abbc5a-e272-4616-b918-fa4ec362bdf4"/*UsingEmitCount*/,
       "Position": {
         "X": 226.2659,
-        "Y": 127.618164
+        "Y": 162.61816
       }
     },
     {

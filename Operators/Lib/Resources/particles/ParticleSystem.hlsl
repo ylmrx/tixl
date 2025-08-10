@@ -19,7 +19,8 @@ cbuffer IntParams : register(b1)
     int TriggerEmit;
     int TriggerReset;
     int CollectCycleIndex;
-    int WMode;
+    int SetFx1To;
+    int SetFx2To;
     int EmitMode;
     int IsAutoCount;
     int EmitVelocityFactor;
@@ -134,18 +135,22 @@ RWStructuredBuffer<Point> ResultPoints : u1;
     float normalizedAge = (IsAutoCount && LifeTime < 0) ? 1 : (Time - Particles[gi].BirthTime) / lifeTime;
     bool tooOld = normalizedAge > 1;
 
-    if (WMode == W_KEEP_ORIGINAL)
-    {
-        // Maybe we could skip this?
-        // ResultPoints[gi].Scale = Particles[gi].Radius / RadiusFromW;
-    }
-    else if (WMode == W_PARTICLE_AGE)
+    if (SetFx1To == W_PARTICLE_AGE)
     {
         ResultPoints[gi].FX1 = normalizedAge;
     }
-    else if (WMode == W_PARTICLE_SPEED)
+    else if (SetFx1To == W_PARTICLE_SPEED)
     {
         ResultPoints[gi].FX1 = speed * 100;
+    }
+
+    if (SetFx2To == W_PARTICLE_AGE)
+    {
+        ResultPoints[gi].FX2 = normalizedAge;
+    }
+    else if (SetFx2To == W_PARTICLE_SPEED)
+    {
+        ResultPoints[gi].FX2 = speed * 100;
     }
 
     if (tooOld)

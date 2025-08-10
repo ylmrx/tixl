@@ -47,7 +47,10 @@ internal sealed class ParticleSystem : Instance<ParticleSystem>
         public readonly InputSlot<float> Drag = new InputSlot<float>();
 
         [Input(Guid = "a7350ba8-08be-4afc-92f1-d223ee9bcbeb", MappedType = typeof(SetWModes))]
-        public readonly InputSlot<int> SetWTo = new InputSlot<int>();
+        public readonly InputSlot<int> SetFx1To = new InputSlot<int>();
+
+        [Input(Guid = "4c555ac3-3d62-47a7-9d1a-49e4d5808635", MappedType = typeof(SetWModes))]
+        public readonly InputSlot<int> SetFx2To = new InputSlot<int>();
 
         [Input(Guid = "c41d9633-1397-4602-a5f8-7808c3d63108")]
         public readonly MultiInputSlot<T3.Core.DataTypes.ParticleSystem> ParticleForces = new MultiInputSlot<T3.Core.DataTypes.ParticleSystem>();

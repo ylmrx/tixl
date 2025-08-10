@@ -607,7 +607,7 @@
       "SymbolId": "e44ae9b6-cd56-4224-8a5d-118eda4cd3f4",
       "InputValues": [
         {
-          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetWTo*/,
+          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetFx1To*/,
           "Type": "System.Int32",
           "Value": 1
         }
@@ -782,7 +782,7 @@
           "Value": 0.025999999
         },
         {
-          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetWTo*/,
+          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetFx1To*/,
           "Type": "System.Int32",
           "Value": 2
         }
@@ -1379,7 +1379,7 @@
           "Value": 0.5
         },
         {
-          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetWTo*/,
+          "Id": "a7350ba8-08be-4afc-92f1-d223ee9bcbeb"/*SetFx1To*/,
           "Type": "System.Int32",
           "Value": 2
         }
