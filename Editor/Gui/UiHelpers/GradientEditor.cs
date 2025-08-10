@@ -30,6 +30,7 @@ public static class GradientEditor
         gradientForEditing.SortHandles();
 
         DrawGradient(gradientForEditing, drawList, areaOnScreen);
+        
 
         if (!(areaOnScreen.GetHeight() >= RequiredHeightForHandles))
             return InputEditStateFlags.Nothing;
@@ -84,6 +85,12 @@ public static class GradientEditor
         {
             var handleArea = GetHandleAreaForPosition(normalizedPosition);
             drawList.AddRect(handleArea.Min + Vector2.One, handleArea.Max - Vector2.One, new Color(1f, 1f, 1f, 0.4f));
+        }
+
+        // Draw CurveOverlays
+        if (ImGui.IsItemHovered() || editResult != InputEditStateFlags.Nothing)
+        {
+            DrawCurveLines(gradientRef, drawList, areaOnScreen);
         }
 
         CustomComponents.ContextMenuForItem(() =>
@@ -258,6 +265,14 @@ public static class GradientEditor
                              };
             drawList.AddConvexPolyFilled(ref points[0], 3, new Color(0.15f, 0.15f, 0.15f, 1));
             drawList.AddRectFilled(handleArea.Min, handleArea.Max, ImGui.ColorConvertFloat4ToU32(step.Color));
+
+            var maxColorBrightness = MathF.Max(MathF.Max(step.Color.X, step.Color.Y), step.Color.Z);
+            if (maxColorBrightness > 1)
+            {
+                var intensitySize = (1f- MathF.Pow(1.5f, - maxColorBrightness))*4;
+                var center = handleArea.GetCenter();
+                drawList.AddCircleFilled(center, intensitySize, Color.Black,3);
+            }
             drawList.AddRect(handleArea.Min, handleArea.Max, UiColors.BackgroundFull);
             drawList.AddRect(handleArea.Min + Vector2.One, handleArea.Max - Vector2.One, UiColors.ForegroundFull);
 
@@ -285,6 +300,47 @@ public static class GradientEditor
             var x = areaOnScreen.Min.X - StepHandleSize.X / 2f + areaOnScreen.GetWidth() * normalizedStepPosition;
             return new ImRect(new Vector2(x, areaOnScreen.Max.Y - StepHandleSize.Y), new Vector2(x + StepHandleSize.X, areaOnScreen.Max.Y + 2));
         }
+    }
+
+    private static void DrawCurveLines(Gradient gradientRef, ImDrawListPtr drawList, ImRect areaOnScreen)
+    {
+        var curveIndicationArea = areaOnScreen;
+        var count = 50;
+        float fadeCurves = 0.7f;
+            
+        var pR = new Vector2[50];
+        var pG = new Vector2[50];
+        var pB = new Vector2[50];
+        var pA = new Vector2[50];
+        for (int i = 0; i <count; i++)
+        {
+            float f = (float)i / (50 - 1);
+            var c = gradientRef.Sample(f);
+            c = Vector4.Clamp(c, Vector4.One * -0.5f, Vector4.One * 1.5f);
+            pR[i] = new Vector2( MathUtils.Lerp(curveIndicationArea.Min.X, curveIndicationArea.Max.X,f),
+                                 MathUtils.Lerp(curveIndicationArea.Max.Y, curveIndicationArea.Min.Y,c.X));
+                
+            pG[i] = new Vector2( MathUtils.Lerp(curveIndicationArea.Min.X, curveIndicationArea.Max.X,f),
+                                 MathUtils.Lerp(curveIndicationArea.Max.Y, curveIndicationArea.Min.Y,c.Y));
+                
+            pB[i] = new Vector2( MathUtils.Lerp(curveIndicationArea.Min.X, curveIndicationArea.Max.X,f),
+                                 MathUtils.Lerp(curveIndicationArea.Max.Y, curveIndicationArea.Min.Y,c.Z));
+                
+            pA[i] = new Vector2( MathUtils.Lerp(curveIndicationArea.Min.X, curveIndicationArea.Max.X,f),
+                                 MathUtils.Lerp(curveIndicationArea.Max.Y, curveIndicationArea.Min.Y,c.W));                
+        }
+
+        var shadow = Color.Black.Fade(0.2f);
+        drawList.AddPolyline(ref pR[0], 50, shadow, ImDrawFlags.None, 5);
+        drawList.AddPolyline(ref pG[0], 50, shadow, ImDrawFlags.None, 5);
+        drawList.AddPolyline(ref pB[0], 50, shadow, ImDrawFlags.None, 5);
+        drawList.AddPolyline(ref pA[0], 50, shadow, ImDrawFlags.None, 5);
+            
+            
+        drawList.AddPolyline(ref pR[0], 50, Color.Red.Fade(fadeCurves), ImDrawFlags.None, 1);
+        drawList.AddPolyline(ref pG[0], 50, Color.Green.Fade(fadeCurves), ImDrawFlags.None, 1);
+        drawList.AddPolyline(ref pB[0], 50, Color.Blue.Fade(fadeCurves), ImDrawFlags.None, 1);
+        drawList.AddPolyline(ref pA[0], 50, Color.White.Fade(fadeCurves), ImDrawFlags.None, 1);
     }
 
     /// <summary>
