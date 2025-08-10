@@ -43,7 +43,7 @@ float SubdivisionLine(float n, float r)
 
     float f = 1 - saturate(t * r * 3);
 
-    float x = n % ((1+1./255) / r) < t;
+    float x = n % ((1 + 1. / 255) / r) < t;
     return x * f;
 
     // return (n + lineThickness, n, colorOnLine.rgba) * smoothstep(n - lineThickness, n, colorOnLine.rgba)
@@ -70,8 +70,7 @@ float4 psMain(vsOutput psInput) : SV_TARGET
 
     lineThickness = 1.1 / (height) / Width;
     float nInRange = (normalizedDistance) * (Range.y - Range.x) + Range.x;
-    float4 subdivisionLines = SubdivisionLine(nInRange, 8) * float4(0.0, 0, 0, .3) 
-    + SubdivisionLine(nInRange, 1) * float4(0.0, 0, 0, 1) + SubdivisionLine(nInRange, 256) * float4(0.0, 0, 0, 0.3);
+    float4 subdivisionLines = (SubdivisionLine(nInRange, 8) * float4(0.0, 0, 0, .3) + SubdivisionLine(nInRange, 1) * float4(0.0, 0, 0, 1) + SubdivisionLine(nInRange, 256) * float4(0.0, 0, 0, 0.3)) * (normalizedDistance < 1);
 
     // Bottom Line
     // if (IsBetween(normalizedDistance, 1, 1 + 0.01))
