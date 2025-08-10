@@ -29,6 +29,9 @@ internal sealed class FieldVolumeForce : Instance<FieldVolumeForce>
         [Input(Guid = "57ddd456-78f1-486c-a28f-9cfc02f8a989")]
         public readonly InputSlot<float> RandomizeBounce = new InputSlot<float>();
 
+        [Input(Guid = "97334c3a-7d1b-4990-a541-70f6ef040197")]
+        public readonly InputSlot<bool> ReflectOnCollision = new InputSlot<bool>();
+
         [Input(Guid = "212064e0-7adb-467d-91d7-9b8890d854bc")]
         public readonly InputSlot<float> RandomizeReflection = new InputSlot<float>();
 

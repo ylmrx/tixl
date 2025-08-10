@@ -5,8 +5,8 @@
     {
       "InputId": "02eb5c6b-3995-409b-bd18-9e5c3d58364a"/*Attraction*/,
       "Position": {
-        "X": 484.22806,
-        "Y": 580.96155
+        "X": 574.5167,
+        "Y": 566.03577
       },
       "GroupTitle": "Behaviour",
       "Min": -1.0,
@@ -15,8 +15,8 @@
     {
       "InputId": "0f929afe-8ba0-479f-adae-d96f89f86266"/*Repulsion*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 650.96155
+        "X": 714.5168,
+        "Y": 636.03577
       },
       "Min": -1.0,
       "Max": 1.0
@@ -24,8 +24,8 @@
     {
       "InputId": "212064e0-7adb-467d-91d7-9b8890d854bc"/*RandomizeReflection*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 755.96155
+        "X": 714.5168,
+        "Y": 741.0366
       },
       "Min": 0.0,
       "Max": 1.0
@@ -33,8 +33,8 @@
     {
       "InputId": "57ddd456-78f1-486c-a28f-9cfc02f8a989"/*RandomizeBounce*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 720.96155
+        "X": 714.5168,
+        "Y": 706.03613
       },
       "Min": 0.0,
       "Max": 1.0
@@ -42,8 +42,8 @@
     {
       "InputId": "637f406f-7cd2-496b-89b1-13945c14f637"/*NormalSamplingDistance*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 825.96155
+        "X": 714.5168,
+        "Y": 811.0366
       },
       "Min": -0.1,
       "Max": 0.1
@@ -51,8 +51,8 @@
     {
       "InputId": "86f4bbf4-26a4-4dd7-9a23-3ef1a6c5a13b"/*Amount*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 545.96155
+        "X": 714.5168,
+        "Y": 531.03577
       },
       "Min": 0.0,
       "Max": 1.0,
@@ -61,26 +61,33 @@
     {
       "InputId": "8eac0a70-00ad-45cf-a72a-d58593475151"/*Bounciness*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 685.96155
+        "X": 714.5168,
+        "Y": 671.036
       },
       "GroupTitle": "Collision",
       "Min": 0.0,
       "Max": 1.0
     },
     {
+      "InputId": "97334c3a-7d1b-4990-a541-70f6ef040197"/*ReflectOnCollision*/,
+      "Position": {
+        "X": 574.5168,
+        "Y": 934.58826
+      }
+    },
+    {
       "InputId": "bf4f4938-e8ca-4b64-aa8b-6247527ad2fd"/*InvertVolume*/,
       "Position": {
-        "X": 484.2281,
-        "Y": 790.96155
+        "X": 574.5168,
+        "Y": 776.0366
       },
       "GroupTitle": "Options"
     },
     {
       "InputId": "dba5f4e3-cbdc-4e12-b174-dd9b7d91bea8"/*AttractionDecay*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 615.96155
+        "X": 714.5168,
+        "Y": 601.03577
       },
       "Min": -1.0,
       "Max": 1.0
@@ -98,22 +105,29 @@
     {
       "ChildId": "005ab440-8373-4d44-99ae-0ef766fb33c8"/*CalcDispatchCount*/,
       "Position": {
-        "X": 918.3964,
-        "Y": 332.35968
+        "X": 785.17255,
+        "Y": 309.84805
       }
     },
     {
       "ChildId": "0ce7cc7d-f30d-415d-bfe1-bb36a00d6b47"/*Multiply*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 580.96155
+        "X": 714.5168,
+        "Y": 566.03577
+      }
+    },
+    {
+      "ChildId": "200b25c7-1e87-4b1b-9dda-d0a73fe51039"/*BoolToInt*/,
+      "Position": {
+        "X": 714.5168,
+        "Y": 934.58826
       }
     },
     {
       "ChildId": "2c69ea1c-75a9-47da-98ba-615a3c05aea2"/*ComputeShader*/,
       "Position": {
-        "X": 778.3964,
-        "Y": 297.35968
+        "X": 575.8284,
+        "Y": 274.84805
       }
     },
     {
@@ -126,29 +140,22 @@
     {
       "ChildId": "6c33d6ea-25eb-4566-a325-bf8dbe838ee1"/*IntsToBuffer*/,
       "Position": {
-        "X": 954.06116,
-        "Y": 563.5616
-      }
-    },
-    {
-      "ChildId": "735946ff-da89-4200-aa29-c0550efb68db"/*ReadFile*/,
-      "Position": {
-        "X": 504.88354,
-        "Y": 144.54031
+        "X": 854.5168,
+        "Y": 899.58826
       }
     },
     {
       "ChildId": "7db71542-add0-48e2-bcfe-ed29dc2932cc"/*FloatsToBuffer*/,
       "Position": {
-        "X": 764.2281,
-        "Y": 510.96155
+        "X": 854.5168,
+        "Y": 496.03577
       }
     },
     {
       "ChildId": "84074d15-b34c-463a-a859-7e99b9cd8c85"/*GetParticleComponents*/,
       "Position": {
-        "X": 389.33923,
-        "Y": 367.2667
+        "X": 396.6587,
+        "Y": 408.25555
       }
     },
     {
@@ -168,8 +175,8 @@
     {
       "ChildId": "e3eabe76-4bbd-4121-ac8d-9c2b2e03143e"/*BoolToFloat*/,
       "Position": {
-        "X": 624.2281,
-        "Y": 790.96155
+        "X": 714.5168,
+        "Y": 776.0366
       }
     },
     {

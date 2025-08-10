@@ -29,6 +29,7 @@ cbuffer Params : register(b1)
 cbuffer Params : register(b2)
 {
     uint ParticleCount;
+    int EnableBounce;
 }
 
 RWStructuredBuffer<Particle> Particles : u0;
@@ -41,7 +42,6 @@ sampler ClampedSampler : s0;
 
 //=== Global functions ==============================================
 /*{GLOBALS}*/
-
 
 //=== Field functions ===============================================
 /*{FIELD_FUNCTIONS}*/
@@ -111,9 +111,23 @@ float4 q_from_tangentAndNormal(float3 dx, float3 dz)
     if (sign(distance * distanceNext) < 0 && distance * InvertVolumeFactor > 0)
     {
         float4 rand = hash41u(gi);
+        float3 v = lerp(velocity,
+                        reflect(velocity, surfaceN + (RandomizeReflection * (rand.xyz - 0.5))),
+                        EnableBounce);
+
         velocity = lerp(velocity,
-                        reflect(velocity, surfaceN + (RandomizeReflection * (rand.xyz - 0.5))) * Bounciness * (RandomizeBounce * (rand.z - 0.5) + 1),
+                        //
+                        v * Bounciness         //
+                            * (RandomizeBounce //
+                                   * (rand.z - 0.5) +
+                               1), //
                         Amount);
+
+        if (true)
+        {
+            float4 surfaceColor = GetField(float4(pos, 1));
+            Particles[gi].Color.rgb = surfaceColor.rgb;
+        }
     }
     else
     {
