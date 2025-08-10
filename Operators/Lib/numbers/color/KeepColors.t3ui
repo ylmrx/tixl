@@ -1,0 +1,44 @@
+{
+  "Id": "2ccc7c43-5a5f-4b4e-aca7-078a5121bdb3"/*KeepColors*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "66391dcf-1415-4f85-bcf6-360640d7a2e8"/*Value*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      }
+    },
+    {
+      "InputId": "8308d81b-3d9a-40a5-a2a3-8fb5eac201cc"/*AddValueToList*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 45.0
+      }
+    },
+    {
+      "InputId": "af59eb80-a803-421b-8a0a-d11e307bc49f"/*BufferLength*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 45.0
+      }
+    },
+    {
+      "InputId": "b2e05ddc-0000-453a-a531-87a6739d0c85"/*Reset*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 90.0
+      }
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "7ae3e952-3f43-49bc-9e32-9da384c61632"/*Result*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "Id": "7547a0f5-eee2-474e-9000-ae81757f624e"/*OKLChToColor*/,
+  "Inputs": [
+    {
+      "Id": "0ccf0379-a8f3-439c-a269-918bbfd715b7"/*Brightness*/,
+      "DefaultValue": 0.50000006
+    },
+    {
+      "Id": "4d6a10a7-0c48-4472-ab4b-adb8823b0337"/*IntensityBoost*/,
+      "DefaultValue": 1.0
+    },
+    {
+      "Id": "67bb3837-3cc3-4bf1-95b8-1a4ffd464fb6"/*UseGamma*/,
+      "DefaultValue": false
+    },
+    {
+      "Id": "72507abd-979d-412f-87a1-764d2ca1a70e"/*Hue*/,
+      "DefaultValue": 0.0
+    },
+    {
+      "Id": "9559b8ad-cb36-46d8-b88e-d1363be133e0"/*Saturation*/,
+      "DefaultValue": 0.0
+    },
+    {
+      "Id": "dec03f8a-e363-459d-ac55-0cd3914e660b"/*Alpha*/,
+      "DefaultValue": 1.0
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

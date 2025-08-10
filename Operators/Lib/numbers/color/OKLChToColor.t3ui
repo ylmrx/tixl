@@ -1,0 +1,68 @@
+{
+  "Id": "7547a0f5-eee2-474e-9000-ae81757f624e"/*OKLChToColor*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "0ccf0379-a8f3-439c-a269-918bbfd715b7"/*Brightness*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "Min": 0.0,
+      "Max": 2.0
+    },
+    {
+      "InputId": "4d6a10a7-0c48-4472-ab4b-adb8823b0337"/*IntensityBoost*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 150.0
+      }
+    },
+    {
+      "InputId": "67bb3837-3cc3-4bf1-95b8-1a4ffd464fb6"/*UseGamma*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 75.0
+      }
+    },
+    {
+      "InputId": "72507abd-979d-412f-87a1-764d2ca1a70e"/*Hue*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "Min": 0.0,
+      "Max": 1.0
+    },
+    {
+      "InputId": "9559b8ad-cb36-46d8-b88e-d1363be133e0"/*Saturation*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
+    },
+    {
+      "InputId": "dec03f8a-e363-459d-ac55-0cd3914e660b"/*Alpha*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "Min": 0.0,
+      "Max": 1.0,
+      "Clamp": true
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "c836862e-7edd-4624-b4a4-e54e06ca8d5c"/*Color*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    }
+  ]
+}

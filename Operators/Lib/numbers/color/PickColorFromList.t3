@@ -1,0 +1,20 @@
+{
+  "Id": "95817796-c125-4a9c-8996-ee8b6f089156"/*PickColorFromList*/,
+  "Inputs": [
+    {
+      "Id": "193d2050-2184-4a0b-af27-463f505a9255"/*Input*/,
+      "DefaultValue": {
+        "Values": [
+          5.0,
+          17.0
+        ]
+      }
+    },
+    {
+      "Id": "ed09c102-d3e9-4d8d-9f37-654f96e26c38"/*Index*/,
+      "DefaultValue": 0
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

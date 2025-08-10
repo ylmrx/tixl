@@ -1,0 +1,36 @@
+{
+  "Id": "f835b87a-05e6-4bde-931c-ca43524d4467"/*BuildGradient*/,
+  "Inputs": [
+    {
+      "Id": "918c99f2-2197-467d-a991-2f69ef81440c"/*Interpolation*/,
+      "DefaultValue": 3
+    },
+    {
+      "Id": "c9132144-ea18-4b9c-8c82-1a7cd8f02ce9"/*Colors*/,
+      "DefaultValue": {
+        "Values": [
+          {
+            "X": 0.0,
+            "Y": 0.0,
+            "Z": 0.0,
+            "W": 1.0
+          },
+          {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0,
+            "W": 1.0
+          }
+        ]
+      }
+    },
+    {
+      "Id": "e1df93cb-9ce5-4941-b56b-ee5b2f0aff8d"/*Positions*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

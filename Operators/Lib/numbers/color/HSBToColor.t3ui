@@ -18,6 +18,7 @@
         "X": 0.0,
         "Y": 0.0
       },
+      "Description": "Normalized Hue (e.g. 0 .. 1 is a full color circle)",
       "Min": 0.0,
       "Max": 1.0
     },
