@@ -3,22 +3,14 @@
   "Description": "Converts a color list into to a list of integer values. \nThis can beu useful for sending them with [ArtNetOutput]",
   "InputUis": [
     {
-      "InputId": "11027e65-788d-4c16-b9b4-ab2523425537"/*MaxSize*/,
+      "InputId": "4f8b8e1c-520c-49c4-829e-62d34887958e"/*ColorLists*/,
       "Position": {
         "X": -200.0,
         "Y": 0.0
       }
     },
     {
-      "InputId": "25c2eba3-5dfa-4ea1-91c8-60d2814741f9"/*StartIndices*/,
-      "Position": {
-        "X": -200.0,
-        "Y": 150.0
-      }
-    },
-    {
-      "InputId": "c0affa24-1866-49dd-ac7b-593c47d33f66"/*InputLists*/,
-      "Relevancy": "Required",
+      "InputId": "589bb6f6-f7a5-49e9-a11f-a0f2b0ba8dbf"/*OutputMode*/,
       "Position": {
         "X": -200.0,
         "Y": 75.0
@@ -28,9 +20,9 @@
   "SymbolChildUis": [],
   "OutputUis": [
     {
-      "OutputId": "34bc63ae-229d-4d9b-a12c-65ded4fbcb84"/*Result*/,
+      "OutputId": "252c064c-a380-4940-9a9f-cff58f7e17b5"/*Result*/,
       "Position": {
-        "X": 0.0,
+        "X": 300.0,
         "Y": 200.0
       }
     }

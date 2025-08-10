@@ -3,12 +3,12 @@ using T3.Core.Utils;
 namespace Lib.numbers.floats.process;
 
 [Guid("784b280f-bbde-4c8e-9ca7-66de5b567672")]
-internal sealed class ColorListToIntList : Instance<ColorListToIntList>
+internal sealed class ColorListToInts : Instance<ColorListToInts>
 {
     [Output(Guid = "252C064C-A380-4940-9A9F-CFF58F7E17B5")]
     public readonly Slot<List<int>> Result = new();
 
-    public ColorListToIntList()
+    public ColorListToInts()
     {
         Result.UpdateAction += Update;
     }
