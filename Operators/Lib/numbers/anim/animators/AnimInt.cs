@@ -35,7 +35,7 @@ public sealed class AnimInt : Instance<AnimInt>
         var originalTime = _normalizedTime;
 
         _normalizedTime = (time) * rateFactorFromContext * rate + phase;
-        Result.Value = (int)(_normalizedTime + 0.5);
+        Result.Value = (int)(_normalizedTime );
 
         // We need to use evaluation time because outputs flagged as animated and always dirty.
         if (Math.Abs(context.LocalFxTime - _lastUpdateTime) > double.Epsilon)
