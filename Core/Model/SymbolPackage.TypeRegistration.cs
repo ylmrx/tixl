@@ -97,8 +97,8 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
-                         float x = jsonToken["X"].Value<float>();
-                         float y = jsonToken["Y"].Value<float>();
+                         float x = jsonToken.Value<float>("X");
+                         float y = jsonToken.Value<float>("Y");
                          return new System.Numerics.Vector2(x, y);
                      });
         RegisterType(typeof(System.Numerics.Vector3), "Vector3",
@@ -114,9 +114,9 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
-                         float x = jsonToken["X"].Value<float>();
-                         float y = jsonToken["Y"].Value<float>();
-                         float z = jsonToken["Z"].Value<float>();
+                         float x = jsonToken.Value<float>("X");
+                         float y = jsonToken.Value<float>("Y");
+                         float z = jsonToken.Value<float>("Z");
                          return new System.Numerics.Vector3(x, y, z);
                      });
         RegisterType(typeof(System.Numerics.Vector4), "Vector4",
@@ -133,10 +133,10 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
-                         float x = jsonToken["X"].Value<float>();
-                         float y = jsonToken["Y"].Value<float>();
-                         float z = jsonToken["Z"].Value<float>();
-                         float w = jsonToken["W"].Value<float>();
+                         float x = jsonToken.Value<float>("X");
+                         float y = jsonToken.Value<float>("Y");
+                         float z = jsonToken.Value<float>("Z");
+                         float w = jsonToken.Value<float>("W");
                          return new Vector4(x, y, z, w);
                      });
         RegisterType(typeof(System.Numerics.Quaternion), "Quaternion",
@@ -153,10 +153,10 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
-                         float x = jsonToken["X"].Value<float>();
-                         float y = jsonToken["Y"].Value<float>();
-                         float z = jsonToken["Z"].Value<float>();
-                         float w = jsonToken["W"].Value<float>();
+                         float x = jsonToken.Value<float>("X");
+                         float y = jsonToken.Value<float>("Y");
+                         float z = jsonToken.Value<float>("Z");
+                         float w = jsonToken.Value<float>("W");
                          return new System.Numerics.Quaternion(x, y, z, w);
                      });        
         
@@ -252,9 +252,9 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
-                         int x = jsonToken["X"].Value<int>();
-                         int y = jsonToken["Y"].Value<int>();
-                         int z = jsonToken["Z"].Value<int>();
+                         int x = jsonToken.Value<int>("X");
+                         int y = jsonToken.Value<int>("Y");
+                         int z = jsonToken.Value<int>("Z");
                          return new Int3(x, y, z);
                      });
         
@@ -288,6 +288,11 @@ public partial class SymbolPackage
                      },
                      jsonToken =>
                      {
+                         if (jsonToken == null || !jsonToken.HasValues)
+                         {
+                             return new List<Vector4>();
+                         }
+                         
                          var entries = jsonToken["Values"];
                          var list = new List<Vector4>(entries.Count());
                          foreach (var vec4Token in entries)

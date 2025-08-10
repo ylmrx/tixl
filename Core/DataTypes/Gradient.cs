@@ -65,16 +65,25 @@ public class Gradient : IEditableInputType
                 Interpolation = (Interpolations)Enum.Parse(typeof(Interpolations), gradientToken["Interpolation"].Value<string>());
             }
 
-            foreach (var keyEntry in (JArray)gradientToken["Steps"])
+            var jArray = (JArray)gradientToken["Steps"];
+            if (jArray == null) 
+                return;
+            
+            foreach (var keyEntry in jArray)
             {
+                JsonUtils.TryGetGuid(keyEntry["Id"], out var id);
+                var colorToken = keyEntry["Color"];
+                if (colorToken == null)
+                    continue;
+
                 Steps.Add(new Step
                               {
-                                  NormalizedPosition = keyEntry["NormalizedPosition"].Value<float>(),
-                                  Id = Guid.Parse(keyEntry["Id"].Value<string>()),
-                                  Color = new Vector4(keyEntry["Color"]["R"].Value<float>(),
-                                                      keyEntry["Color"]["G"].Value<float>(),
-                                                      keyEntry["Color"]["B"].Value<float>(),
-                                                      keyEntry["Color"]["A"].Value<float>()),
+                                  NormalizedPosition = keyEntry.Value<float>("NormalizedPosition"),
+                                  Id = id,
+                                  Color = new Vector4(colorToken.Value<float>("R"),
+                                                      colorToken.Value<float>("G"),
+                                                      colorToken.Value<float>("B"),
+                                                      colorToken.Value<float>("A")),
                               });
             }
         }
@@ -133,7 +142,7 @@ public class Gradient : IEditableInputType
             if (Interpolation == Interpolations.Hold)
                 return previousStep.Color;
 
-            var fraction = MathUtils.RemapAndClamp(t, previousStep.NormalizedPosition, step.NormalizedPosition, 0, 1);
+            var fraction = t.RemapAndClamp(previousStep.NormalizedPosition, step.NormalizedPosition, 0, 1);
 
             switch (Interpolation)
             {
@@ -145,7 +154,9 @@ public class Gradient : IEditableInputType
                     break;
 
                 case Interpolations.OkLab:
-                    return OkLab.Mix(previousStep.Color, step.Color, fraction);
+                    var vector4 = OkLab.Mix(previousStep.Color, step.Color, fraction);
+                    Vector4.Max(vector4, Vector4.Zero);
+                    return vector4;
 
                 case Interpolations.Spline:
                     return SampleSpline(t);
@@ -218,7 +229,7 @@ public class Gradient : IEditableInputType
     }
 
     private readonly CubicSpline[] _cubicSpline = new CubicSpline[4];
-        
+
     private float[] _xValues;
     private float[] _yValues0;
     private float[] _yValues1;
@@ -281,10 +292,10 @@ public class Gradient : IEditableInputType
 
         var uniArray = new[] { t };
         return new Vector4(
-                           MathF.Max(_cubicSpline[0].Eval(uniArray)[0],0),
-                           MathF.Max(_cubicSpline[1].Eval(uniArray)[0],0),
-                           MathF.Max(_cubicSpline[2].Eval(uniArray)[0],0),
-                           _cubicSpline[3].Eval(uniArray)[0].Clamp(0,1)
+                           MathF.Max(_cubicSpline[0].Eval(uniArray)[0], 0),
+                           MathF.Max(_cubicSpline[1].Eval(uniArray)[0], 0),
+                           MathF.Max(_cubicSpline[2].Eval(uniArray)[0], 0),
+                           _cubicSpline[3].Eval(uniArray)[0].Clamp(0, 1)
                           );
     }
 }
