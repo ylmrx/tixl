@@ -1,0 +1,23 @@
+{
+  "Id": "578d282a-597e-4b11-b4cc-cc42cc80b87f"/*ColorList*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "5ad31347-a09d-4fce-8168-c80a1793f2c1"/*List*/,
+      "Position": {
+        "X": -200.0,
+        "Y": 0.0
+      }
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "ea0a37f8-52b4-4931-99bd-61ae21483df0"/*Result*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    }
+  ]
+}

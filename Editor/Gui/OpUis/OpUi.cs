@@ -1,6 +1,7 @@
 ﻿#nullable enable
 using ImGuiNET;
 using T3.Core.Operator;
+using T3.Core.Operator.Interfaces;
 using T3.Editor.Gui.OpUis.UIs;
 using T3.Editor.Gui.UiHelpers;
 
@@ -24,8 +25,17 @@ public static class OpUi
         return DrawCustomUi(instance, drawList, selectableScreenRect, canvasScale, ref binding);
     }
 
-    internal static OpUi.CustomUiResult DrawCustomUi(this Instance instance, ImDrawListPtr drawList, ImRect selectableScreenRect, Vector2 canvasScale, ref OpUiBinding? binding)
+    internal static OpUi.CustomUiResult DrawCustomUi(this Instance instance, 
+                                                     ImDrawListPtr drawList, 
+                                                     ImRect selectableScreenRect, 
+                                                     Vector2 canvasScale, 
+                                                     ref OpUiBinding? binding)
     {
+        if (instance is IDescriptiveFilename)
+        {
+            return DescriptiveUi.DrawChildUi(instance, drawList, selectableScreenRect, canvasScale, ref binding);
+        }
+        
         if (!_drawFunctionsForSymbolIds.TryGetValue(instance.Symbol.Id, out var drawFunction))
             return OpUi.CustomUiResult.None;
 

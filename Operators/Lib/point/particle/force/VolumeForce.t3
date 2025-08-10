@@ -10,6 +10,10 @@
       "DefaultValue": 0.0
     },
     {
+      "Id": "227aa9ea-5d88-4b68-ac79-2a81b271948d"/*Bounce*/,
+      "DefaultValue": false
+    },
+    {
       "Id": "2ab85ac3-819d-4e3e-891a-7f27af627fdf"/*InvertVolume*/,
       "DefaultValue": false
     },

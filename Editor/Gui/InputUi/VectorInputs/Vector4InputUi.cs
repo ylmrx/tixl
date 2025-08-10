@@ -2,6 +2,7 @@
 using T3.Core.DataTypes;
 using T3.Core.Operator;
 using T3.Core.Operator.Slots;
+using T3.Core.Utils;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.UiModel.InputsAndTypes;
 
@@ -58,6 +59,40 @@ internal sealed class Vector4InputUi : FloatVectorInputValueUi<Vector4>
         if (result != InputEditStateFlags.Nothing)
         {
             float4Value.CopyTo(FloatComponents);
+            inputEditState |= result;
+        }
+        return inputEditState;
+    }
+
+    private static readonly float[] _floatComponentsForEdit = new float[4];
+
+    public static InputEditStateFlags DrawColorInput(ref Vector4 float4Value, bool readOnly, float rightPadding =0)
+    {
+        float4Value.CopyTo(_floatComponentsForEdit);
+        
+        var inputEditState = VectorValueEdit.Draw(_floatComponentsForEdit, 0, 1, 0.01f, false, rightPadding);
+            
+        ImGui.SameLine();
+        if (!readOnly)
+        {
+            float4Value = new Vector4(_floatComponentsForEdit[0], 
+                                      _floatComponentsForEdit[1],
+                                      _floatComponentsForEdit[2],
+                                      _floatComponentsForEdit[3]);
+        }
+
+        if (readOnly)
+        {
+            var tempConstant = float4Value;
+            ColorEditButton.Draw(ref tempConstant, Vector2.Zero);
+            return InputEditStateFlags.Nothing;
+        }
+            
+        var result = ColorEditButton.Draw(ref float4Value, Vector2.Zero);
+            
+        if (result != InputEditStateFlags.Nothing)
+        {
+            float4Value.CopyTo(_floatComponentsForEdit);
             inputEditState |= result;
         }
         return inputEditState;

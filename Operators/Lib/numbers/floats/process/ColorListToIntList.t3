@@ -1,0 +1,23 @@
+{
+  "Id": "784b280f-bbde-4c8e-9ca7-66de5b567672"/*ColorListToIntList*/,
+  "Inputs": [
+    {
+      "Id": "11027e65-788d-4c16-b9b4-ab2523425537"/*MaxSize*/,
+      "DefaultValue": -1
+    },
+    {
+      "Id": "25c2eba3-5dfa-4ea1-91c8-60d2814741f9"/*StartIndices*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    },
+    {
+      "Id": "c0affa24-1866-49dd-ac7b-593c47d33f66"/*InputLists*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

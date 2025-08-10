@@ -111,6 +111,8 @@ internal static class UiRegistration
         RegisterIOType(typeof(string), () => new StringInputUi(), () => new StringOutputUi());
         RegisterIOType(typeof(List<string>), () => new StringListInputUi(), () => new StringListOutputUi());
 
+        RegisterIOType(typeof(List<Vector4>), () => new ColorListInputUi());
+
 
         // t3 core types
         RegisterIOType(typeof(Curve), () => new CurveInputUi());

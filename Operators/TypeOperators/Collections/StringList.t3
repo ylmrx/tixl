@@ -1,0 +1,13 @@
+{
+  "Id": "b187906f-6d36-433f-843b-399b04987762"/*StringList*/,
+  "Inputs": [
+    {
+      "Id": "eaf49a9f-d704-4ecc-9df3-f8bda9ac5f3a"/*List*/,
+      "DefaultValue": {
+        "Values": []
+      }
+    }
+  ],
+  "Children": [],
+  "Connections": []
+}

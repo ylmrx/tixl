@@ -1,0 +1,26 @@
+{
+  "Id": "3a246cf1-22da-4070-8504-08cd1c9c5c40"/*ColorsToList*/,
+  "Description": "",
+  "InputUis": [
+    {
+      "InputId": "ad89516b-5a4e-4615-a998-5737c921eb2d"/*Input*/,
+      "Relevancy": "Required",
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      },
+      "Min": -100.0,
+      "Max": 100.0
+    }
+  ],
+  "SymbolChildUis": [],
+  "OutputUis": [
+    {
+      "OutputId": "6ee060cc-0d84-4f0b-b354-e1c89f2129b1"/*Result*/,
+      "Position": {
+        "X": 0.0,
+        "Y": 0.0
+      }
+    }
+  ]
+}

@@ -1,5 +1,7 @@
 ﻿using ImGuiNET;
 using T3.Core.Operator;
+using T3.Editor.Gui.InputUi.SimpleInputUis;
+using T3.Editor.Gui.InputUi.VectorInputs;
 using T3.Editor.Gui.Interaction;
 using T3.Editor.UiModel.InputsAndTypes;
 
@@ -52,7 +54,14 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                     input.IsDefault = false;
                 }
 
-                list.Add(default);
+                if (typeof(TT) == typeof(string))
+                {
+                    list.Add((TT)(object)string.Empty); // ensures it's a valid string
+                }
+                else
+                {
+                    list.Add(default);
+                }
                 return InputEditStateFlags.ModifiedAndFinished;
             }
 
@@ -143,7 +152,7 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
 
             var f = list[index];
             var ff = f;
-
+            
             var paddingForEditAndInsert = ImGui.GetFrameHeight() * 2;
             var additionalPadding = 10;
             var width = ImGui.GetContentRegionAvail().X - ImGui.GetCursorPosX() - paddingForEditAndInsert - additionalPadding;
@@ -172,9 +181,29 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                         ff = (TT)(object)intValue;
                     break;
                 }
+                case Vector4 colorValue:
+                {
+                    var rightPadding = ImGui.GetFrameHeight() * 3;
+                    r = Vector4InputUi.DrawColorInput(ref colorValue, false, rightPadding);
+                    if (r != InputEditStateFlags.Nothing)
+                        ff = (TT)(object)colorValue;
+                    
+                    break;
+                }
+                case string stringValue:
+                {
+                    
+                    if (ImGui.InputText("##textEdit", ref stringValue, 1024))
+                    {
+                        r |= InputEditStateFlags.Modified;
+                        ff = (TT)(object)stringValue;
+                    }
+                    break;
+                }
             }
 
             ImGui.SameLine();
+            var didChangeOrder = false;
             if (ImGui.Button("×"))
             {
                 r |= InputEditStateFlags.ModifiedAndFinished;
@@ -186,6 +215,7 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                 }
 
                 list.RemoveAt(index);
+                didChangeOrder = true;
             }
 
             ImGui.SameLine();
@@ -200,9 +230,10 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                 }
 
                 list.Insert(index, ff);
+                didChangeOrder = true;
             }
 
-            if (r != InputEditStateFlags.Nothing)
+            if (r != InputEditStateFlags.Nothing && !didChangeOrder)
             {
                 if (cloneIfModified)
                 {
@@ -228,6 +259,8 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
         return modified;
     }
 
+    
+    
     private readonly List<int> _listOrderWhileDragging = [];
     private bool _isDragging;
 }
