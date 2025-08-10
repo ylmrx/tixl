@@ -233,17 +233,20 @@ internal abstract class ListInputValueUi<T> : InputValueUi<T>
                 didChangeOrder = true;
             }
 
-            if (r != InputEditStateFlags.Nothing && !didChangeOrder)
+            if (r != InputEditStateFlags.Nothing)
             {
-                if (cloneIfModified)
+                if (!didChangeOrder)
                 {
-                    list = [..list];
-                    cloneIfModified = false;
-                    input.IsDefault = false;
+                    if (cloneIfModified)
+                    {
+                        list = [..list];
+                        cloneIfModified = false;
+                        input.IsDefault = false;
+                    }
+                    list[index] = ff;
                 }
 
                 modified |= r;
-                list[index] = ff;
             }
 
             ImGui.PopID();
