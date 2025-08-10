@@ -3,7 +3,16 @@
   "Inputs": [
     {
       "Id": "5ad31347-a09d-4fce-8168-c80a1793f2c1"/*List*/,
-      "DefaultValue": null
+      "DefaultValue": {
+        "Values": [
+          {
+            "X": 1.0,
+            "Y": 1.0,
+            "Z": 1.0,
+            "W": 1.0
+          }
+        ]
+      }
     }
   ],
   "Children": [],
