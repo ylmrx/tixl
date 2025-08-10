@@ -37,7 +37,7 @@ internal sealed class Structure
 
         if (childPath[0] != rootSymbolChild.Id)
         {
-            Log.Warning("Can't access instance after root changed.\n" + Environment.StackTrace);
+            //Log.Warning("Can't access instance after root changed.\n" + Environment.StackTrace);
             return null;
         }
         
