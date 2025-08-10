@@ -62,6 +62,7 @@ internal static class GradientSliderUi
         innerRect.Min.X += dragHandleWidth;
 
         var cloneIfModified = data.Gradient.Input.IsDefault;
+        ImGui.PushID(instance.SymbolChildId.GetHashCode());
         var editState = GradientEditor.Draw(ref gradient, drawList, innerRect, cloneIfModified);
         var inputSlot = data.Gradient;
 
@@ -107,6 +108,7 @@ internal static class GradientSliderUi
         var pMin = new Vector2(innerRect.Min.X + x, innerRect.Min.Y);
         var pMax = new Vector2(innerRect.Min.X + x + 2, innerRect.Max.Y);
         drawList.AddRectFilled(pMin, pMax, UiColors.StatusAnimated);
+        ImGui.PopID();
 
         const OpUi.CustomUiResult defaultHandlingForInteractiveOps = OpUi.CustomUiResult.Rendered
                                                                      | OpUi.CustomUiResult.PreventInputLabels
