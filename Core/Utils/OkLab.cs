@@ -1,4 +1,5 @@
 ﻿using System;
+using T3.Core.Logging;
 
 namespace T3.Core.Utils;
 
@@ -10,20 +11,23 @@ public static class OkLab
     // From Linear to oklab
     public static Vector4 RgbAToOkLab(Vector4 c)
     {
-        var l = 0.4122214708f * c.X + 0.5363325363f * c.Y + 0.0514459929f * c.Z;
-        var m = 0.2119034982f * c.X + 0.6806995451f * c.Y + 0.1073969566f * c.Z;
-        var s = 0.0883024619f * c.X + 0.2817188376f * c.Y + 0.6299787005f * c.Z;
+        double cr = c.X;
+        double cg = c.Y;
+        double cb = c.Z;
 
-        var l1 = MathF.Cbrt(l);
-        var m1 = MathF.Cbrt(m);
-        var s1 = MathF.Cbrt(s);
+        double l = 0.4122214708d * cr + 0.5363325363d * cg + 0.0514459929d * cb;
+        double m = 0.2119034982d * cr + 0.6806995451d * cg + 0.1073969566d * cb;
+        double s = 0.0883024619d * cr + 0.2817188376d * cg + 0.6299787005d * cb;
+
+        double lCbrt = Math.Pow (l, 1.0d / 3.0d);
+        double mCbrt = Math.Pow (m, 1.0d / 3.0d);
+        double sCbrt = Math.Pow (s, 1.0d / 3.0d);
 
         return new Vector4(
-                           0.2104542553f * l1 + 0.7936177850f * m1 - 0.0040720468f * s1,
-                           1.9779984951f * l1 - 2.4285922050f * m1 + 0.4505937099f * s1,
-                           0.0259040371f * l1 + 0.7827717662f * m1 - 0.8086757660f * s1,
-                           c.W
-                          );
+                   (float)(0.2104542553d * lCbrt + 0.793617785d * mCbrt - 0.0040720468d * sCbrt),
+                   (float)(1.9779984951d * lCbrt - 2.428592205d * mCbrt + 0.4505937099d * sCbrt),
+                           (float)(0.0259040371d * lCbrt + 0.7827717662d * mCbrt - 0.808675766d * sCbrt), 
+                                   c.W);        
     }
 
     // From OKLab to Linear sRGB
@@ -69,10 +73,36 @@ public static class OkLab
         
     public static Vector4 Mix(Vector4 c1, Vector4 c2, float t)
     {
-        var c1Linear = Degamma(c1);
-        var c2Linear = Degamma(c2);
+        var c1Linear = Degamma( Vector4.Max(c1, Vector4.Zero));
+        var c2Linear = Degamma(Vector4.Max(c2, Vector4.Zero));
                 
         var labMix= MathUtils.Lerp( RgbAToOkLab(c1Linear), RgbAToOkLab(c2Linear), t);
         return ToGamma(OkLab.OkLabToRgba(labMix));
     }
+    
+    
+    
+    public static Vector4 FromOkLab(float L, float a, float b, float alpha = 1f, bool gamma = true)
+    {
+        var hdrExcess = MathF.Max(0f,L - 1f);
+        var linear = OkLabToRgba(new Vector4(L.Clamp(0,1), a, b, alpha));
+        var clampedLinear = Vector4.Clamp(linear, Vector4.Zero, Vector4.One);
+        var srgb  = ToGamma(clampedLinear);
+        if(hdrExcess <= 0)
+            return srgb;
+
+        return new Vector4(srgb.X * (1 + hdrExcess),
+                           srgb.Y * (1 + hdrExcess),
+                           srgb.Z * (1 + hdrExcess),
+                           srgb.W
+                          );
+    }
+
+    public static Vector4 FromOkLCh(float L, float C, float hDegrees, float alpha = 1f, bool gamma = true)
+    {
+        float h = hDegrees * (MathF.PI / 180f);
+        float a = C * MathF.Cos(h);
+        float b = C * MathF.Sin(h);
+        return FromOkLab(L, a, b, alpha, gamma);
+    }    
 }
