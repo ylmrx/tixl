@@ -862,8 +862,9 @@ internal sealed partial class MagGraphCanvas
                 || isItemHovered
                 || isOutputHovered)
             {
-                drawList.AddCircleFilled(center, (2 + 2 * hoverOutputFactor) * CanvasScale - 1, fillColor, 12);
-                drawList.AddCircle(center, (2 + 2 * hoverOutputFactor) * CanvasScale, anchorOutlineColor, 12);
+                var radius = MathF.Min((2 + 2 * hoverOutputFactor) * CanvasScale, 10);
+                drawList.AddCircleFilled(center, radius - 1, fillColor, 12);
+                drawList.AddCircle(center, radius, anchorOutlineColor, 12);
             }
 
             if (isOutputHovered)
