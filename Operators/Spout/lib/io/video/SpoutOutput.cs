@@ -16,9 +16,11 @@ public class SpoutOutput : Instance<SpoutOutput>
         if (!_triedForceLoad)
         {
             _triedForceLoad = true;
-           // Symbol.SymbolPackage.TryLoadNativeDependencies("Spout", "SpoutDX");
+            // Symbol.SymbolPackage.TryLoadNativeDependencies("Spout", "SpoutDX");
         }
-        
+
+        _previousFormat = Format.Unknown;
+
         TextureOutput.UpdateAction = Update;
         _instance++;
     }
@@ -124,18 +126,11 @@ public class SpoutOutput : Instance<SpoutOutput>
         try
         {
             currentDesc = frame.Description;
-            if (currentDesc.Format != Format.B8G8R8A8_UNorm &&
-                currentDesc.Format != Format.B8G8R8A8_Typeless &&
-                currentDesc.Format != Format.R8G8B8A8_UNorm &&
-                currentDesc.Format != Format.R16G16B16A16_UNorm &&
-                currentDesc.Format != Format.R16G16B16A16_Typeless &&
-                currentDesc.Format != Format.R16G16B16A16_Float)
+            if (currentDesc.Format != _previousFormat)
             {
-                Log.Debug("Spout output supports texture formats B8G8R8A8_UNorm, R8G8B8A8_UNorm, R16G16B16A16_UNorm and R16G16B16A16_Float.", this);
-                Log.Debug("Please use a render target operator to change the format accordingly.", this);
-                return false;
+                _conversionWarning = false;
+                _previousFormat = currentDesc.Format;
             }
-
             width = currentDesc.Width;
             height = currentDesc.Height;
             if (!InitializeSpout(senderName, (uint)width, (uint)height))
@@ -145,7 +140,7 @@ public class SpoutOutput : Instance<SpoutOutput>
         {
             Log.Debug("Initialization of Spout failed. Are Spout.dll and SpoutDX.dll present in the executable folder?", this);
             Log.Debug(e.ToString());
-            
+
             _spoutDX?.ReleaseSender();
             _spoutDX?.CloseDirectX11();
             _spoutDX?.Dispose();
@@ -174,18 +169,18 @@ public class SpoutOutput : Instance<SpoutOutput>
                 || ImagesWithGpuAccess[0].Description.MipLevels != 1)
             {
                 var imageDesc = new Texture2DDescription
-                                    {
-                                        BindFlags = BindFlags.ShaderResource,
-                                        Format = currentDesc.Format,
-                                        Width = currentDesc.Width,
-                                        Height = currentDesc.Height,
-                                        MipLevels = 1,
-                                        SampleDescription = new SampleDescription(1, 0),
-                                        Usage = ResourceUsage.Default,
-                                        OptionFlags = ResourceOptionFlags.Shared,
-                                        CpuAccessFlags = CpuAccessFlags.None,
-                                        ArraySize = 1
-                                    };
+                {
+                    BindFlags = BindFlags.ShaderResource,
+                    Format = currentDesc.Format,
+                    Width = currentDesc.Width,
+                    Height = currentDesc.Height,
+                    MipLevels = 1,
+                    SampleDescription = new SampleDescription(1, 0),
+                    Usage = ResourceUsage.Default,
+                    OptionFlags = ResourceOptionFlags.Shared,
+                    CpuAccessFlags = CpuAccessFlags.None,
+                    ArraySize = 1
+                };
 
                 DisposeTextures();
 
@@ -204,12 +199,30 @@ public class SpoutOutput : Instance<SpoutOutput>
             // copy the original texture to a readable image
             var immediateContext = device.ImmediateContext;
             var readableImage = ImagesWithGpuAccess[_currentIndex];
+
             immediateContext.CopyResource((DXTexture2D)frame, readableImage);
             _currentIndex = (_currentIndex + 1) % NumTextureEntries;
-
-            var dxTex = (DXTexture2D) readableImage;
-            _texture = ID3D11Texture2D.__CreateInstance((IntPtr)dxTex.NativePointer);
-            _spoutDX.SendTexture(_texture);
+            DXTexture2D dxTex;
+            if (readableImage.Description.Format != Format.B8G8R8A8_UNorm &&
+                readableImage.Description.Format != Format.B8G8R8A8_Typeless &&
+                readableImage.Description.Format != Format.R8G8B8A8_UNorm &&
+                readableImage.Description.Format != Format.R16G16B16A16_UNorm &&
+                readableImage.Description.Format != Format.R16G16B16A16_Typeless &&
+                readableImage.Description.Format != Format.R16G16B16A16_Float)
+            {
+                if (!_conversionWarning)
+                {
+                    Log.Debug($"Spout doesn't support {readableImage.Description.Format}, trying to fallback to R16G16B16A16_Float");
+                    _conversionWarning = true;
+                }
+                dxTex = (DXTexture2D)_textureConverter.ConvertToCpuReadableBgra(readableImage);
+            }
+            else dxTex = (DXTexture2D)readableImage;
+            if (dxTex != null)
+            {
+                _texture = ID3D11Texture2D.__CreateInstance((IntPtr)dxTex.NativePointer);
+                _spoutDX.SendTexture(_texture);
+            }
         }
         catch (Exception e)
         {
@@ -269,8 +282,14 @@ public class SpoutOutput : Instance<SpoutOutput>
     private ID3D11Texture2D _texture; // texture to send
     private bool _triedForceLoad = false; // have we tried to force load the native dependencies?
 
+    private bool _conversionWarning = false; // Warn the user about conversion, just once
+
+    private Format _previousFormat = Format.Unknown;
+
     // hold several textures internally to speed up calculations
     private const int NumTextureEntries = 2;
+
+    private TextureBgraReadAccess _textureConverter = new(targetFormat: Format.R16G16B16A16_Float);
 
     private readonly List<Texture2D> ImagesWithGpuAccess = new() { Capacity = NumTextureEntries };
 
