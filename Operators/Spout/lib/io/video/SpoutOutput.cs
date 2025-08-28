@@ -18,9 +18,6 @@ public class SpoutOutput : Instance<SpoutOutput>
             _triedForceLoad = true;
             // Symbol.SymbolPackage.TryLoadNativeDependencies("Spout", "SpoutDX");
         }
-
-        _previousFormat = Format.Unknown;
-
         TextureOutput.UpdateAction = Update;
         _instance++;
     }
