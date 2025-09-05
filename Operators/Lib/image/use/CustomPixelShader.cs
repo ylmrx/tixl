@@ -31,6 +31,9 @@ internal sealed class CustomPixelShader : Instance<CustomPixelShader>
     [Input(Guid = "fb8d51fe-b4c2-452a-9e53-b649aed92bd7")]
     public readonly InputSlot<bool> IgnoreTemplate = new();
 
+        [Input(Guid = "ce2d62f5-fa99-4bb2-8781-d5fe44c10909")]
+        public readonly MultiInputSlot<string> AdditionalFunctions = new MultiInputSlot<string>();
+
     [Output(Guid = "12fcfd9e-1c2f-46fc-b570-83b93ec7d101")]
     public readonly Slot<Texture2D> TextureOutput = new();
 }
