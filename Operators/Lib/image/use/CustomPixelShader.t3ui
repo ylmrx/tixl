@@ -1,6 +1,6 @@
 {
   "Id": "46daab0e-e957-413e-826c-0699569d0e07"/*CustomPixelShader*/,
-  "Description": "Creates a custom shader from a source parameter. This can be useful for prototyping.",
+  "Description": "Creates a custom shader from a source parameter. This can be useful for prototyping.\n\nUse \"Ignore Template\" to bring in your entire shader.\n",
   "InputUis": [
     {
       "InputId": "3d84725a-594b-46d8-aa21-eec99026115d"/*A*/,
@@ -57,6 +57,14 @@
       }
     },
     {
+      "InputId": "c9a801ec-13fb-4ad4-b0cd-d125b5db500a"/*AdditionalCode*/,
+      "Position": {
+        "X": 99.026855,
+        "Y": 715.67053
+      },
+      "Usage": "Default"
+    },
+    {
       "InputId": "db522fd4-5cfc-49f6-9983-02ec0dd6090a"/*D*/,
       "Position": {
         "X": -161.39105,
@@ -94,6 +102,13 @@
       }
     },
     {
+      "ChildId": "13e787b4-db91-4e45-8013-5c34250bc731"/*CombineStrings*/,
+      "Position": {
+        "X": 1101.3688,
+        "Y": 418.37335
+      }
+    },
+    {
       "ChildId": "18c31c73-446a-4d56-9e84-70d93618a312"/*Vector2Components*/,
       "Position": {
         "X": -161.39105,
@@ -112,13 +127,6 @@
       "Position": {
         "X": 2231.1826,
         "Y": 780.1195
-      }
-    },
-    {
-      "ChildId": "292651eb-37e8-4785-9959-334daec7cee4"/*String*/,
-      "Position": {
-        "X": 521.60095,
-        "Y": 758.5843
       }
     },
     {
@@ -143,15 +151,15 @@
         "Y": 366.04495
       },
       "Position": {
-        "X": 81.40222,
-        "Y": 141.70538
+        "X": 54.5506,
+        "Y": 164.08167
       }
     },
     {
       "ChildId": "59c9fcc2-5664-4db9-9481-12831708a5d9"/*PickString*/,
       "Position": {
-        "X": 852.5288,
-        "Y": 448.52072
+        "X": 869.1953,
+        "Y": 413.79886
       }
     },
     {
@@ -258,8 +266,8 @@
     {
       "ChildId": "ece44113-bc25-4b4a-b8f4-23f6037d1ad0"/*SearchAndReplace*/,
       "Position": {
-        "X": 540.4691,
-        "Y": 444.80948
+        "X": 274.03662,
+        "Y": 169.15643
       }
     },
     {
