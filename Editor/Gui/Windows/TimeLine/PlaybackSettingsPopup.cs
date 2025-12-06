@@ -443,7 +443,8 @@ internal static class PlaybackSettingsPopup
                 Bass.Init();
                 Bass.Start();
                 Playback.Current.Bpm = settings.AudioClips[0].Bpm;
-                Playback.Current.Settings.Syncing = PlaybackSettings.SyncModes.Timeline;
+                if (Playback.Current.Settings != null)
+                    Playback.Current.Settings.Syncing = PlaybackSettings.SyncModes.Timeline;
             }
 
             UserSettings.Config.ShowTimeline = true;
