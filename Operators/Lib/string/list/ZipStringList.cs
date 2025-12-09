@@ -16,26 +16,16 @@ internal sealed class ZipStringList : Instance<ZipStringList>
     private void Update(EvaluationContext context)
     {
         var strOne = StringsOne.GetValue(context);
-        if (strOne == null || strOne.Count == 0)
-        {
-            Output.Value = [];
-            return;
-        }
         var strTwo = StringsTwo.GetValue(context);
-        if (strTwo == null || strTwo.Count == 0)
+        if (strOne == null || strTwo == null)
         {
             Output.Value = [];
             return;
         }
 
-        
-        var res = new List<string>();
-        for (int i = 0; i < strOne.Count && i < strTwo.Count; i++)
-        {
-            res.Add(strOne[i]);
-            res.Add(strTwo[i]);
-        }
-        Output.Value = res;
+        Output.Value = [.. strOne
+            .Zip(strTwo, (a, b) => new[] {a, b})
+            .SelectMany(t => t)];
     }
 
     [Input(Guid = "be829559-ab5b-41ee-b104-dc5b0c1a1b2e")]
