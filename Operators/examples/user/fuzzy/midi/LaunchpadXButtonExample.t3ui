@@ -1,0 +1,624 @@
+{
+  "Id": "55551bc1-1bf9-47d8-b25b-33c3596d21c4"/*LaunchpadXButtonExample*/,
+  "Description": "A few example for LaunchPad X integration",
+  "InputUis": [],
+  "SymbolChildUis": [
+    {
+      "ChildId": "03ea0e56-8c80-4b96-87db-c2732fc4a171"/*PerlinNoise*/,
+      "Position": {
+        "X": 927.75574,
+        "Y": 2738.6807
+      }
+    },
+    {
+      "ChildId": "09a2596c-f754-4c27-a5a6-ff775c7e910c"/*LaunchPadXButton*/,
+      "Position": {
+        "X": -508.62225,
+        "Y": 831.48975
+      }
+    },
+    {
+      "ChildId": "0add694b-002d-4ec2-8e3d-15b37a2622b8"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 958.23895,
+        "Y": 563.4099
+      }
+    },
+    {
+      "ChildId": "0b3ac06c-e553-42ef-a6a6-2f638597ea6a"/*BoolToInt*/,
+      "Position": {
+        "X": 381.88354,
+        "Y": 1912.4753
+      }
+    },
+    {
+      "ChildId": "0b712482-41ce-4298-b8b5-62a4ce6b7677"/*PerlinNoise*/,
+      "Position": {
+        "X": 927.75574,
+        "Y": 2668.6807
+      }
+    },
+    {
+      "ChildId": "0dc8bc07-7489-4567-8233-72dbaf1d2352"/*SpreadLayout*/,
+      "Position": {
+        "X": 1590.937,
+        "Y": 1499.4058
+      }
+    },
+    {
+      "ChildId": "0fe0aa69-1bf2-4b6c-9ded-b6eada7f3067"/*And*/,
+      "Position": {
+        "X": -789.2142,
+        "Y": 1437.6053
+      }
+    },
+    {
+      "ChildId": "18b9dad3-0a66-438b-9029-b2d2a921ced2"/*AnimValue*/,
+      "Position": {
+        "X": 1345.3837,
+        "Y": 2765.3735
+      }
+    },
+    {
+      "ChildId": "19bd05d0-8893-4a66-84b1-4c74b4423cb4"/*Compare*/,
+      "Position": {
+        "X": 809.99805,
+        "Y": 516.92773
+      }
+    },
+    {
+      "ChildId": "1beb5de1-b87a-4b29-a42a-6b8071e8f6c9"/*LaunchpadXDisplay*/,
+      "Position": {
+        "X": -497.16107,
+        "Y": 1910.4523
+      }
+    },
+    {
+      "ChildId": "1c572414-1e22-4ece-97ab-d574f353a777"/*Vector4*/,
+      "Position": {
+        "X": -29.339172,
+        "Y": 1162.0898
+      }
+    },
+    {
+      "ChildId": "1dd6c7a3-7ef7-43b4-b8ae-d2d63cadbb47"/*Execute*/,
+      "Position": {
+        "X": -374.37567,
+        "Y": 2026.8689
+      }
+    },
+    {
+      "ChildId": "20a70f69-f4ea-48a7-8f62-ba4be5cda3f5"/*DelayBoolean*/,
+      "Position": {
+        "X": -550.75653,
+        "Y": 1409.1084
+      }
+    },
+    {
+      "ChildId": "23cf1d1e-0cb2-451d-bc60-15a52cf8bad4"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 948.9313,
+        "Y": 386.72583
+      }
+    },
+    {
+      "ChildId": "241b71ab-72fa-4349-8c00-af80b83e8c5a"/*Trigger*/,
+      "Position": {
+        "X": -587.5257,
+        "Y": 2013.6823
+      }
+    },
+    {
+      "ChildId": "244717d1-e739-4cb8-92be-fd4f4dcabf36"/*Boolean*/,
+      "Position": {
+        "X": 245.5857,
+        "Y": 1730.8867
+      }
+    },
+    {
+      "ChildId": "277d61f6-a2b5-43f4-9a96-df4070951185"/*BoolToFloat*/,
+      "Position": {
+        "X": -169.3393,
+        "Y": 1197.0898
+      }
+    },
+    {
+      "ChildId": "28c5627f-fccc-4429-b4a8-746172b3388d"/*MultiplyInt*/,
+      "Position": {
+        "X": 521.88354,
+        "Y": 1912.4753
+      }
+    },
+    {
+      "ChildId": "2910df25-6ff9-4e27-89ba-bc23232a9fc6"/*BoolToFloat*/,
+      "Position": {
+        "X": -169.3393,
+        "Y": 1162.0898
+      }
+    },
+    {
+      "ChildId": "29bc3b87-2b6c-4682-9802-6047705bd106"/*MidiInput*/,
+      "Position": {
+        "X": 905.43414,
+        "Y": 28.026123
+      }
+    },
+    {
+      "ChildId": "2c9cbea6-8ed5-4d63-8383-93aeec34892a"/*RgbaToColor*/,
+      "Position": {
+        "X": 1067.7557,
+        "Y": 2668.6807
+      }
+    },
+    {
+      "ChildId": "2cdaff92-c27a-45c3-af47-056643f74322"/*LookTest05*/,
+      "Position": {
+        "X": 1102.821,
+        "Y": 2418.817
+      }
+    },
+    {
+      "ChildId": "2d78dcda-3c41-4f92-8954-b486de6f6f53"/*LookTest03*/,
+      "Position": {
+        "X": 1086.4839,
+        "Y": 2282.4365
+      }
+    },
+    {
+      "ChildId": "3351a725-86c3-497c-b060-0409b645c5ea"/*KeyboardInput*/,
+      "Position": {
+        "X": -960.8814,
+        "Y": 1436.7738
+      }
+    },
+    {
+      "ChildId": "34d1128e-30e3-4a0c-8fbf-24d42e5249d5"/*MidiInput*/,
+      "Position": {
+        "X": 892.6895,
+        "Y": 156.20728
+      }
+    },
+    {
+      "ChildId": "41d6e2d8-d749-4543-ae7d-4d6ee30b0bfe"/*LaunchPadXButton*/,
+      "Position": {
+        "X": -348.9975,
+        "Y": 977.1587
+      }
+    },
+    {
+      "ChildId": "447d98f6-0e4c-40fa-a354-2be5300d37da"/*Layer2d*/,
+      "Position": {
+        "X": 110.661194,
+        "Y": 1127.0898
+      }
+    },
+    {
+      "ChildId": "58d731b0-2980-4be0-a9be-47347e3a5ccd"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 104.51892,
+        "Y": 1502.2681
+      }
+    },
+    {
+      "ChildId": "5b360f93-c39b-4ee0-bc6c-5425394c9c71"/*PerlinNoise*/,
+      "Position": {
+        "X": 927.75574,
+        "Y": 2703.6807
+      }
+    },
+    {
+      "ChildId": "5df14343-030a-4e2d-a713-975c8c0f9f53"/*Compare*/,
+      "Position": {
+        "X": 808.9313,
+        "Y": 421.72583
+      }
+    },
+    {
+      "ChildId": "604eb41d-6945-4a5d-8848-75fc7872fc0d"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 101.883545,
+        "Y": 1842.4752
+      }
+    },
+    {
+      "ChildId": "68a104f3-18a1-48b5-9ba2-04c0bb864057"/*Glow*/,
+      "Position": {
+        "X": 1479.8718,
+        "Y": 1950.8835
+      }
+    },
+    {
+      "ChildId": "6cff6a6c-2e04-4a1c-b3ba-55494d69f2b4"/*BoolToInt*/,
+      "Position": {
+        "X": 384.51892,
+        "Y": 1572.2681
+      }
+    },
+    {
+      "ChildId": "7143ba61-a614-4062-8059-ccace9072f05"/*LaunchPadXButton*/,
+      "Position": {
+        "X": -350.89178,
+        "Y": 861.9697
+      }
+    },
+    {
+      "ChildId": "858823de-2a55-455e-b29b-44615e9e259b"/*Layer2d*/,
+      "Position": {
+        "X": -858.6164,
+        "Y": 1899.0162
+      }
+    },
+    {
+      "ChildId": "87a160cc-99e8-4809-bc55-a024324a0a83"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 105.58569,
+        "Y": 1660.8867
+      }
+    },
+    {
+      "ChildId": "8880986d-8d00-4360-b23a-27faed32e4da"/*Group*/,
+      "Position": {
+        "X": 1432.324,
+        "Y": 741.82056
+      }
+    },
+    {
+      "ChildId": "89cb1328-7931-4e5e-a70d-e088bbd4ef02"/*Compare*/,
+      "Position": {
+        "X": 820.4896,
+        "Y": 685.91675
+      }
+    },
+    {
+      "ChildId": "8c6f4031-f579-4001-84ca-956e00064577"/*KeyboardInput*/,
+      "Position": {
+        "X": -941.93146,
+        "Y": 1502.9542
+      }
+    },
+    {
+      "ChildId": "8e322dad-b062-47f5-abf5-63b54e43ec28"/*RenderTarget*/,
+      "Position": {
+        "X": 1841.9902,
+        "Y": 995.06744
+      }
+    },
+    {
+      "ChildId": "8e47e11e-a3ee-440f-a3e3-0bc83ff1fc3e"/*BoolToFloat*/,
+      "Position": {
+        "X": -169.3393,
+        "Y": 1232.0898
+      }
+    },
+    {
+      "ChildId": "8f2f5900-0f9d-4059-babc-3a9b6604f68a"/*Compare*/,
+      "Position": {
+        "X": 818.23895,
+        "Y": 598.4099
+      }
+    },
+    {
+      "ChildId": "94802c91-4a06-4027-b6b6-0127145cb562"/*RenderTarget*/,
+      "Position": {
+        "X": -697.23627,
+        "Y": 1905.5514
+      }
+    },
+    {
+      "ChildId": "95d299f6-e722-4b82-8cdd-1690534b33fe"/*LookTest10*/,
+      "Position": {
+        "X": 1121.9995,
+        "Y": 2616.9944
+      }
+    },
+    {
+      "ChildId": "9b33779f-844c-48f8-a136-dde9816ef9eb"/*Boolean*/,
+      "Position": {
+        "X": 244.51892,
+        "Y": 1572.2681
+      }
+    },
+    {
+      "ChildId": "a5103b02-2ad8-48fd-afce-6c0321146717"/*LookTest09*/,
+      "Position": {
+        "X": 1107.7932,
+        "Y": 2558.0383
+      }
+    },
+    {
+      "ChildId": "a7b0a270-85d5-4d1e-b3c3-fd4c23ad5dd8"/*LookTest04*/,
+      "Position": {
+        "X": 1091.456,
+        "Y": 2350.6267
+      }
+    },
+    {
+      "ChildId": "a7db6d8e-20ce-4aa4-974a-cbf0ee11d0d0"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 960.4896,
+        "Y": 650.91675
+      }
+    },
+    {
+      "ChildId": "ae6d3831-4b4b-4c0b-b483-c912dbe2a34e"/*ForwardBeatTaps*/,
+      "Position": {
+        "X": 1152.3508,
+        "Y": 0.0
+      }
+    },
+    {
+      "ChildId": "b19eda8c-a0b8-4e86-a471-ada7c6af85e7"/*Boolean*/,
+      "Position": {
+        "X": 241.88354,
+        "Y": 1912.4753
+      }
+    },
+    {
+      "ChildId": "b4127391-1553-4a4e-90e8-6126308311c2"/*LookTest02*/,
+      "Position": {
+        "X": 1071.5673,
+        "Y": 2209.2742
+      }
+    },
+    {
+      "ChildId": "b59b888d-22bb-4955-82ee-eeb8eeb5b8e7"/*PickTexture*/,
+      "Position": {
+        "X": 1339.8718,
+        "Y": 1950.8835
+      }
+    },
+    {
+      "ChildId": "bb9aa4e6-3756-4b41-996c-b3dd28b00893"/*LaunchPadXButton*/,
+      "Position": {
+        "X": 949.99805,
+        "Y": 481.92773
+      }
+    },
+    {
+      "ChildId": "c31cce6d-2140-473b-9485-958ed8cb2505"/*Modulo*/,
+      "Position": {
+        "X": 591.5944,
+        "Y": 426.7124
+      }
+    },
+    {
+      "ChildId": "d9c041df-97a6-44c2-9357-13184335a5e6"/*LookTest01*/,
+      "Position": {
+        "X": 1065.1744,
+        "Y": 2148.8975
+      }
+    },
+    {
+      "ChildId": "e1b4fd47-9a60-48b4-96b4-50e68bfaf6db"/*BoolToInt*/,
+      "Position": {
+        "X": 385.5857,
+        "Y": 1730.8867
+      }
+    },
+    {
+      "ChildId": "e2fd741a-9bcc-4cf6-b08a-3031cba86ec8"/*Execute*/,
+      "Position": {
+        "X": 1130.1614,
+        "Y": 384.83813
+      }
+    },
+    {
+      "ChildId": "ed64786a-abbe-4ff2-a633-efe419af7d50"/*AnimValue*/,
+      "Position": {
+        "X": 451.59442,
+        "Y": 426.7124
+      }
+    },
+    {
+      "ChildId": "ed6dd009-2822-4519-940a-d3d9889a819c"/*Layer2d*/,
+      "Position": {
+        "X": 1705.7914,
+        "Y": 2044.986
+      }
+    },
+    {
+      "ChildId": "efb5a1b9-3753-467a-984b-11d9a3fe1fe5"/*Trigger*/,
+      "Position": {
+        "X": -810.7558,
+        "Y": 1643.1925
+      }
+    },
+    {
+      "ChildId": "efe3bfba-eb0c-4ce5-a4d6-16d0f0dde622"/*LookTest07*/,
+      "Position": {
+        "X": 1104.2417,
+        "Y": 2492.6895
+      }
+    },
+    {
+      "ChildId": "f608d45c-870a-4273-b4a2-89bcc7b80180"/*SumInts*/,
+      "Position": {
+        "X": 700.45654,
+        "Y": 1849.2262
+      }
+    },
+    {
+      "ChildId": "f689eeb0-56d0-402f-b213-f5fb988e648d"/*MultiplyInt*/,
+      "Position": {
+        "X": 525.5857,
+        "Y": 1730.8867
+      }
+    },
+    {
+      "ChildId": "fa4726b3-bcca-429d-bdaf-7e21d098028c"/*Trigger*/,
+      "Position": {
+        "X": -550.75653,
+        "Y": 1444.1084
+      }
+    },
+    {
+      "ChildId": "fbfdd766-314d-479a-990e-b9b3a75420d0"/*Group*/,
+      "Position": {
+        "X": 1657.8848,
+        "Y": 810.01807
+      }
+    }
+  ],
+  "OutputUis": [
+    {
+      "OutputId": "aeeff0ab-3338-4901-9959-374056721ab7"/*Output*/,
+      "Position": {
+        "X": 2026.2592,
+        "Y": 942.5797
+      }
+    }
+  ],
+  "Annotations": [
+    {
+      "Id": "0341ca51-6cb4-41e0-b93c-201be7565401",
+      "Title": "Binary input to select among the 8 LookTest scenes",
+      "Label": "Top Right LED",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": 41.883545,
+        "Y": 1382.2681
+      },
+      "Size": {
+        "X": 828.57294,
+        "Y": 675.2081
+      }
+    },
+    {
+      "Id": "378e8075-231b-4dfd-b881-30656b62e72e",
+      "Title": "Do it with a sysex upon init (exercise/TODO/FIXME)\n\nBottom Left = x=1,y=1\nTop Right = x=8,y=8\n\nButtons must be hooked to an active Execute/Group\n",
+      "Label": "Set Launchpad X to Programmer mode...",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": 193.16107,
+        "Y": -1.1035156
+      },
+      "Size": {
+        "X": 588.1395,
+        "Y": 250.59839
+      }
+    },
+    {
+      "Id": "4cc5c685-0284-4e48-8581-e42735c84696",
+      "Title": "- Solo Re-Sync\n- Record : TAP",
+      "Label": "Set BPM",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": 832.6895,
+        "Y": -120.0
+      },
+      "Size": {
+        "X": 489.66125,
+        "Y": 421.20728
+      }
+    },
+    {
+      "Id": "6c8bbb5f-4a3e-4a6c-90ce-e4230ba14bfd",
+      "Title": "or push this trigger",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -837.3956,
+        "Y": 1591.1044
+      },
+      "Size": {
+        "X": 221.60706,
+        "Y": 103.31995
+      }
+    },
+    {
+      "Id": "6e3fa728-0faf-494f-89f6-fff2815323a1",
+      "Title": "Shift+X to re-sync all active button LED",
+      "Label": "Initialize",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -995.85657,
+        "Y": 1311.9734
+      },
+      "Size": {
+        "X": 817.32495,
+        "Y": 837.57935
+      }
+    },
+    {
+      "Id": "c5847ae7-340b-4776-959f-720f95f0be20",
+      "Title": " Use launchpad X Display, to send a black texture, shutting\nall LED Down...\n Next Frame we init All buttons\n",
+      "Label": "Full Grid Reset",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -918.6164,
+        "Y": 1779.0162
+      },
+      "Size": {
+        "X": 713.8731,
+        "Y": 335.98474
+      }
+    },
+    {
+      "Id": "ee4fda64-21e7-4741-9a5f-08d43d41ec53",
+      "Title": "The 3 pads at the bottom set RGB on the bottom rectangle",
+      "Label": "RGB Strip",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": -568.13116,
+        "Y": 719.82983
+      },
+      "Size": {
+        "X": 867.5685,
+        "Y": 545.7014
+      }
+    },
+    {
+      "Id": "f8848f0f-141d-4243-8456-5bcaa7bcaff2",
+      "Title": "The four Upper-left LED",
+      "Label": "BPM Display",
+      "Color": {
+        "X": 0.6,
+        "Y": 0.6,
+        "Z": 0.6,
+        "W": 1.0
+      },
+      "Position": {
+        "X": 415.11993,
+        "Y": 329.2776
+      },
+      "Size": {
+        "X": 907.23083,
+        "Y": 423.46094
+      }
+    }
+  ]
+}
