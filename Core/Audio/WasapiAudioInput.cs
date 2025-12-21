@@ -187,7 +187,7 @@ public static class WasapiAudioInput
             return length;
         }
         
-        var level = BassWasapi.GetLevel();
+        var level = Math.Abs(BassWasapi.GetLevel());
         _lastAudioLevel = (float)(level * 0.00001);
 
         var playbackSettings = Playback.Current?.Settings;
@@ -227,4 +227,5 @@ public static class WasapiAudioInput
     /// This is only used of the gain meter in the playback settings dialog.
     /// </summary>
     public static float DecayingAudioLevel => (float)(_lastAudioLevel / Math.Max(1, (Playback.RunTimeInSecs - LastUpdateTime) * 100));
+    
 }

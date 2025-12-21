@@ -6,6 +6,7 @@ using ManagedBass;
 using ManagedBass.Wasapi;
 using T3.Core.Animation;
 using T3.Core.Audio;
+using T3.Core.DataTypes.Vector;
 using T3.Core.IO;
 using T3.Core.Operator;
 using T3.Editor.Gui.Audio;
@@ -361,15 +362,22 @@ internal static class PlaybackSettingsPopup
                 ImGui.PushStyleVar(ImGuiStyleVar.Alpha, 0.5f * ImGui.GetStyle().Alpha);
                 FormInputs.DrawInputLabel("Input Level");
                 ImGui.PopStyleVar();
+                
                 ImGui.InvisibleButton("##gainMeter", new Vector2(-1, ImGui.GetFrameHeight()));
+                // ImGui.GetContentRegionAvail()
                 var min = ImGui.GetItemRectMin();
                 var max = ImGui.GetItemRectMax();
+                // max.X -= 100f; // * T3Ui.UiScaleFactor;
+                max.X = ImGui.GetContentRegionAvail().X;
                 var dl = ImGui.GetWindowDrawList();
 
                 var level = settings.AudioGainFactor * WasapiAudioInput.DecayingAudioLevel * 0.03f;
+                
 
-                dl.AddRectFilled(min, new Vector2(min.X + level, max.Y), UiColors.BackgroundHover);
-
+                // dl.AddRectFilled(min, new Vector2(Math.Min(min.X + level, max.X), max.Y), UiColors.BackgroundHover);
+                dl.AddRectFilled(min, new Vector2(Math.Min(min.X + level, max.X), max.Y), UiColors.BackgroundHover);
+                dl.AddRectFilled(new Vector2(max.X,min.Y) , new Vector2(max.X + 50f, max.Y), 
+                                 level < 644f ? UiColors.BackgroundHover : UiColors.StatusError);
                 FormInputs.DrawInputLabel("Input Device");
                 ImGui.BeginGroup();
 
