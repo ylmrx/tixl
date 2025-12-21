@@ -37,6 +37,9 @@ namespace Examples.user.fuzzy.midi{
         [Input(Guid = "e21eb02c-5342-4972-a390-6fb11f6a5a32")]
         public readonly InputSlot<bool> FromState = new InputSlot<bool>();
 
+        [Input(Guid = "dac587a2-aa4d-40d4-98ca-5924c6dea03f")]
+        public readonly InputSlot<bool> Toggle = new InputSlot<bool>();
+
     }
 }
 
