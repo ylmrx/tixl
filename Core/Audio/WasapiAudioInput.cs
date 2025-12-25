@@ -193,8 +193,7 @@ public static class WasapiAudioInput
         var playbackSettings = Playback.Current?.Settings;
         if (playbackSettings == null) 
             return length;
-        
-        
+
         AudioAnalysis.ProcessUpdate(playbackSettings?.AudioGainFactor?? 1,
                                     playbackSettings?.AudioDecayFactor?? 0.9f);
 
@@ -227,5 +226,4 @@ public static class WasapiAudioInput
     /// This is only used of the gain meter in the playback settings dialog.
     /// </summary>
     public static float DecayingAudioLevel => (float)(_lastAudioLevel / Math.Max(1, (Playback.RunTimeInSecs - LastUpdateTime) * 100));
-    
 }
