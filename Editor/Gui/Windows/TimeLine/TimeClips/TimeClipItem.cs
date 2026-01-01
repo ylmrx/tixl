@@ -152,12 +152,22 @@ internal static class TimeClipItem
                 _timeRangeEnd.TimeInBars = timeClip.TimeRange.End;
                 ImGui.TextUnformatted($"Visible: {TimeControls.FormattedTime(_timeRangeStart)} "+
                                       $"... {TimeControls.FormattedTime(_timeRangeEnd)}");
+                if (UserSettings.Config.TimeDisplayMode != TimeFormat.TimeDisplayModes.Bars)
+                {
+                    ImGui.TextUnformatted($"Source {{timeClip.SourceRange.Start:0.00}} "+
+                                          $"... {{timeClip.SourceRange.End:0.00}}");
+                }
                 if (timeRemapped)
                 {
                     _sourceRangeStart.TimeInBars = timeClip.SourceRange.Start;
                     _sourceRangeEnd.TimeInBars = timeClip.SourceRange.End;
                     ImGui.TextUnformatted($"Source: {TimeControls.FormattedTime(_sourceRangeStart)} "+
                                           $"... {TimeControls.FormattedTime(_sourceRangeEnd)}");
+                    if (UserSettings.Config.TimeDisplayMode != TimeFormat.TimeDisplayModes.Bars)
+                    {
+                        ImGui.TextUnformatted($"Source {{timeClip.SourceRange.Start:0.00}} "+
+                                              $"... {{timeClip.SourceRange.End:0.00}}");
+                    }
                 }
 
                 if (timeStretched)
